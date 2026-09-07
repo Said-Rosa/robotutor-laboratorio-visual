@@ -1,0 +1,29 @@
+name: Build docs/index.html
+
+# Reconstruye docs/index.html a partir de robotutor.html en cada push a main,
+# para que ningun agente (Claude o Codex) tenga que acordarse de correr el
+# build a mano ni pueda dejar docs/index.html desincronizado de la fuente.
+on:
+  push:
+    branches: [main]
+    paths:
+      - robotutor.html
+      - build-artifact.sh
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generar docs/index.html
+        run: bash build-artifact.sh robotutor.html docs/index.html
+      - name: Commit si hay cambios
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/index.html
+          git diff --cached --quiet || git commit -m "Reconstruir docs/index.html [skip ci]"
+          git push

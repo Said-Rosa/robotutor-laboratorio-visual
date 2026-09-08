@@ -6019,10 +6019,6 @@ function makeWorkspaceRP(diff,variant=pick(['area','radii','point','membership',
  if(variant==='extension')return{...base,type:'number',answer:qmax,statement:assumptions+`${offset?'L='+L+' m. ':''}El extremo debe alcanzar una distancia radial máxima de ${rmax} m desde O. Determina el valor máximo necesario de q₂, en metros. No midas la figura.`,params:{...base.params,unknownExtension:true},numericAlternatives:[{value:rmax+L,message:'Revisa desde dónde se mide la extensión y dónde empieza el tramo fijo.'}]};
  if(variant==='membership'){
   const r=pick([rmin,(rmin+rmax)/2,rmax+1]),angle=pick([amin,(amin+amax)/2,amax+30]),px=r*Math.cos(rad(angle)),py=r*Math.sin(rad(angle));
-<<<<<<< Updated upstream
-  const inside=r>=rmin&&r<=rmax&&(r===0||amax-amin===360||angle<=amax);
-  return{...base,type:'choice',options:['Sí, pertenece.','No, no pertenece.'],answer:inside?'Sí, pertenece.':'No, no pertenece.',params:{...base.params,target:[px,py]},statement:assumptions+data+`El punto P=(${px.toFixed(5)}, ${py.toFixed(5)}) m se define exactamente por radio ${r} m y dirección ${angle}°. Decide si pertenece a la región alcanzable. Las coordenadas cartesianas se muestran redondeadas.`};
-=======
   const radioDentro=r>=rmin&&r<=rmax,anguloDentro=r===0||amax-amin===360||angle<=amax;
   const inside=radioDentro&&anguloDentro;
   /* Pertenecer al sector anular son dos condiciones, y el diagnóstico debe
@@ -6038,7 +6034,6 @@ function makeWorkspaceRP(diff,variant=pick(['area','radii','point','membership',
      :motivoFuera}
    },
    statement:assumptions+data+`El punto P=(${px.toFixed(5)}, ${py.toFixed(5)}) m se define exactamente por radio ${r} m y dirección ${angle}°. Decide si pertenece a la región alcanzable. Las coordenadas cartesianas se muestran redondeadas.`};
->>>>>>> Stashed changes
  }
  return{...base,type:'number',answer:A,tolerance:.02,statement:assumptions+data+'Determina mediante el método geométrico la superficie total de la región alcanzable, en m².',numericAlternatives:[{value:Math.PI*(rmax*rmax-rmin*rmin),message:'Comprueba si el giro abarca una vuelta completa.'},{value:rad(amax-amin)*(rmax-rmin)**2/2,message:'La diferencia de cuadrados no es el cuadrado de una diferencia.'}]};
 }

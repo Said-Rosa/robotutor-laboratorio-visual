@@ -2604,6 +2604,10 @@ Object.entries(theoryExpansion).forEach(([chapterId,topics])=>{
 
 const glossary = [
 ["Actuador","Dispositivo que convierte energía eléctrica, neumática o hidráulica en movimiento o fuerza."],
+["Articulación cilíndrica","Unión que permite girar y desplazarse a lo largo del mismo eje, con ambos movimientos independientes: dos grados de libertad."],
+["Articulación esférica o rótula","Unión que permite tres giros independientes alrededor de un punto común. Orienta, pero no traslada."],
+["Articulación helicoidal","Unión de tornillo: el giro y el avance comparten eje y quedan ligados por el paso, así que basta una coordenada."],
+["Articulación planar","Unión que permite dos desplazamientos independientes dentro de un plano. El contacto plano completo añade el giro sobre la normal."],
 ["Articulación prismática","Unión que permite una traslación relativa a lo largo de un eje."],
 ["Articulación revoluta","Unión que permite una rotación relativa alrededor de un eje."],
 ["Backlash","Holgura mecánica que produce una zona muerta al invertir el movimiento."],
@@ -2616,6 +2620,7 @@ const glossary = [
 ["DH","Familia de convenciones Denavit–Hartenberg para parametrizar transformaciones consecutivas mediante cuatro parámetros."],
 ["DH estándar","Convención que compone Rz(θᵢ)Tz(dᵢ)Tx(aᵢ)Rx(αᵢ) con los índices declarados."],
 ["DH modificado","Variante común que reordena operaciones y desplaza los índices de a y α; su tabla no puede mezclarse con DH estándar."],
+["Dispositivo de protección","Medida que no impide el acceso: lo detecta y provoca la parada. Incluye los sensibles a la presión —bordes, barras, parachoques y alfombras— y la detección sin contacto."],
 ["Efector final","Herramienta o dispositivo de sujeción conectado al extremo del robot."],
 ["Encoder","Sensor que mide posición angular o lineal, de forma incremental o absoluta."],
 ["Eje–ángulo","Representación de una rotación mediante un eje unitario y un ángulo, relacionada con la fórmula de Rodrigues."],
@@ -2628,6 +2633,8 @@ const glossary = [
 ["Jacobiano","Matriz que relaciona velocidades articulares y velocidad del efector final."],
 ["Marco de referencia","Origen y conjunto de ejes usados para expresar coordenadas."],
 ["Matriz homogénea","Matriz 4×4 que combina rotación y traslación de un cuerpo rígido."],
+["Medios de advertencia","Señales, balizas y avisadores que informan de un peligro. Son medidas complementarias: no impiden el acceso ni detienen el movimiento, así que nunca sustituyen a un resguardo."],
+["Método de tres etapas","Orden obligado para reducir el riesgo: diseño inherentemente seguro, después resguardos y medidas de protección, y solo al final la información para la utilización."],
 ["Mínimos cuadrados amortiguados","Método de inversa diferencial que limita la amplificación cerca de singularidades mediante un término de amortiguamiento."],
 ["Normal común","Recta perpendicular a dos ejes; en DH fija la dirección de xᵢ y la distancia aᵢ cuando los ejes son alabeados."],
 ["Ortonormal","Propiedad de ejes unitarios y mutuamente perpendiculares."],
@@ -2637,8 +2644,10 @@ const glossary = [
 ["Par RMS","Valor cuadrático medio del par durante un ciclo, útil para evaluar carga térmica del actuador."],
 ["Reflexión","Transformación ortogonal con determinante −1; conserva longitudes, pero no pertenece a SO(3)."],
 ["Repetibilidad","Capacidad de regresar consistentemente a una misma pose."],
+["Resguardo","Barrera física que impide o dificulta llegar a la parte peligrosa. Puede ser fijo, móvil con enclavamiento o regulable."],
 ["Resolución","Incremento mínimo que un sistema puede ordenar o medir."],
 ["Robot industrial","Manipulador multipropósito, reprogramable y controlado automáticamente para automatización industrial."],
+["Rotoprismática","Nombre que algunos textos dan a la unión que combina giro y desplazamiento. No distingue por sí solo la cilíndrica de la helicoidal: hay que mirar si las coordenadas son independientes."],
 ["SCARA","Robot con dos articulaciones rotacionales paralelas, habitual en ensamblaje plano."],
 ["SE(3)","Conjunto matemático de transformaciones rígidas tridimensionales."],
 ["Singularidad","Configuración donde el jacobiano pierde rango."],
@@ -4416,33 +4425,53 @@ function makeGripForce(diff){
 /* Los capítulos 1 y 2 alternan ahora banco conceptual y cálculo paramétrico. */
 /* Static mechanism plates share one geometric model with classification answers. */
 const REFLECTION_BANK=[
- {key:'axes',topic:'1.3',yes:'Dos brazos RRP pueden pertenecer a arquitecturas distintas según la disposición de sus ejes.',no:'La secuencia RRP basta por sí sola para distinguir un SCARA de un robot polar.',question:'Explica por qué conocer la secuencia RRP no basta para distinguir un SCARA de un robot polar.',criteria:['Distingue tipo de articulación de dirección de su eje.','Compara los ejes paralelos del SCARA con los ejes de giro perpendiculares del polar clásico.']},
- {key:'repeat',topic:'1.5',yes:'Un robot puede repetir una posición con poca dispersión y conservar un error sistemático respecto a la posición programada.',no:'Una repetibilidad alta garantiza por sí sola una exactitud absoluta alta.',question:'Un robot vuelve a un grupo pequeño de puntos, pero ese grupo está desplazado del objetivo. Explica qué magnitudes distinguirías y qué revisarías.',criteria:['Distingue dispersión o repetibilidad del desplazamiento medio o exactitud.','Propone revisar calibración, marcos y referencia de herramienta antes de atribuir todo a ruido aleatorio.']},
- {key:'risk',topic:'1.8',yes:'La evaluación del riesgo de una aplicación robótica debe considerar también tareas de ajuste y mantenimiento.',no:'Una aplicación robótica solo necesita evaluar riesgos durante la producción automática.',question:'En una celda se ha estudiado el ciclo automático, pero no el ajuste ni el mantenimiento. Explica qué falta en el análisis y por qué.',criteria:['Incluye tareas no rutinarias y posibles accesos de personas.','Relaciona cada tarea con peligros y medidas de reducción del riesgo.']},
- {key:'collaboration',topic:'1.8',yes:'Cambiar la herramienta de una aplicación colaborativa puede cambiar sus riesgos.',no:'La etiqueta de robot colaborativo hace innecesario evaluar los riesgos de la herramienta y la pieza.',question:'Se cambia una ventosa por una herramienta con bordes expuestos en una aplicación colaborativa. Explica qué debe volver a evaluarse.',criteria:['Considera el conjunto robot, herramienta, pieza y tarea.','Identifica nuevos peligros de contacto y revisa las medidas de protección de la aplicación.']},
- {key:'guards',topic:'1.8',yes:'Un resguardo impide o dificulta el acceso, mientras que un dispositivo de protección deja pasar y provoca la parada al detectar la presencia.',no:'Un resguardo y un dispositivo de protección hacen lo mismo, así que son intercambiables en cualquier aplicación.',question:'Compara un resguardo móvil enclavado con una cortina óptica. Explica en qué se diferencia lo que hace cada uno.',criteria:['Distingue impedir el acceso de detectarlo y provocar la parada.','Relaciona la elección con la tarea: frecuencia de acceso, espacio disponible y tiempo de parada.']},
- {key:'pressure',topic:'1.8',yes:'Un dispositivo sensible a la presión actúa por contacto, así que limita la consecuencia pero no evita que el contacto se produzca.',no:'Un borde o un parachoques sensible a la presión evita que llegue a producirse el contacto con la parte peligrosa.',question:'Se propone proteger un eje con un borde sensible a la presión. Explica qué queda cubierto y qué no con esa elección.',criteria:['Reconoce que la parada se inicia cuando el contacto ya ha ocurrido.','Propone detección sin contacto o un resguardo cuando lo que debe evitarse es el contacto mismo.']},
- {key:'signal',topic:'1.8',yes:'Los medios de advertencia son medidas complementarias: informan del peligro sin impedir el acceso ni detener el movimiento.',no:'Una baliza luminosa y una señal de advertencia bastan por sí solas para proteger el acceso a una celda robotizada.',question:'Una celda solo dispone de balizas y señalización para avisar del arranque del robot. Explica qué le falta y por qué.',criteria:['Identifica la advertencia como medida complementaria dentro de la jerarquía.','Señala que hace falta un resguardo o un dispositivo que impida o detecte el acceso.']},
- {key:'failure',topic:'1.8',yes:'Los riesgos mecánicos de una instalación automatizada provienen tanto del funcionamiento previsto como de los fallos y de las tareas de intervención.',no:'Mientras el robot funcione conforme a su programa, no existe ningún origen de riesgo mecánico que analizar.',question:'Enumera y explica al menos dos orígenes de riesgo mecánico distintos del movimiento nominal del robot.',criteria:['Incluye modos de fallo, como pérdida de energía, freno degradado o mando erróneo.','Incluye tareas no productivas con acceso de personas: ajuste, programación o mantenimiento.']},
- {key:'joint',topic:'2.1',yes:'En una unión helicoidal ideal de paso constante, el giro y el avance están acoplados y basta una coordenada independiente.',no:'Toda unión que gira y desliza tiene necesariamente dos grados de libertad.',question:'Compara una unión cilíndrica libre con una helicoidal. Explica qué diferencia determina sus grados de libertad.',criteria:['Distingue movimientos independientes de movimientos acoplados.','Asigna dos coordenadas a la cilíndrica y una a la helicoidal de paso fijo.']},
- {key:'pairs',topic:'2.1',yes:'Una unión esférica aporta tres libertades de orientación y una prismática solo una de traslación.',no:'Todas las uniones entre dos cuerpos aportan un único grado de libertad.',question:'Explica por qué contar uniones no equivale a contar grados de libertad en una cadena.',criteria:['Asocia a cada tipo de unión el número de libertades que permite.','Relaciona la movilidad de la cadena con la suma de esas libertades, no con el número de uniones.']},
- {key:'industrial',topic:'2.1',yes:'Los robots industriales se construyen casi siempre con uniones de rotación y prismáticas, aunque existan otros tipos de par.',no:'Las uniones esféricas y planares no existen porque solo se emplean rotación y traslación.',question:'Un catálogo de pares cinemáticos incluye uniones esféricas y planares, pero un robot industrial casi nunca las lleva. Explica esa diferencia.',criteria:['Distingue qué pares existen como catálogo mecánico de cuáles se accionan y se miden en la práctica.','Menciona que las uniones de varias libertades se modelan como combinaciones de R y P.']},
- {key:'gear',topic:'2.2',yes:'Un reductor ideal intercambia velocidad y par sin aumentar la potencia mecánica.',no:'Un reductor ideal aumenta el par de salida y conserva a la vez la velocidad del motor.',question:'Explica qué se gana y qué se pierde al aumentar la relación de reducción manteniendo el mismo motor.',criteria:['Relaciona una mayor reducción con menor velocidad de salida y mayor par ideal.','Distingue potencia ideal de pérdidas y evita afirmar que el reductor crea energía.']},
- {key:'sensor',topic:'2.4',yes:'La lectura del encoder del motor puede no reflejar una deformación situada después del sensor.',no:'Si el encoder del motor alcanza la consigna, el TCP está necesariamente en la posición exacta solicitada.',question:'El encoder informa que se alcanzó la consigna, pero el TCP se desvía bajo carga. Explica dos causas compatibles con esa observación.',criteria:['Incluye una causa mecánica posterior al sensor, como flexión u holgura.','Considera referencias, calibración o transmisión, sin confundir posición del motor con posición del TCP.']},
- {key:'rotation',topic:'3.2',yes:'Una matriz de rotación tridimensional propia tiene columnas ortonormales y determinante positivo igual a uno.',no:'Toda matriz ortogonal de tamaño tres por tres representa una rotación propia, aunque su determinante sea negativo.',question:'Explica por qué comprobar únicamente la ortogonalidad no basta para validar una matriz de rotación propia.',criteria:['Incluye la condición de determinante +1.','Distingue una reflexión de una rotación propia.']},
- {key:'frames',topic:'3.3',yes:'Componer movimientos exige conocer si cada eje está referido al sistema fijo o al sistema móvil.',no:'El orden de multiplicación de transformaciones no depende de si sus ejes son fijos o móviles.',question:'Un enunciado describe dos giros sin indicar si los ejes son fijos o móviles. Explica qué ambigüedad aparece.',criteria:['Identifica la referencia de los ejes como dato necesario.','Relaciona ese dato con el orden o lado de composición, sin asumir que las rotaciones conmutan.']},
- {key:'point',topic:'3.11',yes:'Dos ternas de coordenadas distintas pueden representar el mismo punto físico en marcos diferentes.',no:'Si cambian las coordenadas de un punto al cambiar de marco, el punto necesariamente se ha movido físicamente.',question:'Explica cómo puede cambiar la terna de coordenadas de un punto inmóvil cuando se cambia el marco de referencia.',criteria:['Distingue el punto físico de su representación.','Relaciona el cambio de coordenadas con la posición y orientación de los marcos.']},
- {key:'workspace',topic:'4.11',yes:'Los límites articulares pueden reducir la región alcanzable aunque las longitudes de los eslabones permanezcan iguales.',no:'El espacio de trabajo depende únicamente de las longitudes y nunca de los límites articulares.',question:'Dos brazos tienen las mismas longitudes, pero distintos límites articulares. Explica por qué pueden tener regiones alcanzables diferentes.',criteria:['Considera el conjunto de configuraciones permitidas.','Distingue alcance máximo de región completa, incluidos huecos o sectores no alcanzables.']},
- {key:'singularity',topic:'4.5',yes:'Una singularidad de la tarea corresponde a una pérdida de rango de su jacobiano.',no:'Calcular el determinante es un criterio aplicable a cualquier jacobiano, incluso si no es cuadrado.',question:'Explica cómo estudiarías una singularidad cuando el jacobiano de la tarea no es cuadrado.',criteria:['Utiliza rango o valores singulares como criterio.','Explica por qué no corresponde calcular el determinante de una matriz no cuadrada.']},
- {key:'inverse',topic:'4.3',yes:'Verificar una solución mediante cinemática directa no sustituye la comprobación de límites y colisiones.',no:'Si una solución de cinemática inversa reproduce la posición pedida, siempre es ejecutable por el robot real.',question:'Una solución inversa reproduce la posición deseada. Explica qué comprobarías antes de considerarla ejecutable.',criteria:['Comprueba límites articulares y obstáculos o colisiones.','Considera orientación requerida, singularidades o continuidad del movimiento.']},
- {key:'gravity',topic:'5.5',yes:'Mantener velocidad articular nula no implica que el par necesario para sostener el robot sea nulo.',no:'Un robot inmóvil nunca necesita par en sus articulaciones.',question:'Explica por qué un brazo inmóvil puede necesitar par para sostener una carga.',criteria:['Relaciona el par con el momento de las fuerzas gravitatorias.','Distingue equilibrio estático de ausencia de fuerzas o pares.']},
- {key:'pid',topic:'5.6',yes:'La saturación del actuador puede impedir alcanzar la respuesta prevista por un modelo lineal del control.',no:'Aumentar indefinidamente las ganancias de un PID garantiza una respuesta cada vez mejor.',question:'Un aumento de ganancias provoca oscilaciones y saturación. Explica por qué la mejora del control no puede basarse solo en aumentar ganancias.',criteria:['Considera límites del actuador y dinámica no ideal.','Relaciona ganancias con estabilidad, ruido u oscilaciones; propone verificar la respuesta del sistema.']},
- {key:'warning',topic:'1.8',yes:'Una señal de advertencia puede informar de un peligro sin impedir físicamente el acceso a él.',no:'Una señal luminosa de advertencia sustituye por sí sola cualquier resguardo de una celda.',question:'Compara una señal luminosa de advertencia con un resguardo enclavado. Explica sus funciones dentro de una aplicación.',criteria:['Distingue informar de restringir acceso o actuar sobre el funcionamiento.','Sitúa la elección de medidas dentro de la evaluación del riesgo de la aplicación.']}
+ {key:'axes',topic:'1.3',yes:'Dos brazos RRP pueden pertenecer a arquitecturas distintas según la disposición de sus ejes.',no:'La secuencia RRP basta por sí sola para distinguir un SCARA de un robot polar.',trap:'basta por sí sola',question:'Explica por qué conocer la secuencia RRP no basta para distinguir un SCARA de un robot polar.',criteria:['Distingue tipo de articulación de dirección de su eje.','Compara los ejes paralelos del SCARA con los ejes de giro perpendiculares del polar clásico.']},
+ {key:'repeat',topic:'1.5',yes:'Un robot puede repetir una posición con poca dispersión y conservar un error sistemático respecto a la posición programada.',no:'Una repetibilidad alta garantiza por sí sola una exactitud absoluta alta.',trap:'garantiza por sí sola',question:'Un robot vuelve a un grupo pequeño de puntos, pero ese grupo está desplazado del objetivo. Explica qué magnitudes distinguirías y qué revisarías.',criteria:['Distingue dispersión o repetibilidad del desplazamiento medio o exactitud.','Propone revisar calibración, marcos y referencia de herramienta antes de atribuir todo a ruido aleatorio.']},
+ {key:'risk',topic:'1.8',yes:'La evaluación del riesgo de una aplicación robótica debe considerar también tareas de ajuste y mantenimiento.',no:'Una aplicación robótica solo necesita evaluar riesgos durante la producción automática.',trap:'solo … durante la producción automática',question:'En una celda se ha estudiado el ciclo automático, pero no el ajuste ni el mantenimiento. Explica qué falta en el análisis y por qué.',criteria:['Incluye tareas no rutinarias y posibles accesos de personas.','Relaciona cada tarea con peligros y medidas de reducción del riesgo.']},
+ {key:'collaboration',topic:'1.8',yes:'Cambiar la herramienta de una aplicación colaborativa puede cambiar sus riesgos.',no:'La etiqueta de robot colaborativo hace innecesario evaluar los riesgos de la herramienta y la pieza.',trap:'hace innecesario',question:'Se cambia una ventosa por una herramienta con bordes expuestos en una aplicación colaborativa. Explica qué debe volver a evaluarse.',criteria:['Considera el conjunto robot, herramienta, pieza y tarea.','Identifica nuevos peligros de contacto y revisa las medidas de protección de la aplicación.']},
+ {key:'guards',topic:'1.8',yes:'Un resguardo impide o dificulta el acceso, mientras que un dispositivo de protección deja pasar y provoca la parada al detectar la presencia.',no:'Un resguardo y un dispositivo de protección hacen lo mismo, así que son intercambiables en cualquier aplicación.',trap:'en cualquier aplicación',question:'Compara un resguardo móvil enclavado con una cortina óptica. Explica en qué se diferencia lo que hace cada uno.',criteria:['Distingue impedir el acceso de detectarlo y provocar la parada.','Relaciona la elección con la tarea: frecuencia de acceso, espacio disponible y tiempo de parada.']},
+ {key:'pressure',topic:'1.8',yes:'Un dispositivo sensible a la presión actúa por contacto, así que limita la consecuencia pero no evita que el contacto se produzca.',no:'Un borde o un parachoques sensible a la presión evita que llegue a producirse el contacto con la parte peligrosa.',trap:'evita que llegue a producirse',question:'Se propone proteger un eje con un borde sensible a la presión. Explica qué queda cubierto y qué no con esa elección.',criteria:['Reconoce que la parada se inicia cuando el contacto ya ha ocurrido.','Propone detección sin contacto o un resguardo cuando lo que debe evitarse es el contacto mismo.']},
+ {key:'signal',topic:'1.8',yes:'Los medios de advertencia son medidas complementarias: informan del peligro sin impedir el acceso ni detener el movimiento.',no:'Una baliza luminosa y una señal de advertencia bastan por sí solas para proteger el acceso a una celda robotizada.',trap:'bastan por sí solas',question:'Una celda solo dispone de balizas y señalización para avisar del arranque del robot. Explica qué le falta y por qué.',criteria:['Identifica la advertencia como medida complementaria dentro de la jerarquía.','Señala que hace falta un resguardo o un dispositivo que impida o detecte el acceso.']},
+ {key:'failure',topic:'1.8',yes:'Los riesgos mecánicos de una instalación automatizada provienen tanto del funcionamiento previsto como de los fallos y de las tareas de intervención.',no:'Mientras el robot funcione conforme a su programa, no existe ningún origen de riesgo mecánico que analizar.',trap:'no existe ningún',question:'Enumera y explica al menos dos orígenes de riesgo mecánico distintos del movimiento nominal del robot.',criteria:['Incluye modos de fallo, como pérdida de energía, freno degradado o mando erróneo.','Incluye tareas no productivas con acceso de personas: ajuste, programación o mantenimiento.']},
+ {key:'joint',topic:'2.1',yes:'En una unión helicoidal ideal de paso constante, el giro y el avance están acoplados y basta una coordenada independiente.',no:'Toda unión que gira y desliza tiene necesariamente dos grados de libertad.',trap:'toda … necesariamente',question:'Compara una unión cilíndrica libre con una helicoidal. Explica qué diferencia determina sus grados de libertad.',criteria:['Distingue movimientos independientes de movimientos acoplados.','Asigna dos coordenadas a la cilíndrica y una a la helicoidal de paso fijo.']},
+ {key:'pairs',topic:'2.1',yes:'Una unión esférica aporta tres libertades de orientación y una prismática solo una de traslación.',no:'Todas las uniones entre dos cuerpos aportan un único grado de libertad.',trap:'todas … un único',question:'Explica por qué contar uniones no equivale a contar grados de libertad en una cadena.',criteria:['Asocia a cada tipo de unión el número de libertades que permite.','Relaciona la movilidad de la cadena con la suma de esas libertades, no con el número de uniones.']},
+ {key:'industrial',topic:'2.1',yes:'Los robots industriales se construyen casi siempre con uniones de rotación y prismáticas, aunque existan otros tipos de par.',no:'Las uniones esféricas y planares no existen porque solo se emplean rotación y traslación.',trap:'no existen porque solo',question:'Un catálogo de pares cinemáticos incluye uniones esféricas y planares, pero un robot industrial casi nunca las lleva. Explica esa diferencia.',criteria:['Distingue qué pares existen como catálogo mecánico de cuáles se accionan y se miden en la práctica.','Menciona que las uniones de varias libertades se modelan como combinaciones de R y P.']},
+ {key:'gear',topic:'2.2',yes:'Un reductor ideal intercambia velocidad y par sin aumentar la potencia mecánica.',no:'Un reductor ideal aumenta el par de salida y conserva a la vez la velocidad del motor.',trap:'y conserva a la vez',question:'Explica qué se gana y qué se pierde al aumentar la relación de reducción manteniendo el mismo motor.',criteria:['Relaciona una mayor reducción con menor velocidad de salida y mayor par ideal.','Distingue potencia ideal de pérdidas y evita afirmar que el reductor crea energía.']},
+ {key:'sensor',topic:'2.4',yes:'La lectura del encoder del motor puede no reflejar una deformación situada después del sensor.',no:'Si el encoder del motor alcanza la consigna, el TCP está necesariamente en la posición exacta solicitada.',trap:'necesariamente',question:'El encoder informa que se alcanzó la consigna, pero el TCP se desvía bajo carga. Explica dos causas compatibles con esa observación.',criteria:['Incluye una causa mecánica posterior al sensor, como flexión u holgura.','Considera referencias, calibración o transmisión, sin confundir posición del motor con posición del TCP.']},
+ {key:'rotation',topic:'3.2',yes:'Una matriz de rotación tridimensional propia tiene columnas ortonormales y determinante positivo igual a uno.',no:'Toda matriz ortogonal de tamaño tres por tres representa una rotación propia, aunque su determinante sea negativo.',trap:'toda matriz ortogonal',question:'Explica por qué comprobar únicamente la ortogonalidad no basta para validar una matriz de rotación propia.',criteria:['Incluye la condición de determinante +1.','Distingue una reflexión de una rotación propia.']},
+ {key:'frames',topic:'3.3',yes:'Componer movimientos exige conocer si cada eje está referido al sistema fijo o al sistema móvil.',no:'El orden de multiplicación de transformaciones no depende de si sus ejes son fijos o móviles.',trap:'no depende',question:'Un enunciado describe dos giros sin indicar si los ejes son fijos o móviles. Explica qué ambigüedad aparece.',criteria:['Identifica la referencia de los ejes como dato necesario.','Relaciona ese dato con el orden o lado de composición, sin asumir que las rotaciones conmutan.']},
+ {key:'point',topic:'3.11',yes:'Dos ternas de coordenadas distintas pueden representar el mismo punto físico en marcos diferentes.',no:'Si cambian las coordenadas de un punto al cambiar de marco, el punto necesariamente se ha movido físicamente.',trap:'necesariamente',question:'Explica cómo puede cambiar la terna de coordenadas de un punto inmóvil cuando se cambia el marco de referencia.',criteria:['Distingue el punto físico de su representación.','Relaciona el cambio de coordenadas con la posición y orientación de los marcos.']},
+ {key:'workspace',topic:'4.11',yes:'Los límites articulares pueden reducir la región alcanzable aunque las longitudes de los eslabones permanezcan iguales.',no:'El espacio de trabajo depende únicamente de las longitudes y nunca de los límites articulares.',trap:'únicamente … y nunca',question:'Dos brazos tienen las mismas longitudes, pero distintos límites articulares. Explica por qué pueden tener regiones alcanzables diferentes.',criteria:['Considera el conjunto de configuraciones permitidas.','Distingue alcance máximo de región completa, incluidos huecos o sectores no alcanzables.']},
+ {key:'singularity',topic:'4.5',yes:'Una singularidad de la tarea corresponde a una pérdida de rango de su jacobiano.',no:'Calcular el determinante es un criterio aplicable a cualquier jacobiano, incluso si no es cuadrado.',trap:'cualquier jacobiano',question:'Explica cómo estudiarías una singularidad cuando el jacobiano de la tarea no es cuadrado.',criteria:['Utiliza rango o valores singulares como criterio.','Explica por qué no corresponde calcular el determinante de una matriz no cuadrada.']},
+ {key:'inverse',topic:'4.3',yes:'Verificar una solución mediante cinemática directa no sustituye la comprobación de límites y colisiones.',no:'Si una solución de cinemática inversa reproduce la posición pedida, siempre es ejecutable por el robot real.',trap:'siempre',question:'Una solución inversa reproduce la posición deseada. Explica qué comprobarías antes de considerarla ejecutable.',criteria:['Comprueba límites articulares y obstáculos o colisiones.','Considera orientación requerida, singularidades o continuidad del movimiento.']},
+ {key:'gravity',topic:'5.5',yes:'Mantener velocidad articular nula no implica que el par necesario para sostener el robot sea nulo.',no:'Un robot inmóvil nunca necesita par en sus articulaciones.',trap:'nunca',question:'Explica por qué un brazo inmóvil puede necesitar par para sostener una carga.',criteria:['Relaciona el par con el momento de las fuerzas gravitatorias.','Distingue equilibrio estático de ausencia de fuerzas o pares.']},
+ {key:'pid',topic:'5.6',yes:'La saturación del actuador puede impedir alcanzar la respuesta prevista por un modelo lineal del control.',no:'Aumentar indefinidamente las ganancias de un PID garantiza una respuesta cada vez mejor.',trap:'indefinidamente … garantiza',question:'Un aumento de ganancias provoca oscilaciones y saturación. Explica por qué la mejora del control no puede basarse solo en aumentar ganancias.',criteria:['Considera límites del actuador y dinámica no ideal.','Relaciona ganancias con estabilidad, ruido u oscilaciones; propone verificar la respuesta del sistema.']},
+ {key:'warning',topic:'1.8',yes:'Una señal de advertencia puede informar de un peligro sin impedir físicamente el acceso a él.',no:'Una señal luminosa de advertencia sustituye por sí sola cualquier resguardo de una celda.',trap:'sustituye por sí sola',question:'Compara una señal luminosa de advertencia con un resguardo enclavado. Explica sus funciones dentro de una aplicación.',criteria:['Distingue informar de restringir acceso o actuar sobre el funcionamiento.','Sitúa la elección de medidas dentro de la evaluación del riesgo de la aplicación.']}
 ];
 function reflectionPool(chapter,key=null){return REFLECTION_BANK.filter(r=>Number(r.topic[0])===Number(chapter)&&(!key||r.topic===key))}
+/* Cada afirmación falsa del banco lo es por un absoluto —«siempre», «solo»,
+   «basta por sí sola», «necesariamente»—, y reconocerlo es la destreza que
+   evalúa este formato. La ficha lo nombra en lugar de limitarse a decir que la
+   frase no es cierta, y enseña la versión que sí lo sería. */
+function reflectionRationale(entry,truth){
+ const contraria=truth?'Falso':'Verdadero';
+ /* Las afirmaciones del banco ya terminan en punto; al citarlas entre comillas
+    sobra el suyo o el de la frase que las envuelve. */
+ const cita=t=>String(t).replace(/\.\s*$/,'');
+ return{
+  clave:truth
+   ?`La afirmación es cierta tal como está enunciada: no contiene ningún absoluto que la invalide. La versión falsa de esta misma idea suele colarse por «${entry.trap}», y diría: «${cita(entry.no)}».`
+   :`La afirmación es falsa, y la trampa está en «${entry.trap}». Sin ese absoluto la idea se sostiene: «${cita(entry.yes)}».`,
+  fallos:{[contraria]:truth
+   ?`Aquí no hay exageración que buscar: la frase no afirma nada de más. El absoluto aparecería si dijera «${entry.trap}», y no lo dice.`
+   :`El enunciado se pasa de largo en «${entry.trap}». Basta un contraejemplo para tumbarlo, y la formulación correcta sería: «${cita(entry.yes)}».`}
+ };
+}
 function makeReflection(chapter,diff,format='vf',entry=pick(reflectionPool(chapter))){
  const truth=Math.random()<.5;
- return{id:'reflection_'+format+'_'+entry.key,chapter:Number(chapter),difficulty:diff,kind:'reflection',type:format==='open'?'open':'choice',reflectionTopic:entry.topic,title:format==='open'?'Pregunta abierta · explicación':'Verdadero o falso',statement:format==='open'?entry.question:(truth?entry.yes:entry.no),options:format==='open'?[]:['Verdadero','Falso'],answer:format==='open'?entry.criteria.join(' '):truth?'Verdadero':'Falso',criteria:entry.criteria,format,chips:[],hints:[],steps:[],commonErrors:[],concepts:[topicByKey(entry.topic)?.topic.title||'Fundamentos']};
+ const ficha=format==='open'?null:reflectionRationale(entry,truth);
+ return{id:'reflection_'+format+'_'+entry.key,chapter:Number(chapter),difficulty:diff,kind:'reflection',type:format==='open'?'open':'choice',reflectionTopic:entry.topic,title:format==='open'?'Pregunta abierta · explicación':'Verdadero o falso',statement:format==='open'?entry.question:(truth?entry.yes:entry.no),options:format==='open'?[]:['Verdadero','Falso'],answer:format==='open'?entry.criteria.join(' '):truth?'Verdadero':'Falso',criteria:entry.criteria,format,chips:[],hints:[],steps:[],commonErrors:[],concepts:[topicByKey(entry.topic)?.topic.title||'Fundamentos'],
+  ...(ficha?{rationale:ficha,steps:[`Tema ${entry.topic}.`,ficha.clave,`Respuesta correcta: ${truth?'Verdadero':'Falso'}`]}:{})};
 }
 function renderReflectionControls(){
  const host=document.getElementById('reflectionFormats');if(!host)return;
@@ -4746,7 +4775,7 @@ function makeClassification(chapter,diff,kind=pick(ccKinds(chapter,diff))){
  }
  /* Contar coordenadas da un entero: cualquier margen por debajo de media unidad
     es exacto, y deja de declarar una tolerancia nula, que no es comparable. */
- return{id:'classification_'+kind,kind:'classification',chapter,type,visual:'classification',difficulty:diff,title:({identify:'Reconocer una arquitectura',sequence:'Leer la cadena desde la base',joint:'Interpretar el movimiento',variables:'Elegir las coordenadas articulares',compare:'Comparar la disposición de los ejes',posture:'Postura y arquitectura',wrist:'Distinguir brazo y muñeca',mistake:'Revisar una clasificación',mobility:'Articulaciones bloqueadas',coupled:'Movimientos independientes',pair:'Libertades de un par elemental'})[kind],statement,answer,options,classificationData:data,params:{},chips:[],hints:[],steps:[],commonErrors:[],concepts:[chapter===1?'clasificación mecánica':'articulaciones y movilidad'],tolerance:type==='number'?.25:0,...(desvios&&desvios.length?{numericAlternatives:desvios}:{}),...(ficha?{rationale:ficha}:{})};
+ return{id:'classification_'+kind,kind:'classification',chapter,type,visual:'classification',difficulty:diff,title:({identify:'Reconocer una arquitectura',sequence:'Leer la cadena desde la base',joint:'Interpretar el movimiento',variables:'Elegir las coordenadas articulares',compare:'Comparar la disposición de los ejes',posture:'Postura y arquitectura',wrist:'Distinguir brazo y muñeca',mistake:'Revisar una clasificación',mobility:'Articulaciones bloqueadas',coupled:'Movimientos independientes',pair:'Libertades de un par elemental'})[kind],statement,answer,options,classificationData:data,params:{},chips:[],hints:[],steps:ficha?[`Lectura de la figura: ${ficha.clave}`,`Respuesta correcta: ${answer}`]:[],commonErrors:[],concepts:[chapter===1?'clasificación mecánica':'articulaciones y movilidad'],tolerance:type==='number'?.25:0,...(desvios&&desvios.length?{numericAlternatives:desvios}:{}),...(ficha?{rationale:ficha}:{})};
 }
 function renderClassification(exercise){
  const root=document.getElementById('exerciseVisual'),host=document.getElementById('classificationActivity');
@@ -7974,7 +8003,12 @@ const EXAM_FORMATS=Object.freeze([
  {id:"doble",titulo:"Parcial doble",preguntas:30,capitulos:2,
   resumen:"Dos capítulos seguidos. 30 preguntas."},
  {id:"final",titulo:"Simulacro final",preguntas:40,capitulos:0,
-  resumen:"Todo el programa. 40 preguntas de los cinco capítulos."}
+  resumen:"Todo el programa. 40 preguntas de los cinco capítulos."},
+ /* Reproduce la estructura de un examen escrito de aula: primero reconocer
+    arquitecturas sobre la figura y después juzgar afirmaciones. */
+ {id:"aula",titulo:"Examen de aula",preguntas:10,capitulos:2,
+  bloques:[{tipo:"identify",preguntas:4},{tipo:"vf",preguntas:6}],
+  resumen:"Por bloques, como en clase. 4 de reconocer la arquitectura sobre la figura, siempre del capítulo 1, y 6 de verdadero o falso de los capítulos que elijas."}
 ]);
 function examFormat(id){return EXAM_FORMATS.find(f=>f.id===id)||EXAM_FORMATS[0]}
 function examEnCurso(){return Boolean(appState.exam&&!appState.exam.entregado)}
@@ -8024,11 +8058,50 @@ function composeExam({capitulos,dificultad,preguntas}){
  return shuffle(elegidas);
  }finally{familyFilterSuspended=filtroPrevio}
 }
+/* Examen por bloques: el reparto no lo decide el sorteo por temas sino el
+   propio formato, porque un examen de aula agrupa las preguntas por tipo —una
+   tanda de reconocimiento de figuras y otra de verdadero o falso— y practicar
+   ese ritmo es parte de lo que se entrena. Dentro de cada bloque sí se
+   barajan; entre bloques no, para que el orden se conserve.
+   La firma de cada pregunta incluye el modelo dibujado: el enunciado de las
+   clasificaciones es común a todas, así que deduplicar solo por texto dejaría
+   un único reconocimiento en pie. */
+function composeBlockExam({capitulos,dificultad,bloques}){
+ const filtroPrevio=familyFilterSuspended;
+ familyFilterSuspended=true;
+ try{
+  const elegidas=[],vistos=new Set();
+  const firma=e=>`${e.statement}|${e.classificationData?.model||''}|${e.classificationData?.pair||''}`;
+  for(const bloque of bloques){
+   const delBloque=[];
+   for(let intento=0;intento<400&&delBloque.length<bloque.preguntas;intento++){
+    const capitulo=pick(capitulos);
+    let e=null;
+    try{
+     if(bloque.tipo==='identify')e=makeClassification(1,dificultad,'identify');
+     else if(bloque.tipo==='vf'){const pool=reflectionPool(capitulo);if(!pool.length)continue;e=makeReflection(capitulo,dificultad,'vf',pick(pool));}
+     else e=generarEjercicio(capitulo,dificultad);
+    }catch(err){continue}
+    if(!e||vistos.has(firma(e)))continue;
+    vistos.add(firma(e));
+    e.difficulty=dificultad;
+    e.family=exerciseFamily(e);
+    e.pedagogyTrace=buildPedagogyTrace(e);
+    e.attempted=false;e.lastAttempt=null;
+    delBloque.push(e);
+   }
+   elegidas.push(...shuffle(delBloque));
+  }
+  return elegidas;
+ }finally{familyFilterSuspended=filtroPrevio}
+}
 function startExam({formatoId,capitulos,dificultad}){
  const formato=examFormat(formatoId);
  const lista=formato.capitulos===0?chapters.map(c=>c.id):capitulos.slice(0,formato.capitulos);
  if(!lista.length)return null;
- const preguntas=composeExam({capitulos:lista,dificultad,preguntas:formato.preguntas});
+ const preguntas=formato.bloques
+  ? composeBlockExam({capitulos:lista,dificultad,bloques:formato.bloques})
+  : composeExam({capitulos:lista,dificultad,preguntas:formato.preguntas});
  if(!preguntas.length)return null;
  appState.exam={
   formato:formato.id,capitulos:lista,dificultad:Number(dificultad)||1,angleUnit:angleMode(),

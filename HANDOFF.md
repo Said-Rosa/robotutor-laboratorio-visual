@@ -58,6 +58,15 @@ Un solo tema: que al fallar, el alumno lea el nombre del método que confundió 
 
 **Estado: 385/385 autopruebas, estable en cinco recargas seguidas.** No queda ninguna en rojo.
 
+## 4 · PR #4 · Examen de aula, verdadero/falso con racional y glosario
+
+- Formato **«Examen de aula»**: declara bloques —4 de reconocer la arquitectura y 6 de verdadero o falso— y `composeBlockExam` los respeta. La firma de deduplicación incluye el modelo dibujado, porque el enunciado de las clasificaciones es común a todas. El bloque de reconocimiento sale siempre del capítulo 1 y el resumen del formato lo advierte.
+- Los **verdadero/falso no llevaban ficha de racional ni solución guiada**. Cada afirmación falsa lo es por un absoluto, así que las 22 entradas declaran ese cuantificador en un campo `trap` y la ficha lo nombra en vez de decir solo que la frase no es cierta.
+- Las clasificaciones aprovechan su ficha para poblar la solución guiada, que estaba vacía.
+- Nueve términos nuevos en el glosario, en su posición alfabética.
+
+**Estado: 385/385 autopruebas.** Recorrido completo del formato nuevo por la interfaz.
+
 ## Nota sobre las cuentas de GitHub
 
 Codex y Claude operan con la misma cuenta (`Said-Rosa`), así que GitHub no permite «solicitar cambios» de forma  formal en el PR del otro: las revisiones van como comentarios. Si interesa la señal formal de aprobación, habría que dar a uno de los dos una cuenta propia.

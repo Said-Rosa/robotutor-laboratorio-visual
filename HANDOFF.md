@@ -47,15 +47,16 @@ Apilado sobre esta rama. **Cambiar su base a `main` cuando #1 se fusione.**
 - Ejercicio nuevo `classification_pair` y seis entradas de verdadero/falso.
 - **Fuera de alcance, revisable:** las clasificaciones numéricas declaran `tolerance:0,25` en vez de `0`. Contar coordenadas da un entero y cualquier margen por debajo de media unidad es exacto.
 
-## 3 · PR #3 · Desvíos numéricos
+## 3 · PR #3 · Diagnóstico de respuestas
 
-Cinco generadores numéricos no declaraban `numericAlternatives`, así que el diagnóstico caía en un mensaje genérico: `classification_coupled`, `classification_mobility`, `classification_pair`, `workspace_three_area` y `workspace_three_missing`. Los otros 32 sí los declaraban. Con ellos añadidos, las autopruebas suben de 379/385 a 382/385.
+Un solo tema: que al fallar, el alumno lea el nombre del método que confundió en vez de «no es correcta».
 
-## Lo que sigue fallando, y por qué no se ha tocado
+- Cinco generadores numéricos no declaraban `numericAlternatives` (los otros 32 sí): `classification_coupled`, `classification_mobility`, `classification_pair`, `workspace_three_area` y `workspace_three_missing`.
+- Ninguna de las ocho familias de clasificación de opción múltiple llevaba ficha de racional. Se construye por instancia en `classificationRationale`, derivada de `CC_MODELS`, porque el enunciado es común a todos los modelos y lo que cambia es la figura sorteada.
+- Dos casos tenían el texto pero no lo entregaban: `calculation_choice_*` devolvía el ejercicio sin `rationale` —y `choiceFailureReason` lo lee de ahí, no del mapa por enunciado—, y `workspace_three_membership` no tenía ficha.
+- Cuatro autopruebas afirmaban sobre estado transitorio y oscilaban entre recargas según qué ejercicio saliera al arrancar. **Se comprobó que ninguna señalaba un defecto real antes de tocarlas**; en particular, la de SO(3) fallaba por muestreo, no por una matriz mal clasificada: 400 generaciones directas no dan ni una discrepancia con `isSO3Matrix`.
 
-- **«Toda pregunta de opción múltiple explica por qué falla la opción elegida»**: las clasificaciones `posture` y `compare` no tienen ficha de racional. Falla desde antes de estos PR.
-- **«Píldora teórica inicia cerrada»** y **«La auditoría de SO(3) no llama inválida a una rotación legítima»**: preexistentes; la segunda es intermitente.
-- Dos autopruebas dependen del ejercicio que esté cargado al azar al arrancar (`UI selecciona visual correcto`, `Sin movimiento la solución sigue abriéndose y cerrándose`), así que oscilan entre recargas sin que nadie las haya roto.
+**Estado: 385/385 autopruebas, estable en cinco recargas seguidas.** No queda ninguna en rojo.
 
 ## Nota sobre las cuentas de GitHub
 

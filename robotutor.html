@@ -4522,17 +4522,25 @@ const CC_MODELS=Object.freeze({
    citaba antes de que existiera esta tabla. */
 const CC_PAIRS=Object.freeze({
  revoluteJoint:{type:'R',name:'Rotación o revoluta',letter:'R',dof:1,axis:[0,1,0],
-  motion:'Un giro alrededor de un eje fijo.',variable:'θ'},
+  motion:'Un giro alrededor de un eje fijo.',variable:'θ',
+  deviations:[{value:2,message:"La lámina dibuja un solo arco y ninguna flecha recta: esta unión gira, pero no desliza."}]},
  prismaticJoint:{type:'P',name:'Prismática',letter:'P',dof:1,axis:[1,0,0],
-  motion:'Un desplazamiento a lo largo de un eje fijo.',variable:'d'},
+  motion:'Un desplazamiento a lo largo de un eje fijo.',variable:'d',
+  deviations:[{value:2,message:"La lámina dibuja una sola doble flecha y ningún arco: esta unión desliza, pero no gira."}]},
  screwJoint:{type:'H',name:'Helicoidal o de tornillo',letter:'H',dof:1,axis:[1,0,0],
-  motion:'Giro y avance sobre el mismo eje, ligados por el paso.',variable:'θ (d queda fijado)'},
+  motion:'Giro y avance sobre el mismo eje, ligados por el paso.',variable:'θ (d queda fijado)',
+  deviations:[{value:2,message:"Has contado el giro y el avance por separado. La hélice indica que van ligados por el paso: una sola coordenada los describe."}]},
  freeJoint:{type:'C',name:'Cilíndrica',letter:'C',dof:2,axis:[1,0,0],
-  motion:'Giro y desplazamiento sobre el mismo eje, independientes.',variable:'θ y d'},
+  motion:'Giro y desplazamiento sobre el mismo eje, independientes.',variable:'θ y d',
+  deviations:[{value:1,message:"El arco y la doble flecha se dibujan separados precisamente porque no están ligados: aquí giro y desplazamiento varían por su cuenta."}]},
  planarJoint:{type:'E',name:'Planar',letter:'E',dof:2,axis:[1,0,0],axisB:[0,1,0],
-  motion:'Dos desplazamientos independientes dentro de un plano.',variable:'d₁ y d₂'},
+  motion:'Dos desplazamientos independientes dentro de un plano.',variable:'d₁ y d₂',
+  deviations:[{value:1,message:"La lámina dibuja dos dobles flechas en direcciones distintas: son dos deslizamientos independientes, no uno."},
+   {value:3,message:"Has añadido el giro alrededor de la normal. El contacto plano completo lo admite, pero esta unión representa solo los dos deslizamientos."}]},
  sphericalJoint:{type:'S',name:'Esférica o rótula',letter:'S',dof:3,axis:[0,1,0],
-  motion:'Tres giros independientes alrededor de un punto.',variable:'tres ángulos'}
+  motion:'Tres giros independientes alrededor de un punto.',variable:'tres ángulos',
+  deviations:[{value:1,message:"Los tres arcos son tres giros independientes: una rótula orienta en el espacio, no alrededor de un único eje."},
+   {value:2,message:"Orientar un cuerpo en el espacio exige tres ángulos independientes, y la lámina dibuja los tres arcos."}]}
 });
 function ccPairModels(){return Object.keys(CC_PAIRS)}
 function ccGeometry(model,pose=0){
@@ -4618,26 +4626,127 @@ function ccSvg(model,pose=0,{teach=false}={}){
  return`<svg class="cc-svg" viewBox="0 0 510 385" role="img" aria-label="${accessible.join('. ')}. Extremo E. Esquema sin escala."><title>Movimientos del mecanismo</title>${svg.join('')}</svg>`;
 }
 function ccKinds(chapter,diff){return chapter===1?(diff===1?['identify','posture']:diff===2?['identify','compare','posture','wrist']:['identify','compare','posture','wrist','mistake']):(diff===1?['joint','sequence','pair']:diff===2?['joint','sequence','variables','mobility','pair']:['sequence','variables','mobility','coupled','pair'])}
+/* Ficha de racional para las clasificaciones de opción múltiple. Se construye
+   por instancia y no desde un mapa por enunciado, porque el enunciado es el
+   mismo para todos los modelos y lo que cambia es la figura sorteada: decir
+   por qué falla una opción exige saber cuál se dibujó.
+   Los textos se derivan de CC_MODELS para que añadir una arquitectura no deje
+   fichas a medias. */
+const CC_LETTER_MOTION=Object.freeze({R:'un giro',P:'un desplazamiento'});
+function ccSpellSequence(seq){
+ const partes=String(seq).split('').map(l=>CC_LETTER_MOTION[l]||'un movimiento');
+ return partes.length<2?partes.join(''):partes.slice(0,-1).join(', ')+' y '+partes.at(-1);
+}
+function ccSequenceOfVars(vars){return String(vars).split(', ').map(t=>t.trim().startsWith('θ')?'R':'P').join('')}
+function ccNameByDescription(desc){const par=Object.values(CC_MODELS).find(m=>m.description===desc);return par?par.name:'otra arquitectura'}
+function ccArchitectureFailures(spec){
+ const fallos={};
+ for(const m of Object.values(CC_MODELS)){
+  if(m.name===spec.name)continue;
+  fallos[m.name]=`El ${m.name} responde a la secuencia ${m.sequence}: ${m.description}. No es lo que dibuja esta figura.`;
+ }
+ return fallos;
+}
+function classificationRationale(kind,spec,data,extra={}){
+ const {selected,vars,claim,other,same,count}=extra;
+ if(kind==='identify')return{
+  clave:`La figura dibuja ${spec.description}. Leída desde la base esa combinación es la secuencia ${spec.sequence}, que corresponde al ${spec.name}.`,
+  fallos:ccArchitectureFailures(spec)};
+ if(kind==='wrist')return{
+  clave:`La muñeca orienta la herramienta, pero no forma parte del brazo: la clasificación mira solo las tres primeras articulaciones. Aquí son ${spec.sequence} —${spec.description}—, es decir un ${spec.name}. Añadir ${count} giro${count===1?'':'s'} después de E no cambia esa lectura.`,
+  fallos:ccArchitectureFailures(spec)};
+ if(kind==='sequence'){
+  const fallos={};
+  for(const seq of ['PPP','RPP','RRP','RRR','PRR','PRP']){
+   if(seq===spec.sequence)continue;
+   fallos[seq]=`La secuencia ${seq} describiría ${ccSpellSequence(seq)} en ese orden, y no es lo que señalan las flechas de la figura.`;
+  }
+  return{clave:`Leídas desde la base hacia E, las tres primeras articulaciones aportan ${ccSpellSequence(spec.sequence)}: la secuencia es ${spec.sequence}, propia del ${spec.name}.`,fallos};
+ }
+ if(kind==='joint'){
+  const esGiro=spec.sequence[selected]==='R';
+  return{clave:esGiro
+   ?`La articulación ${selected+1} lleva dibujado un arco alrededor de su eje: es de revolución, aporta un giro y su coordenada es un ángulo.`
+   :`La articulación ${selected+1} lleva dibujada una doble flecha a lo largo de su eje: es prismática, aporta un desplazamiento y su coordenada es una longitud.`,
+   fallos:{
+    [esGiro?'Traslación a lo largo de un eje.':'Giro alrededor de un eje.']:esGiro
+     ?'La figura marca un arco sobre esa articulación, no una flecha recta: el movimiento que permite es angular.'
+     :'La figura marca una doble flecha recta sobre esa articulación, no un arco: el movimiento que permite es lineal.',
+    'Giro y traslación independientes.':'Eso describiría una unión cilíndrica, de dos grados de libertad. Cada articulación de esta cadena aporta uno solo.',
+    'Ningún movimiento relativo.':'Si no permitiera movimiento no sería una articulación, sino una unión rígida entre dos eslabones.'
+   }};
+ }
+ if(kind==='variables'){
+  const fallos={};
+  for(const v of ['θ1, θ2, θ3','d1, d2, d3','θ1, d2, d3','θ1, θ2, d3','d1, θ2, θ3']){
+   if(v===vars)continue;
+   fallos[v]=`${v} corresponde a la secuencia ${ccSequenceOfVars(v)}, y la figura muestra ${spec.sequence}.`;
+  }
+  return{clave:`Cada articulación aporta una coordenada: un ángulo θ si es de revolución y una longitud d si es prismática. Con la secuencia ${spec.sequence}, en el orden 1–2–3, queda ${vars}.`,fallos};
+ }
+ if(kind==='compare'){
+  const scaraEsA=data.plates[0].model==='scara';
+  const correcta=scaraEsA?'Solo A.':'Solo B.',otra=scaraEsA?'Solo B.':'Solo A.';
+  return{clave:`Ambos son RRP, así que la secuencia no los distingue: hay que mirar la dirección de los ejes. El SCARA gira sobre dos ejes paralelos y el polar sobre dos ejes perpendiculares entre sí. El SCARA es ${scaraEsA?'A':'B'}, luego la respuesta es ${correcta.toLowerCase()}`,
+   fallos:{
+    [otra]:'Ese es el polar: sus dos ejes de giro son perpendiculares entre sí, no paralelos.',
+    'Ambos.':'Comparten la secuencia RRP, pero no la disposición de los ejes: solo uno de los dos tiene los dos giros paralelos.',
+    'Ninguno.':'Uno de los dos sí los tiene paralelos, y es justo lo que separa al SCARA del polar cuando ambos son RRP.'
+   }};
+ }
+ if(kind==='posture'){
+  const otroSpec=CC_MODELS[other]||spec;
+  return{clave:same
+   ?`A y B son la misma cadena dibujada en dos posturas. Cambiar el valor de las articulaciones mueve el mecanismo, pero no altera ni el tipo de cada articulación ni la dirección relativa de sus ejes, que es lo que define la arquitectura.`
+   :`A es un ${spec.name} (${spec.sequence}) y B un ${otroSpec.name} (${otroSpec.sequence}). La diferencia está en ${spec.sequence===otroSpec.sequence?'la dirección relativa de sus ejes':'la propia secuencia de articulaciones'}, no en la postura.`,
+   fallos:same
+    ?{'No, tienen arquitecturas diferentes.':'Las dos figuras dibujan la misma cadena; lo único que cambia es la postura, y la postura no altera la arquitectura.'}
+    :{'Sí, mantienen la misma arquitectura.':`Aunque la postura despiste, las cadenas no coinciden: ${spec.name} frente a ${otroSpec.name}.`}};
+ }
+ if(kind==='mistake'){
+  const fallos={};
+  for(const m of Object.values(CC_MODELS)){
+   if(m.description===spec.description)continue;
+   fallos[m.description]=`Esa descripción es la del ${m.name}, que tampoco es el mecanismo dibujado.`;
+  }
+  return{clave:`La ficha lo llama «${CC_MODELS[claim].name}», pero el mecanismo dibujado hace ${spec.description}. Esa es exactamente la definición del ${spec.name}, y es la descripción que corrige la ficha.`,fallos};
+ }
+ return null;
+}
 function makeClassification(chapter,diff,kind=pick(ccKinds(chapter,diff))){
  const model=pick(Object.keys(CC_MODELS)),spec=CC_MODELS[model],pose=ri(0,1),selected=ri(0,2),data={plates:[{model,pose,label:'Mecanismo'}],kind,model,selected};
- let statement='',answer='',options=[],type='choice';
+ let statement='',answer='',options=[],type='choice',desvios=null,ficha=null;
  const choices=(correct,wrong)=>{answer=correct;options=shuffle([correct,...wrong])};
- if(kind==='identify'){statement='Identifica la arquitectura del mecanismo a partir de sus tres primeras articulaciones. No incluyas muñeca ni herramienta.';choices(spec.name,Object.values(CC_MODELS).map(m=>m.name).filter(n=>n!==spec.name))}
- if(kind==='sequence'){statement='Escribe la secuencia de las articulaciones 1, 2 y 3, leída desde la base hacia E. Selecciona la secuencia correcta.';choices(spec.sequence,['PPP','RPP','RRP','RRR','PRR','PRP'].filter(v=>v!==spec.sequence).slice(0,4))}
- if(kind==='joint'){statement=`¿Qué movimiento permite la articulación ${selected+1} señalada en la figura, manteniendo fijas las otras dos?`;choices(spec.sequence[selected]==='R'?'Giro alrededor de un eje.':'Traslación a lo largo de un eje.',[spec.sequence[selected]==='R'?'Traslación a lo largo de un eje.':'Giro alrededor de un eje.','Giro y traslación independientes.','Ningún movimiento relativo.'])}
- if(kind==='variables'){const vars=spec.sequence.split('').map((t,i)=>(t==='R'?'θ':'d')+(i+1)).join(', ');statement='Selecciona las coordenadas articulares independientes, en el orden 1–2–3. θ representa un ángulo y d un desplazamiento.';choices(vars,['θ1, θ2, θ3','d1, d2, d3','θ1, d2, d3','θ1, θ2, d3','d1, θ2, θ3'].filter(v=>v!==vars).slice(0,3))}
- if(kind==='compare'){data.plates=shuffle([{model:'scara',pose,label:''},{model:'polar',pose:1-pose,label:''}]).map((p,i)=>({...p,label:i?'B':'A'}));statement='Los mecanismos A y B tienen secuencia RRP. ¿Cuál posee sus dos primeros ejes de giro paralelos?';choices(data.plates[0].model==='scara'?'Solo A.':'Solo B.',[data.plates[0].model==='scara'?'Solo B.':'Solo A.','Ambos.','Ninguno.'])}
- if(kind==='posture'){const same=Math.random()<.5,other=same?model:pick(Object.keys(CC_MODELS).filter(m=>m!==model));data.plates=[{model,pose:0,label:'A'},{model:other,pose:1,label:'B'}];statement='Compara A y B. ¿Conservan la misma arquitectura de las tres primeras articulaciones? Considera tanto los movimientos como las direcciones relativas de sus ejes.';choices(same?'Sí, mantienen la misma arquitectura.':'No, tienen arquitecturas diferentes.',[same?'No, tienen arquitecturas diferentes.':'Sí, mantienen la misma arquitectura.'])}
- if(kind==='wrist'){const count=pick([1,2,3]);data.wrist=count;statement=`Al mecanismo mostrado se le añade, después de E, una muñeca de ${count} ${count===1?'giro independiente':'giros independientes'}. ¿Cómo se clasifica el brazo si se consideran únicamente sus tres primeras articulaciones?`;choices(spec.name,Object.values(CC_MODELS).map(m=>m.name).filter(n=>n!==spec.name))}
- if(kind==='mistake'){data.claim=pick(Object.keys(CC_MODELS).filter(m=>m!==model));statement=`Una ficha clasifica el mecanismo como «${CC_MODELS[data.claim].name}». Selecciona la descripción de sus movimientos que permite corregir esa ficha.`;choices(spec.description,Object.values(CC_MODELS).map(m=>m.description).filter(v=>v!==spec.description))}
- if(kind==='mobility'){const blocked=shuffle([1,2,3]).slice(0,ri(0,diff>=3?2:1));data.blocked=blocked;statement=`La figura representa una cadena abierta de tres articulaciones de un grado de libertad cada una. ${blocked.length?'Se bloquean las articulaciones '+blocked.join(' y ')+'.':'Todas están libres.'} No hay otros acoplamientos ni restricciones. ¿Cuántas coordenadas articulares independientes quedan?`;type='number';answer=3-blocked.length}
- if(kind==='coupled'){const coupled=Math.random()<.5;data.plates=[{model:coupled?'screwJoint':'freeJoint',pose:0,label:'Unión entre dos cuerpos'}];data.coupled=coupled;statement=coupled?'Una unión permite un giro θ y un desplazamiento axial d, ligados por d=h·θ/(2π), con paso h constante y no nulo. ¿Cuántas coordenadas independientes describen su movimiento relativo?':'Una unión permite girar sobre un eje y deslizarse a lo largo de ese mismo eje. El giro y el desplazamiento pueden variar de manera independiente. ¿Cuántas coordenadas independientes describen su movimiento relativo?';type='number';answer=coupled?1:2}
+ if(kind==='identify'){statement='Identifica la arquitectura del mecanismo a partir de sus tres primeras articulaciones. No incluyas muñeca ni herramienta.';choices(spec.name,Object.values(CC_MODELS).map(m=>m.name).filter(n=>n!==spec.name));ficha=classificationRationale(kind,spec,data)}
+ if(kind==='sequence'){statement='Escribe la secuencia de las articulaciones 1, 2 y 3, leída desde la base hacia E. Selecciona la secuencia correcta.';choices(spec.sequence,['PPP','RPP','RRP','RRR','PRR','PRP'].filter(v=>v!==spec.sequence).slice(0,4));ficha=classificationRationale(kind,spec,data)}
+ if(kind==='joint'){statement=`¿Qué movimiento permite la articulación ${selected+1} señalada en la figura, manteniendo fijas las otras dos?`;choices(spec.sequence[selected]==='R'?'Giro alrededor de un eje.':'Traslación a lo largo de un eje.',[spec.sequence[selected]==='R'?'Traslación a lo largo de un eje.':'Giro alrededor de un eje.','Giro y traslación independientes.','Ningún movimiento relativo.']);ficha=classificationRationale(kind,spec,data,{selected})}
+ if(kind==='variables'){const vars=spec.sequence.split('').map((t,i)=>(t==='R'?'θ':'d')+(i+1)).join(', ');statement='Selecciona las coordenadas articulares independientes, en el orden 1–2–3. θ representa un ángulo y d un desplazamiento.';choices(vars,['θ1, θ2, θ3','d1, d2, d3','θ1, d2, d3','θ1, θ2, d3','d1, θ2, θ3'].filter(v=>v!==vars).slice(0,3));ficha=classificationRationale(kind,spec,data,{vars})}
+ if(kind==='compare'){data.plates=shuffle([{model:'scara',pose,label:''},{model:'polar',pose:1-pose,label:''}]).map((p,i)=>({...p,label:i?'B':'A'}));statement='Los mecanismos A y B tienen secuencia RRP. ¿Cuál posee sus dos primeros ejes de giro paralelos?';choices(data.plates[0].model==='scara'?'Solo A.':'Solo B.',[data.plates[0].model==='scara'?'Solo B.':'Solo A.','Ambos.','Ninguno.']);ficha=classificationRationale(kind,spec,data)}
+ if(kind==='posture'){const same=Math.random()<.5,other=same?model:pick(Object.keys(CC_MODELS).filter(m=>m!==model));data.plates=[{model,pose:0,label:'A'},{model:other,pose:1,label:'B'}];statement='Compara A y B. ¿Conservan la misma arquitectura de las tres primeras articulaciones? Considera tanto los movimientos como las direcciones relativas de sus ejes.';choices(same?'Sí, mantienen la misma arquitectura.':'No, tienen arquitecturas diferentes.',[same?'No, tienen arquitecturas diferentes.':'Sí, mantienen la misma arquitectura.']);ficha=classificationRationale(kind,spec,data,{same,other})}
+ if(kind==='wrist'){const count=pick([1,2,3]);data.wrist=count;statement=`Al mecanismo mostrado se le añade, después de E, una muñeca de ${count} ${count===1?'giro independiente':'giros independientes'}. ¿Cómo se clasifica el brazo si se consideran únicamente sus tres primeras articulaciones?`;choices(spec.name,Object.values(CC_MODELS).map(m=>m.name).filter(n=>n!==spec.name));ficha=classificationRationale(kind,spec,data,{count})}
+ if(kind==='mistake'){data.claim=pick(Object.keys(CC_MODELS).filter(m=>m!==model));statement=`Una ficha clasifica el mecanismo como «${CC_MODELS[data.claim].name}». Selecciona la descripción de sus movimientos que permite corregir esa ficha.`;choices(spec.description,Object.values(CC_MODELS).map(m=>m.description).filter(v=>v!==spec.description));ficha=classificationRationale(kind,spec,data,{claim:data.claim})}
+ if(kind==='mobility'){const blocked=shuffle([1,2,3]).slice(0,ri(0,diff>=3?2:1));data.blocked=blocked;statement=`La figura representa una cadena abierta de tres articulaciones de un grado de libertad cada una. ${blocked.length?'Se bloquean las articulaciones '+blocked.join(' y ')+'.':'Todas están libres.'} No hay otros acoplamientos ni restricciones. ¿Cuántas coordenadas articulares independientes quedan?`;type='number';answer=3-blocked.length;
+  desvios=[{value:6,message:"Seis son los grados de libertad de un cuerpo libre en el espacio. Aquí se cuentan coordenadas articulares, y cada articulación aporta una."}];
+  if(blocked.length)desvios.push(
+   {value:3,message:"Has contado las tres articulaciones de la cadena sin descontar las que el enunciado bloquea."},
+   {value:blocked.length,message:"Has contado las articulaciones bloqueadas. La pregunta pide las que siguen siendo libres."});}
+ if(kind==='coupled'){const coupled=Math.random()<.5;data.plates=[{model:coupled?'screwJoint':'freeJoint',pose:0,label:'Unión entre dos cuerpos'}];data.coupled=coupled;statement=coupled?'Una unión permite un giro θ y un desplazamiento axial d, ligados por d=h·θ/(2π), con paso h constante y no nulo. ¿Cuántas coordenadas independientes describen su movimiento relativo?':'Una unión permite girar sobre un eje y deslizarse a lo largo de ese mismo eje. El giro y el desplazamiento pueden variar de manera independiente. ¿Cuántas coordenadas independientes describen su movimiento relativo?';type='number';answer=coupled?1:2;
+  desvios=coupled?[{value:2,message:"Has contado el giro y el avance como dos coordenadas. El paso los liga: al elegir θ queda determinado d, así que basta una."}]
+   :[{value:1,message:"Has supuesto que el giro y el desplazamiento están ligados. Aquí pueden variar por separado, así que hacen falta dos coordenadas."}]}
  /* Lee la tabla de pares del tema 2.1 sobre la figura en vez de sobre el texto:
     el alumno tiene que contar libertades a partir de las flechas dibujadas. */
- if(kind==='pair'){const nombre=pick(ccPairModels()),par=CC_PAIRS[nombre];data.plates=[{model:nombre,pose:0,label:'Unión entre dos cuerpos'}];data.pair=nombre;statement='La figura muestra una única unión entre dos cuerpos. Cuenta las coordenadas independientes que describen su movimiento relativo. Las flechas indican los movimientos que permite; dos movimientos ligados entre sí cuentan como una sola coordenada.';type='number';answer=par.dof}
+ if(kind==='pair'){const nombre=pick(ccPairModels()),par=CC_PAIRS[nombre];data.plates=[{model:nombre,pose:0,label:'Unión entre dos cuerpos'}];data.pair=nombre;statement='La figura muestra una única unión entre dos cuerpos. Cuenta las coordenadas independientes que describen su movimiento relativo. Las flechas indican los movimientos que permite; dos movimientos ligados entre sí cuentan como una sola coordenada.';type='number';answer=par.dof;desvios=par.deviations}
+ /* Algunas familias sortean solo una parte de sus distractores, así que la ficha
+    se recorta a las opciones que de verdad se ofrecen: un motivo sobre una
+    opción ausente no lo llegaría a leer nadie. */
+ if(ficha&&ficha.fallos){
+  const motivos={};
+  for(const [opcion,motivo] of Object.entries(ficha.fallos))if(options.includes(opcion)&&opcion!==answer)motivos[opcion]=motivo;
+  ficha=Object.keys(motivos).length?{...ficha,fallos:motivos}:null;
+ }
  /* Contar coordenadas da un entero: cualquier margen por debajo de media unidad
     es exacto, y deja de declarar una tolerancia nula, que no es comparable. */
- return{id:'classification_'+kind,kind:'classification',chapter,type,visual:'classification',difficulty:diff,title:({identify:'Reconocer una arquitectura',sequence:'Leer la cadena desde la base',joint:'Interpretar el movimiento',variables:'Elegir las coordenadas articulares',compare:'Comparar la disposición de los ejes',posture:'Postura y arquitectura',wrist:'Distinguir brazo y muñeca',mistake:'Revisar una clasificación',mobility:'Articulaciones bloqueadas',coupled:'Movimientos independientes',pair:'Libertades de un par elemental'})[kind],statement,answer,options,classificationData:data,params:{},chips:[],hints:[],steps:[],commonErrors:[],concepts:[chapter===1?'clasificación mecánica':'articulaciones y movilidad'],tolerance:type==='number'?.25:0};
+ return{id:'classification_'+kind,kind:'classification',chapter,type,visual:'classification',difficulty:diff,title:({identify:'Reconocer una arquitectura',sequence:'Leer la cadena desde la base',joint:'Interpretar el movimiento',variables:'Elegir las coordenadas articulares',compare:'Comparar la disposición de los ejes',posture:'Postura y arquitectura',wrist:'Distinguir brazo y muñeca',mistake:'Revisar una clasificación',mobility:'Articulaciones bloqueadas',coupled:'Movimientos independientes',pair:'Libertades de un par elemental'})[kind],statement,answer,options,classificationData:data,params:{},chips:[],hints:[],steps:[],commonErrors:[],concepts:[chapter===1?'clasificación mecánica':'articulaciones y movilidad'],tolerance:type==='number'?.25:0,...(desvios&&desvios.length?{numericAlternatives:desvios}:{}),...(ficha?{rationale:ficha}:{})};
 }
 function renderClassification(exercise){
  const root=document.getElementById('exerciseVisual'),host=document.getElementById('classificationActivity');
@@ -5013,7 +5122,10 @@ function choiceFailureReason(exercise,entered){
 function makeChoice(chapter,diff){return makeChoiceFromQuestion(chapter,diff,pick(choicePool(chapter,diff)))}
 function makeChoiceFromQuestion(chapter,diff,q){
  const meta=calculationMeta(chapter,q);
- if(meta)return{chapter,difficulty:diff,type:"choice",kind:chapter===4?"workspace":"calculation",id:"calculation_choice_"+chapter+"_"+meta.index,calculationTopic:meta.topic,title:"Cálculo aplicado",statement:q[0],options:shuffle(q[2]),answer:q[1],chips:[],hints:[],steps:[],commonErrors:[],concepts:["cálculo"],...(chapter===4?{visual:"workspace2d",params:{L1:meta.index===25?5:3,L2:2,ask:meta.index===25?"min":"area"}}:{params:{}})};
+ /* La ficha de racional viaja con el ejercicio, igual que en la vía normal:
+    choiceFailureReason la lee de aquí y no del mapa por enunciado, así que sin
+    ella el alumno recibía «no es correcta» y nada más. */
+ if(meta)return{chapter,difficulty:diff,type:"choice",kind:chapter===4?"workspace":"calculation",id:"calculation_choice_"+chapter+"_"+meta.index,calculationTopic:meta.topic,title:"Cálculo aplicado",statement:q[0],options:shuffle(q[2]),answer:q[1],rationale:choiceRationale(q[0]),chips:[],hints:[],steps:[],commonErrors:[],concepts:["cálculo"],...(chapter===4?{visual:"workspace2d",params:{L1:meta.index===25?5:3,L2:2,ask:meta.index===25?"min":"area"}}:{params:{}})};
  let options=shuffle(q[2]);
  const chapterConcepts={1:["arquitectura robótica","selección y seguridad"],2:["morfología","accionamientos y sensores"],4:["cinemática","DH y singularidades"],5:["dinámica","control y seguridad"]};
  const razonamiento=choiceRationale(q[0]);
@@ -10171,7 +10283,10 @@ function runSelfTests(){
    /* Los ejercicios de área de trabajo también llevan lámina desde que se
       rediseñaron; la condición se había quedado sin ellos y solo pasaba
       mientras ninguno fuera el ejercicio en curso. */
-   const necesita=is2RExercise(e)||isSpatialExercise(e)||isWorkspaceExercise(e)||e?.visual==="frames3d";
+   /* Las clasificaciones también pintan lámina —es su enunciado— y faltaban en
+      la condición, así que la prueba dependía de que el ejercicio cargado al
+      arrancar no fuera una de ellas. */
+   const necesita=is2RExercise(e)||isSpatialExercise(e)||isWorkspaceExercise(e)||e?.visual==="frames3d"||e?.visual==="classification";
    return document.getElementById("exerciseVisual").hidden===!necesita;
   }],
   ["El pie declara una única versión",()=>{
@@ -12680,9 +12795,15 @@ function runSelfTests(){
    /* Una de las tres matrices ofrecidas como no válidas era un giro de 36,87°
       alrededor de X, con RᵀR = I y determinante +1: la clave pedía responder
       que no pertenecía a SO(3). Ahora la respuesta se calcula, no se supone. */
+   /* El ejercicio se pide por su nombre en vez de sortear el capítulo entero y
+      confiar en que salgan bastantes. Sorteándolo, el recuento dependía de en
+      qué punto de la secuencia sembrada cayera esta prueba, así que cualquier
+      cambio en otra parte de la suite podía dejarla por debajo del umbral sin
+      que ninguna matriz estuviera mal. */
    let revisadas=0;
-   for(let i=0;i<400;i++){
-    const e=makeChapter3(pick(DIFFICULTY_LEVELS));
+   for(const nivel of DIFFICULTY_LEVELS)
+   for(let i=0;i<25;i++){
+    const e=makeChapter3Kind(nivel,"validate");
     if(e.id!=="validate_rotation")continue;
     revisadas++;
     const trozo=e.statement.slice(e.statement.indexOf('class="formula"'));
@@ -13440,7 +13561,11 @@ function runSelfTests(){
       navegador no trae la API, la solución tiene que seguir funcionando. */
    const s=document.getElementById("solution"),boton=document.getElementById("showSolution");
    const previo={clase:s.className,texto:boton.textContent,plegando:s.dataset.plegando,
-    desactivado:boton.disabled};
+    desactivado:boton.disabled,ejercicio:appState.currentExercise};
+   /* El botón no responde en los ejercicios de solo enunciado —clasificaciones,
+      verdadero/falso, área de trabajo—, así que la prueba dependía de cuál
+      hubiera salido al arrancar. Se instala uno propio que sí despliega. */
+   appState.currentExercise=makeChapter3Kind(2,"rot");
    try{
     /* El botón está deshabilitado hasta intentar el ejercicio: eso es el
        antifraude y tiene su propia prueba. Aquí se mira el desplegado. */
@@ -13455,6 +13580,7 @@ function runSelfTests(){
     return s.style.height===""&&s.style.overflow==="";
    }finally{
     s.className=previo.clase;boton.textContent=previo.texto;boton.disabled=previo.desactivado;
+    appState.currentExercise=previo.ejercicio;
     if(previo.plegando===undefined)delete s.dataset.plegando;else s.dataset.plegando=previo.plegando;
    }
   }],
@@ -13748,7 +13874,17 @@ function runSelfTests(){
    return true;
   }],
   ["Banco del capítulo 3 incluye auditoría SE(3)",()=>CHAPTER3_KINDS[2].includes("validateSe3")&&CHAPTER3_KINDS[3].includes("validateSe3")],
-  ["Píldora teórica inicia cerrada",()=>Boolean(document.getElementById("exerciseTheory")&&!document.getElementById("exerciseTheoryDetails").open&&document.getElementById("exerciseTheoryContent").textContent.trim())],
+  ["Píldora teórica inicia cerrada",()=>{
+   /* No todo ejercicio lleva fundamento teórico: las clasificaciones y los
+      verdadero/falso se resuelven sobre la figura o el enunciado. Cuando la
+      sección está oculta no hay píldora que juzgar; lo que no puede pasar es
+      que se muestre abierta o vacía. */
+   const seccion=document.getElementById("exerciseTheory");
+   if(!seccion)return false;
+   if(seccion.hidden)return true;
+   return !document.getElementById("exerciseTheoryDetails").open&&
+    Boolean(document.getElementById("exerciseTheoryContent").textContent.trim());
+  }],
   ["Pegado matricial interpreta filas y columnas",()=>parsePastedMatrix("1 0"+String.fromCharCode(10)+"0 1",2,2).join(",")==="1,0,0,1"&&parsePastedMatrix("[1,0];[0,1]",2,2).length===4],
   ["Etapa básica conserva fila homogénea",()=>stageBlankValues({difficulty:1}).slice(12).join(",")==="0,0,0,1"],
   ["Clasificador reconoce signo opuesto",()=>classifyCellCause(-.5,.5,0,0,[ [.5] ],[[-.5]],{}).includes("signo")],
@@ -14424,16 +14560,38 @@ function makeWorkspaceThree(diff,variant='area'){
  const params={L1,L2,L3,...w,...extra,ask:'ambos',workspaceVariant:variant};
  const intro=`Un brazo planar de tres eslabones tiene L₁=${L1}, L₂=${L2} y L₃=${L3}, en metros. Los ángulos q₂ y q₃ se miden respecto al eslabón anterior. ${restriction} Considera eslabones sin grosor, sin obstáculos ni autocolisiones. `;
  let question='Determina los radios interior y exterior de su región alcanzable, en el orden [menor; mayor].',fields={type:'matrix',rows:2,cols:1,answer:[[w.radialMin],[w.radialMax]],tolerance:.002};
- if(variant==='area'){params.ask='area';question='Calcula la superficie de la región alcanzable por E, en m².';fields={type:'number',answer:Math.PI*(w.radialMax**2-w.radialMin**2),tolerance:.05}}
+ if(variant==='area'){params.ask='area';question='Calcula la superficie de la región alcanzable por E, en m².';fields={type:'number',answer:Math.PI*(w.radialMax**2-w.radialMin**2),tolerance:.05,
+  numericAlternatives:[
+   {value:Math.PI*w.radialMax**2,message:"Ese valor es el disco exterior completo: falta descontar el hueco interior que el brazo no alcanza."},
+   {value:Math.PI*(w.radialMax-w.radialMin)**2,message:"Has elevado al cuadrado la diferencia de radios. La corona es la diferencia de las áreas, no el área de la diferencia."},
+   {value:w.radialMax**2-w.radialMin**2,message:"Falta multiplicar por π: la diferencia de cuadrados todavía no es una superficie."},
+   {value:2*Math.PI*(w.radialMax-w.radialMin),message:"Eso mide una longitud de circunferencia, no una superficie. Revisa qué fórmula corresponde al área de una corona."}
+  ]}}
  if(variant==='membership'){
   const radius=pick([w.radialMax+1,w.radialMin? w.radialMin/2:0,(w.radialMin+w.radialMax)/2]);params.punto=[radius,0];params.ask='pertenencia';
   question=`Determina si P=(${radius}, 0) m pertenece a la región alcanzable por E. Incluye las fronteras.`;
-  fields={type:'choice',options:['Sí, pertenece.','No, no pertenece.'],answer:radius>=w.radialMin&&radius<=w.radialMax?'Sí, pertenece.':'No, no pertenece.'};
+  const dentro=radius>=w.radialMin&&radius<=w.radialMax;
+  fields={type:'choice',options:['Sí, pertenece.','No, no pertenece.'],answer:dentro?'Sí, pertenece.':'No, no pertenece.',
+   rationale:{
+    clave:`La región alcanzable es la corona comprendida entre r mín = ${fmt(w.radialMin,3)} m y r máx = ${fmt(w.radialMax,3)} m. El punto dista ${fmt(radius,3)} m del origen, así que ${dentro?'cae dentro de ese intervalo, fronteras incluidas':'queda fuera de ese intervalo'}.`,
+    fallos:{[dentro?'No, no pertenece.':'Sí, pertenece.']:dentro
+     ?`La distancia ${fmt(radius,3)} m sí está comprendida entre los radios interior y exterior, y el enunciado pide contar las fronteras como alcanzables.`
+     :`La distancia ${fmt(radius,3)} m ${radius<w.radialMin?'cae dentro del hueco interior, que el brazo no puede alcanzar por mucho que plieguen sus articulaciones':'supera el alcance máximo, que es la suma de las tres longitudes'}.`}
+   }};
  }
  if(variant==='missing'){
   const hidden=ri(0,2),names=['L₁','L₂','L₃'];params.unknownLink=hidden+1;params.ask='longitud';
   const known=lengths.map((v,i)=>i===hidden?null:`${names[i]}=${v} m`).filter(Boolean).join(' y ');
-  return workspaceBase('workspace_three_missing','Tres eslabones · longitud desconocida',`Un brazo planar 3R tiene ${known}. Sus tres giros son completos e independientes y su alcance radial máximo es ${w.radialMax} m. Determina ${names[hidden]}, en metros. Los eslabones se idealizan sin grosor ni colisiones. El esquema no está a escala.`,params,{type:'number',answer:lengths[hidden],tolerance:.002,chips:[],hints:[],steps:[],commonErrors:[]});
+  /* Los dos conocidos comparten mensaje a propósito: si miden lo mismo, el
+     desvío sigue siendo uno solo y el diagnóstico puede nombrarlo. */
+  const conocidos=lengths.filter((_,i)=>i!==hidden),olvidarUno="Ese valor descuenta solo uno de los dos eslabones conocidos. El alcance máximo es la suma de los tres, así que hay que restar ambos.";
+  return workspaceBase('workspace_three_missing','Tres eslabones · longitud desconocida',`Un brazo planar 3R tiene ${known}. Sus tres giros son completos e independientes y su alcance radial máximo es ${w.radialMax} m. Determina ${names[hidden]}, en metros. Los eslabones se idealizan sin grosor ni colisiones. El esquema no está a escala.`,params,{type:'number',answer:lengths[hidden],tolerance:.002,
+   numericAlternatives:[
+    {value:w.radialMax-conocidos[0],message:olvidarUno},
+    {value:w.radialMax-conocidos[1],message:olvidarUno},
+    {value:conocidos[0]+conocidos[1],message:"Has sumado los eslabones conocidos en lugar de restarlos del alcance máximo, que es lo que deja libre la longitud que falta."},
+    {value:w.radialMax/3,message:"Has repartido el alcance en tres partes iguales. La suma de las tres longitudes da el alcance, pero no tienen por qué medir lo mismo."}
+   ],chips:[],hints:[],steps:[],commonErrors:[]});
  }
  return workspaceBase('workspace_three_'+variant,{area:'Tres eslabones · superficie',radii:'Tres eslabones · radios',membership:'Tres eslabones · punto alcanzable',locked:'Tres eslabones · última articulación fija',limited:'Tres eslabones · límite en la última articulación'}[variant],intro+question,params,{...fields,chips:[],hints:[],steps:[],commonErrors:[]});
 }

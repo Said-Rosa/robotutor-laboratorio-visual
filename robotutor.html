@@ -5175,6 +5175,20 @@ const CHOICE_RATIONALE=Object.freeze({
  "Durante una trayectoria cartesiana continua se observa que el determinante del jacobiano cambia de signo. ¿Qué se deduce?":{clave:"El determinante es una función continua de la configuración: si pasa de positivo a negativo necesariamente se ha anulado, y anularse es exactamente la definición de singularidad.",fallos:{"Un error de signo en algún parámetro de la tabla DH.":"Un error de signo daría un determinante con signo constante equivocado, no un cambio a lo largo del recorrido.","Nada relevante: el signo del determinante es convencional.":"El signo depende del orden de las columnas, pero su cambio a lo largo de una trayectoria continua sí es significativo.","Que el robot ha cambiado de convención DH a mitad del trayecto.":"La convención se elige una vez al modelar el robot: no cambia durante la ejecución de una trayectoria."}},
 });
 function choiceRationale(statement){return CHOICE_RATIONALE[statement]||null}
+/* Los verdadero/falso son de solo enunciado, así que la práctica les oculta
+   pista, solución y chips: al fallar, el alumno solo leía que se había
+   equivocado. Su ficha ya explica de qué absoluto cojea la afirmación, y ese
+   texto es justamente lo que enseña el formato, así que se muestra junto al
+   resultado. No se extiende al resto de los de solo enunciado —clasificación,
+   área de trabajo, cadenas narrativas—, donde el racional destriparía la
+   figura o el cálculo que el ejercicio pide resolver. */
+function reflectionExplanation(exercise,entered,ok){
+ if(exercise?.kind!=="reflection"||exercise.type!=="choice")return "";
+ const ficha=exercise.rationale;
+ if(!ficha)return "";
+ const texto=(ok?null:choiceFailureReason(exercise,entered))||ficha.clave;
+ return texto?`<span class="diff-pattern">${texto}</span>`:"";
+}
 function choiceFailureReason(exercise,entered){
  const fallos=exercise&&exercise.rationale&&exercise.rationale.fallos;
  if(!fallos||typeof entered!=="string"||entered===exercise.answer)return null;
@@ -7987,8 +8001,9 @@ function check(){
  if(!asistido){progress.attempts++;progress.chapters[exercise.chapter][1]++}
  if(ok){
   exercise.practiceSolved=true;
-  if(asistido){progress.assisted=(progress.assisted||0)+1;feedback("ok","¡Correcto! Resolución con ayuda: se registra aparte, sin aumentar aciertos ni racha.")}
-  else{progress.correct++;progress.streak++;progress.chapters[exercise.chapter][0]++;feedback("ok","¡Correcto! La respuesta coincide con el verificador determinista.")}
+  const porQue=reflectionExplanation(exercise,a,true);
+  if(asistido){progress.assisted=(progress.assisted||0)+1;feedback("ok","¡Correcto! Resolución con ayuda: se registra aparte, sin aumentar aciertos ni racha."+porQue)}
+  else{progress.correct++;progress.streak++;progress.chapters[exercise.chapter][0]++;feedback("ok",(porQue?"¡Correcto!":"¡Correcto! La respuesta coincide con el verificador determinista.")+porQue)}
  }
  else{
   if(!asistido)progress.streak=0;
@@ -7996,7 +8011,8 @@ function check(){
  const patron=!isStatementOnlyExercise(exercise)&&exercise.type==="number"?numericAlternativeMatch(exercise,a):null;
  const scalarDetail=!isStatementOnlyExercise(exercise)&&exercise.type==="number"?` Esperado ${fmt(exercise.answer,5)}; ingresado ${fmt(a,5)}; error ${fmt(Math.abs(a-exercise.answer),5)}.${patron?`<span class="diff-pattern">${patron.message}</span>`:""}`:"";
   const motivoOpcion=!isStatementOnlyExercise(exercise)&&exercise.type==="choice"?choiceFailureReason(exercise,a):null;
-  feedback("bad",isStatementOnlyExercise(exercise)?"La respuesta no es correcta. Revisa tu resultado.":exercise.type==="choice"?(motivoOpcion?`Esa alternativa falla por una razón concreta.<span class="diff-pattern">${motivoOpcion}</span>`:"La opción no es correcta. Usa una pista o revisa la lección."):`Hay diferencias. Revisa orden, signos, unidades y redondeo.${scalarDetail}${detail}`)
+  const porQueFalla=reflectionExplanation(exercise,a,false);
+  feedback("bad",isStatementOnlyExercise(exercise)?(porQueFalla?"La respuesta no es correcta."+porQueFalla:"La respuesta no es correcta. Revisa tu resultado."):exercise.type==="choice"?(motivoOpcion?`Esa alternativa falla por una razón concreta.<span class="diff-pattern">${motivoOpcion}</span>`:"La opción no es correcta. Usa una pista o revisa la lección."):`Hay diferencias. Revisa orden, signos, unidades y redondeo.${scalarDetail}${detail}`)
  }
  if(!asistido)recordTopicResult(exercise,ok);
  /* El diagnóstico numérico y matricial muestra el valor esperado: una copia
@@ -12965,6 +12981,25 @@ function runSelfTests(){
      host.querySelectorAll(".lesson-plate-canvas svg").length===1&&
      Boolean(host.querySelector("#texto-que-debe-sobrevivir"));
    }finally{host.remove()}
+  }],
+  ["El verdadero/falso explica la trampa y no contagia al resto de solo enunciado",()=>{
+   /* La práctica oculta pista y solución en los ejercicios de solo enunciado.
+      El verdadero/falso necesita aun así su explicación, porque reconocer el
+      absoluto es la destreza que evalúa; las demás familias no deben recibirla,
+      porque su ficha destriparía la figura o el cálculo. */
+   for(const entrada of REFLECTION_BANK){
+    const vf=makeReflection(Number(entrada.topic[0]),2,"vf",entrada);
+    const fallada=vf.options.find(opcion=>opcion!==vf.answer);
+    const alFallar=reflectionExplanation(vf,fallada,false);
+    if(!alFallar.includes(vf.rationale.fallos[fallada]))return false;
+    if(!alFallar.includes(entrada.trap))return false;
+    if(!reflectionExplanation(vf,vf.answer,true).includes(vf.rationale.clave))return false;
+   }
+   /* y ni las clasificaciones ni el área de trabajo la reciben */
+   for(const otra of [makeClassification(1,2,"identify"),makeWorkspaceRP(2,"membership")])
+    if(reflectionExplanation(otra,otra.options[0],false)!=="")return false;
+   /* la abierta tampoco: tiene su propia revisión por criterios */
+   return reflectionExplanation(makeReflection(1,2,"open",REFLECTION_BANK[0]),"",false)==="";
   }],
   ["Toda pregunta de opción múltiple explica por qué falla la opción elegida",()=>{
    /* El banco estático llevaba motivo desde hace versiones, pero las nueve

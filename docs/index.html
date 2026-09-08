@@ -1370,11 +1370,24 @@ const chapters = [
 <tr><td>Prismática · P</td><td>Desplazamiento sobre un eje, descrito por d.</td><td>1</td></tr>
 <tr><td>Cilíndrica · C</td><td>Giro y desplazamiento sobre el mismo eje, independientes.</td><td>2</td></tr>
 <tr><td>Helicoidal · H</td><td>Giro y avance ligados por el paso de la unión.</td><td>1</td></tr>
+<tr><td>Planar · E</td><td>Dos desplazamientos independientes dentro de un plano.</td><td>2</td></tr>
 <tr><td>Universal</td><td>Dos giros independientes.</td><td>2</td></tr>
-<tr><td>Esférica</td><td>Tres libertades de orientación.</td><td>3</td></tr>
+<tr><td>Esférica o rótula · S</td><td>Tres libertades de orientación alrededor de un punto.</td><td>3</td></tr>
 </tbody></table>
+<div class="callout"><strong>Sobre la unión planar.</strong> La tabla clásica le asigna dos grados de libertad porque la describe como dos deslizamientos dentro del plano. El contacto plano-sobre-plano completo admite además el giro alrededor de la normal, y entonces son tres. Conviene decir cuál de las dos versiones se está usando en lugar de citar el número suelto.</div>
+<div class="callout warn"><strong>Nomenclatura.</strong> Algunos textos llaman <em>rotoprismática</em> a la unión que combina giro y desplazamiento. El nombre no distingue por sí solo la cilíndrica —donde ambos movimientos son libres— de la helicoidal —donde el paso los liga—, así que hay que mirar siempre si las coordenadas son independientes.</div>
 <p>Una articulación cilíndrica no es lo mismo que un robot de arquitectura cilíndrica. Tampoco basta decir «gira y desliza»: hay que indicar si los dos movimientos pueden variar por separado.</p>
-<div class="cc-plates"><figure><figcaption>Unión cilíndrica · movimientos independientes</figcaption><div data-cc-model="freeJoint"></div></figure><figure><figcaption>Unión helicoidal · movimientos acoplados</figcaption><div data-cc-model="screwJoint"></div></figure></div>
+<h4>Los seis pares elementales, dibujados</h4>
+<p>Cada figura une los mismos dos cuerpos. Lo único que cambia es el movimiento que la unión permite: el arco marca un giro, la doble flecha un desplazamiento y la hélice el giro y el avance ya ligados de la unión de tornillo. Cada uno de esos trazos vale por una coordenada independiente, así que contarlos da directamente los grados de libertad. Compara la cilíndrica con la helicoidal: comparten eje, pero la primera necesita un arco y una flecha por separado y la segunda resuelve ambos movimientos con una sola hélice.</p>
+<div class="cc-plates">
+<figure><figcaption>Rotación · R · 1 GDL</figcaption><div data-cc-model="revoluteJoint"></div><p>Un giro alrededor de un eje. Coordenada θ.</p></figure>
+<figure><figcaption>Prismática · P · 1 GDL</figcaption><div data-cc-model="prismaticJoint"></div><p>Un desplazamiento sobre un eje. Coordenada d.</p></figure>
+<figure><figcaption>Helicoidal · H · 1 GDL</figcaption><div data-cc-model="screwJoint"></div><p>Gira y avanza, pero el paso liga ambos: basta θ.</p></figure>
+<figure><figcaption>Cilíndrica · C · 2 GDL</figcaption><div data-cc-model="freeJoint"></div><p>El mismo eje que la helicoidal, con θ y d libres.</p></figure>
+<figure><figcaption>Planar · E · 2 GDL</figcaption><div data-cc-model="planarJoint"></div><p>Dos deslizamientos independientes en un plano.</p></figure>
+<figure><figcaption>Esférica · S · 3 GDL</figcaption><div data-cc-model="sphericalJoint"></div><p>Tres giros alrededor de un punto fijo.</p></figure>
+</div>
+<p>Las dos primeras son las que aparecen en los robots industriales, porque son las que un accionamiento mueve y un sensor mide directamente. Las demás se emplean sobre todo para modelar uniones existentes o para describir cadenas cerradas, y en el modelo se sustituyen por combinaciones de R y P con eslabones intermedios de longitud nula.</p>
 <p>Para una unión helicoidal de paso constante h, d=hθ/(2π), con θ en radianes. Al elegir θ queda fijado d; basta una coordenada. En una unión cilíndrica libre se necesitan ambas.</p>
 <h4>Leer una cadena y bloquear una articulación</h4>
 <p>Una cadena RPR se describe mediante (θ₁, d₂, θ₃). El subíndice identifica el orden de la articulación; la letra indica si su coordenada es angular o lineal. No deben confundirse estas coordenadas con (x,y,z), que describen la posición de un punto.</p>
@@ -1937,6 +1950,24 @@ const theoryExpansion={
     <li><strong>Validar y documentar</strong> que todo lo anterior funciona en las condiciones previsibles.</li>
    </ol>
    <div class="callout danger"><strong>Los niveles 4 y 5 no sustituyen a los anteriores.</strong> Un cartel y un curso no compensan un peligro que podía haberse eliminado en el diseño. Es el error de fondo de muchas celdas antiguas.</div>
+   <p>Los tres primeros niveles se agrupan a menudo en el llamado <strong>método de tres etapas</strong>: primero medidas inherentemente seguras de diseño, después resguardos y medidas de protección complementarias, y solo al final la información para la utilización. El orden es una obligación de método, no una preferencia: una medida de etapa posterior nunca justifica renunciar a una anterior que era viable.</p>
+   <h4>De dónde salen los riesgos mecánicos de una instalación automatizada</h4>
+   <p>Un robot no es peligroso únicamente mientras funciona como estaba previsto. Conviene separar dos familias de origen, porque exigen medidas distintas.</p>
+   <div class="method-grid">
+    <div class="method-card"><strong>Funcionamiento previsto</strong><span>Movimiento a velocidad y recorrido nominales dentro del espacio de trabajo: impacto, atrapamiento, cizallamiento, arrastre y proyección de la pieza o de la herramienta.</span></div>
+    <div class="method-card"><strong>Fallo</strong><span>Mando o software que ordena un movimiento no pedido, pérdida y restablecimiento de la energía, rotura de una transmisión, freno degradado en un eje vertical, o pérdida de la pieza sujeta.</span></div>
+   </div>
+   <p>A esas dos se suma el <strong>acceso de personas</strong> en tareas que no son producción automática: ajuste, programación, cambio de herramienta, limpieza, desatasco y mantenimiento. Son las situaciones donde alguien entra al espacio controlado, y donde más accidentes se concentran, porque a menudo se hacen con las protecciones anuladas.</p>
+   <div class="callout warn"><strong>Consecuencia para el análisis:</strong> una evaluación que solo estudie el ciclo automático deja fuera tanto los modos de fallo como las tareas de intervención. Ambos generan riesgos mecánicos propios de la instalación, no del robot aislado.</div>
+   <h4>Tres familias de medidas, y para qué sirve cada una</h4>
+   <p>Se confunden con facilidad porque conviven en la misma celda, pero hacen cosas distintas: una impide el acceso, otra lo detecta, y la tercera solo informa.</p>
+   <table><thead><tr><th>Familia</th><th>Qué hace</th><th>Ejemplos</th></tr></thead><tbody>
+   <tr><td><strong>Resguardos</strong></td><td>Barrera física: impide o dificulta llegar al peligro.</td><td>Fijos, sujetos con elementos que exigen herramienta; móviles con enclavamiento, que detienen el movimiento al abrirse; regulables.</td></tr>
+   <tr><td><strong>Dispositivos de protección</strong></td><td>No impiden el paso: detectan la presencia o la acción y provocan la parada.</td><td>Sensibles a la presión —bordes, barras, parachoques y alfombras—; detección sin contacto —cortinas ópticas, escáneres láser—; mando a dos manos y dispositivo de habilitación.</td></tr>
+   <tr><td><strong>Medios de advertencia</strong></td><td>Solo informan de la existencia del peligro o de un estado.</td><td>Señalización fija, balizas luminosas, avisadores acústicos, marcado del suelo.</td></tr>
+   </tbody></table>
+   <div class="callout danger"><strong>Un medio de advertencia no es una protección.</strong> Una baliza avisa de que el robot puede arrancar, pero no impide el acceso ni detiene el movimiento. Es una medida complementaria: acompaña a un resguardo o a un dispositivo, nunca los sustituye. La pregunta útil no es «¿avisa?», sino «¿qué ocurre si alguien entra pese al aviso?».</div>
+   <p>Los dispositivos sensibles a la presión merecen una nota aparte: actúan <strong>por contacto</strong>, de modo que la parada empieza cuando el contacto ya se ha producido. Sirven para limitar la consecuencia —un borde que detiene un eje antes de aplastar—, no para evitar que el contacto ocurra. Cuando lo que hay que evitar es el contacto mismo, corresponde detección sin contacto o un resguardo.</p>
    <h4>Cuatro palabras del vocabulario de calidad</h4>
    <div class="rule-box">
     <div class="rule-item"><span class="rule-tag">verificación</span><strong>¿Cumple la especificación?</strong><em>medir y comparar</em><span>Da un sí o un no frente a un número.</span></div>
@@ -3521,7 +3552,7 @@ function renderStorageStatus(){
 const TOPIC_BY_EXERCISE=Object.freeze({
  /* Capítulo 1 */
  classification_identify:"1.3",classification_compare:"1.3",classification_posture:"1.3",classification_wrist:"1.3",classification_mistake:"1.3",
- classification_joint:"2.1",classification_sequence:"2.1",classification_variables:"2.1",classification_mobility:"2.1",classification_coupled:"2.1",
+ classification_joint:"2.1",classification_sequence:"2.1",classification_variables:"2.1",classification_mobility:"2.1",classification_coupled:"2.1",classification_pair:"2.1",
  accuracy_vs_repeatability:"1.5",  /* Métricas y seguridad */
  payload_budget:"1.9",             /* Cálculos de selección: carga, alcance y ciclo */
  reach_distance:"1.9",
@@ -4389,7 +4420,13 @@ const REFLECTION_BANK=[
  {key:'repeat',topic:'1.5',yes:'Un robot puede repetir una posición con poca dispersión y conservar un error sistemático respecto a la posición programada.',no:'Una repetibilidad alta garantiza por sí sola una exactitud absoluta alta.',question:'Un robot vuelve a un grupo pequeño de puntos, pero ese grupo está desplazado del objetivo. Explica qué magnitudes distinguirías y qué revisarías.',criteria:['Distingue dispersión o repetibilidad del desplazamiento medio o exactitud.','Propone revisar calibración, marcos y referencia de herramienta antes de atribuir todo a ruido aleatorio.']},
  {key:'risk',topic:'1.8',yes:'La evaluación del riesgo de una aplicación robótica debe considerar también tareas de ajuste y mantenimiento.',no:'Una aplicación robótica solo necesita evaluar riesgos durante la producción automática.',question:'En una celda se ha estudiado el ciclo automático, pero no el ajuste ni el mantenimiento. Explica qué falta en el análisis y por qué.',criteria:['Incluye tareas no rutinarias y posibles accesos de personas.','Relaciona cada tarea con peligros y medidas de reducción del riesgo.']},
  {key:'collaboration',topic:'1.8',yes:'Cambiar la herramienta de una aplicación colaborativa puede cambiar sus riesgos.',no:'La etiqueta de robot colaborativo hace innecesario evaluar los riesgos de la herramienta y la pieza.',question:'Se cambia una ventosa por una herramienta con bordes expuestos en una aplicación colaborativa. Explica qué debe volver a evaluarse.',criteria:['Considera el conjunto robot, herramienta, pieza y tarea.','Identifica nuevos peligros de contacto y revisa las medidas de protección de la aplicación.']},
+ {key:'guards',topic:'1.8',yes:'Un resguardo impide o dificulta el acceso, mientras que un dispositivo de protección deja pasar y provoca la parada al detectar la presencia.',no:'Un resguardo y un dispositivo de protección hacen lo mismo, así que son intercambiables en cualquier aplicación.',question:'Compara un resguardo móvil enclavado con una cortina óptica. Explica en qué se diferencia lo que hace cada uno.',criteria:['Distingue impedir el acceso de detectarlo y provocar la parada.','Relaciona la elección con la tarea: frecuencia de acceso, espacio disponible y tiempo de parada.']},
+ {key:'pressure',topic:'1.8',yes:'Un dispositivo sensible a la presión actúa por contacto, así que limita la consecuencia pero no evita que el contacto se produzca.',no:'Un borde o un parachoques sensible a la presión evita que llegue a producirse el contacto con la parte peligrosa.',question:'Se propone proteger un eje con un borde sensible a la presión. Explica qué queda cubierto y qué no con esa elección.',criteria:['Reconoce que la parada se inicia cuando el contacto ya ha ocurrido.','Propone detección sin contacto o un resguardo cuando lo que debe evitarse es el contacto mismo.']},
+ {key:'signal',topic:'1.8',yes:'Los medios de advertencia son medidas complementarias: informan del peligro sin impedir el acceso ni detener el movimiento.',no:'Una baliza luminosa y una señal de advertencia bastan por sí solas para proteger el acceso a una celda robotizada.',question:'Una celda solo dispone de balizas y señalización para avisar del arranque del robot. Explica qué le falta y por qué.',criteria:['Identifica la advertencia como medida complementaria dentro de la jerarquía.','Señala que hace falta un resguardo o un dispositivo que impida o detecte el acceso.']},
+ {key:'failure',topic:'1.8',yes:'Los riesgos mecánicos de una instalación automatizada provienen tanto del funcionamiento previsto como de los fallos y de las tareas de intervención.',no:'Mientras el robot funcione conforme a su programa, no existe ningún origen de riesgo mecánico que analizar.',question:'Enumera y explica al menos dos orígenes de riesgo mecánico distintos del movimiento nominal del robot.',criteria:['Incluye modos de fallo, como pérdida de energía, freno degradado o mando erróneo.','Incluye tareas no productivas con acceso de personas: ajuste, programación o mantenimiento.']},
  {key:'joint',topic:'2.1',yes:'En una unión helicoidal ideal de paso constante, el giro y el avance están acoplados y basta una coordenada independiente.',no:'Toda unión que gira y desliza tiene necesariamente dos grados de libertad.',question:'Compara una unión cilíndrica libre con una helicoidal. Explica qué diferencia determina sus grados de libertad.',criteria:['Distingue movimientos independientes de movimientos acoplados.','Asigna dos coordenadas a la cilíndrica y una a la helicoidal de paso fijo.']},
+ {key:'pairs',topic:'2.1',yes:'Una unión esférica aporta tres libertades de orientación y una prismática solo una de traslación.',no:'Todas las uniones entre dos cuerpos aportan un único grado de libertad.',question:'Explica por qué contar uniones no equivale a contar grados de libertad en una cadena.',criteria:['Asocia a cada tipo de unión el número de libertades que permite.','Relaciona la movilidad de la cadena con la suma de esas libertades, no con el número de uniones.']},
+ {key:'industrial',topic:'2.1',yes:'Los robots industriales se construyen casi siempre con uniones de rotación y prismáticas, aunque existan otros tipos de par.',no:'Las uniones esféricas y planares no existen porque solo se emplean rotación y traslación.',question:'Un catálogo de pares cinemáticos incluye uniones esféricas y planares, pero un robot industrial casi nunca las lleva. Explica esa diferencia.',criteria:['Distingue qué pares existen como catálogo mecánico de cuáles se accionan y se miden en la práctica.','Menciona que las uniones de varias libertades se modelan como combinaciones de R y P.']},
  {key:'gear',topic:'2.2',yes:'Un reductor ideal intercambia velocidad y par sin aumentar la potencia mecánica.',no:'Un reductor ideal aumenta el par de salida y conserva a la vez la velocidad del motor.',question:'Explica qué se gana y qué se pierde al aumentar la relación de reducción manteniendo el mismo motor.',criteria:['Relaciona una mayor reducción con menor velocidad de salida y mayor par ideal.','Distingue potencia ideal de pérdidas y evita afirmar que el reductor crea energía.']},
  {key:'sensor',topic:'2.4',yes:'La lectura del encoder del motor puede no reflejar una deformación situada después del sensor.',no:'Si el encoder del motor alcanza la consigna, el TCP está necesariamente en la posición exacta solicitada.',question:'El encoder informa que se alcanzó la consigna, pero el TCP se desvía bajo carga. Explica dos causas compatibles con esa observación.',criteria:['Incluye una causa mecánica posterior al sensor, como flexión u holgura.','Considera referencias, calibración o transmisión, sin confundir posición del motor con posición del TCP.']},
  {key:'rotation',topic:'3.2',yes:'Una matriz de rotación tridimensional propia tiene columnas ortonormales y determinante positivo igual a uno.',no:'Toda matriz ortogonal de tamaño tres por tres representa una rotación propia, aunque su determinante sea negativo.',question:'Explica por qué comprobar únicamente la ortogonalidad no basta para validar una matriz de rotación propia.',criteria:['Incluye la condición de determinante +1.','Distingue una reflexión de una rotación propia.']},
@@ -4479,6 +4516,25 @@ const CC_MODELS=Object.freeze({
  scara:{name:'SCARA',sequence:'RRP',description:'dos giros de ejes paralelos y un desplazamiento vertical'},
  articulated:{name:'Articulado o antropomórfico',sequence:'RRR',description:'giro de base y dos giros de ejes paralelos en hombro y codo'}
 });
+/* Los seis pares inferiores del catálogo clásico, con la letra que los nombra,
+   los ejes que hay que dibujar y las coordenadas independientes que exigen.
+   `freeJoint` y `screwJoint` conservan su nombre porque el tema 2.1 ya los
+   citaba antes de que existiera esta tabla. */
+const CC_PAIRS=Object.freeze({
+ revoluteJoint:{type:'R',name:'Rotación o revoluta',letter:'R',dof:1,axis:[0,1,0],
+  motion:'Un giro alrededor de un eje fijo.',variable:'θ'},
+ prismaticJoint:{type:'P',name:'Prismática',letter:'P',dof:1,axis:[1,0,0],
+  motion:'Un desplazamiento a lo largo de un eje fijo.',variable:'d'},
+ screwJoint:{type:'H',name:'Helicoidal o de tornillo',letter:'H',dof:1,axis:[1,0,0],
+  motion:'Giro y avance sobre el mismo eje, ligados por el paso.',variable:'θ (d queda fijado)'},
+ freeJoint:{type:'C',name:'Cilíndrica',letter:'C',dof:2,axis:[1,0,0],
+  motion:'Giro y desplazamiento sobre el mismo eje, independientes.',variable:'θ y d'},
+ planarJoint:{type:'E',name:'Planar',letter:'E',dof:2,axis:[1,0,0],axisB:[0,1,0],
+  motion:'Dos desplazamientos independientes dentro de un plano.',variable:'d₁ y d₂'},
+ sphericalJoint:{type:'S',name:'Esférica o rótula',letter:'S',dof:3,axis:[0,1,0],
+  motion:'Tres giros independientes alrededor de un punto.',variable:'tres ángulos'}
+});
+function ccPairModels(){return Object.keys(CC_PAIRS)}
 function ccGeometry(model,pose=0){
  const tilt=pose?40:20,a=rad(tilt),b=rad(pose?-60:35),u=[Math.cos(a),0,Math.sin(a)],v=[Math.cos(a+b),0,Math.sin(a+b)];
  let links,joints;const joint=(type,point,axis)=>({type,point,axis});
@@ -4487,10 +4543,20 @@ function ccGeometry(model,pose=0){
  if(model==='polar'){const end=[3.5*u[0],0,2+3.5*u[2]];links=[[0,0,0],[0,0,2],end];joints=[joint('R',[0,0,.4],[0,0,1]),joint('R',[0,0,2],[0,1,0]),joint('P',[2*u[0],0,2+2*u[2]],u)]}
  if(model==='articulated'){const elbow=[2.3*u[0],0,2+2.3*u[2]],end=[elbow[0]+2*v[0],0,elbow[2]+2*v[2]];links=[[0,0,0],[0,0,2],elbow,end];joints=[joint('R',[0,0,.4],[0,0,1]),joint('R',[0,0,2],[0,1,0]),joint('R',elbow,[0,1,0])]}
  if(model==='scara'){const q=rad(pose?95:55),elbow=[2.5,0,2.7],end=[2.5+2*Math.cos(q),2*Math.sin(q),2.7];links=[[0,0,0],[0,0,2.7],elbow,end,[end[0],end[1],1.3]];joints=[joint('R',[0,0,2.7],[0,0,1]),joint('R',elbow,[0,0,1]),joint('P',[end[0],end[1],2],[0,0,1])]}
- if(model==='freeJoint'||model==='screwJoint'){links=[[-1.7,0,1.7],[1.7,0,1.7]];joints=[joint(model==='freeJoint'?'C':'H',[0,0,1.7],[1,0,0])]}
+ /* Pares elementales dibujados en aislado: dos cuerpos unidos por una sola
+    articulación. Todos comparten el mismo par de eslabones para que comparar
+    dos tipos dependa del movimiento permitido y no del dibujo. La planar
+    declara un segundo eje porque sus dos traslaciones son independientes. */
+ if(CC_PAIRS[model]){
+  const{type,axis,axisB}=CC_PAIRS[model];
+  links=[[-1.7,0,1.7],[1.7,0,1.7]];
+  const unica=joint(type,[0,0,1.7],axis);
+  if(axisB)unica.axisB=axisB;
+  joints=[unica];
+ }
  // A base rotation changes posture without changing relative joint-axis geometry.
  const az=rad(pose?25:-10),turn=p=>[p[0]*Math.cos(az)-p[1]*Math.sin(az),p[0]*Math.sin(az)+p[1]*Math.cos(az),p[2]];
- return{links:links.map(turn),joints:joints.map(j=>({...j,point:turn(j.point),axis:turn(j.axis)}))};
+ return{links:links.map(turn),joints:joints.map(j=>({...j,point:turn(j.point),axis:turn(j.axis),...(j.axisB?{axisB:turn(j.axisB)}:{})}))};
 }
 function ccSvg(model,pose=0,{teach=false}={}){
  const g=ccGeometry(model,pose),raw=p=>[p[0]*.82-p[1]*.68,-p[2]+p[0]*.27+p[1]*.34];
@@ -4502,27 +4568,56 @@ function ccSvg(model,pose=0,{teach=false}={}){
  const base=project(g.links[0]);svg.push(`<path d="M${base[0]-30} ${base[1]+8} h60 l15 14 h-90 Z" fill="var(--soft)" stroke="var(--muted)" stroke-width="2"/>`);
  for(let i=1;i<g.links.length;i++)svg.push(line(project(g.links[i-1]),project(g.links[i]),'stroke="var(--cc-link)" stroke-width="15" stroke-linecap="round"'));
  const accessible=[];
+ const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
  g.joints.forEach((j,i)=>{
   const p=project(j.point),color='var(--cc-motion)',axis1=project(add(j.point,j.axis,-.7)),axis2=project(add(j.point,j.axis,.7));
-  svg.push(line(axis1,axis2,'stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="5 4"'));
-  if(j.type==='P'||j.type==='C'||j.type==='H'){
-   const angle=Math.atan2(axis2[1]-axis1[1],axis2[0]-axis1[0])*180/Math.PI;svg.push(`<rect x="${p[0]-17}" y="${p[1]-11}" width="34" height="22" rx="3" transform="rotate(${angle} ${p[0]} ${p[1]})" fill="var(--card)" stroke="var(--cc-link)" stroke-width="3"/>`);
-   const off=[-Math.sin(rad(angle))*24,Math.cos(rad(angle))*24],from=axis1.map((v,k)=>v+off[k]),to=axis2.map((v,k)=>v+off[k]);svg.push(arrow(from,to,color),arrow(to,from,color));
-  }
-  if(j.type!=='P'){
-   if(j.type==='R')svg.push(`<circle cx="${p[0]}" cy="${p[1]}" r="12" fill="var(--card)" stroke="var(--cc-link)" stroke-width="3"/>`);
-   const ref=Math.abs(j.axis[2])<.8?[0,0,1]:[1,0,0],cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],u=cross(j.axis,ref),norm=Math.hypot(...u),U=u.map(v=>v/norm),V=cross(j.axis,U),arc=[];
+  /* Doble flecha de traslación sobre un eje cualquiera de la unión: la planar
+     la necesita dos veces, una por cada dirección independiente del plano. */
+  const desliza=eje=>{
+   const e1=project(add(j.point,eje,-.7)),e2=project(add(j.point,eje,.7));
+   const ang=Math.atan2(e2[1]-e1[1],e2[0]-e1[0])*180/Math.PI;
+   const off=[-Math.sin(rad(ang))*24,Math.cos(rad(ang))*24],from=e1.map((v,k)=>v+off[k]),to=e2.map((v,k)=>v+off[k]);
+   return arrow(from,to,color)+arrow(to,from,color);
+  };
+  /* Arco de giro alrededor de un eje. La esférica lo repite tres veces porque
+     sus tres libertades son de orientación y no comparten un eje único. */
+  const gira=eje=>{
+   const ref=Math.abs(eje[2])<.8?[0,0,1]:[1,0,0],u=cross(eje,ref),norm=Math.hypot(...u),U=u.map(v=>v/norm),V=cross(eje,U),arc=[];
    for(let k=0;k<=24;k++){const t=(25+285*k/24)*Math.PI/180;arc.push(project(add(add(j.point,U,.44*Math.cos(t)),V,.44*Math.sin(t))))}
-   svg.push(`<polyline points="${arc.map(p=>p.join(',')).join(' ')}" fill="none" stroke="${color}" stroke-width="2.8"/>`,arrow(arc.at(-2),arc.at(-1),color));
+   return`<polyline points="${arc.map(q=>q.join(',')).join(' ')}" fill="none" stroke="${color}" stroke-width="2.8"/>`+arrow(arc.at(-2),arc.at(-1),color);
+  };
+  /* Hélice de la unión de tornillo. Con la doble flecha recta, la helicoidal
+     quedaba dibujada igual que la cilíndrica y no había manera de distinguir
+     una libertad de dos mirando la figura: el acoplamiento tiene que verse. */
+  const rosca=eje=>{
+   const ref=Math.abs(eje[2])<.8?[0,0,1]:[1,0,0],u=cross(eje,ref),norm=Math.hypot(...u),U=u.map(v=>v/norm),V=cross(eje,U),puntos=[];
+   for(let k=0;k<=60;k++){const s=-.62+1.24*k/60,t=s*9.4;puntos.push(project(add(add(add(j.point,eje,s),U,.3*Math.cos(t)),V,.3*Math.sin(t))))}
+   return`<polyline points="${puntos.map(q=>q.join(',')).join(' ')}" fill="none" stroke="${color}" stroke-width="2.4"/>`+arrow(puntos.at(-2),puntos.at(-1),color);
+  };
+  if(j.type!=='S')svg.push(line(axis1,axis2,'stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="5 4"'));
+  if(j.type==='P'||j.type==='C'||j.type==='H'||j.type==='E'){
+   const angle=Math.atan2(axis2[1]-axis1[1],axis2[0]-axis1[0])*180/Math.PI;svg.push(`<rect x="${p[0]-17}" y="${p[1]-11}" width="34" height="22" rx="3" transform="rotate(${angle} ${p[0]} ${p[1]})" fill="var(--card)" stroke="var(--cc-link)" stroke-width="3"/>`);
+   if(j.type==='H')svg.push(rosca(j.axis));
+   else svg.push(desliza(j.axis));
+   if(j.type==='E'&&j.axisB)svg.push(desliza(j.axisB));
+  }
+  if(j.type==='R'||j.type==='C'){
+   if(j.type==='R')svg.push(`<circle cx="${p[0]}" cy="${p[1]}" r="12" fill="var(--card)" stroke="var(--cc-link)" stroke-width="3"/>`);
+   svg.push(gira(j.axis));
+  }
+  if(j.type==='S'){
+   svg.push(`<circle cx="${p[0]}" cy="${p[1]}" r="17" fill="var(--card)" stroke="var(--cc-link)" stroke-width="3"/>`);
+   for(const eje of[[0,0,1],[0,1,0],[1,0,0]])svg.push(gira(eje));
   }
   const offset=j.type==='P'?[-33,-28]:[-32,29],cx=p[0]+offset[0],cy=p[1]+offset[1];
   svg.push(`<circle data-cc-joint="${i+1}" cx="${cx}" cy="${cy}" r="15" fill="var(--card)" stroke="var(--cc-link)" stroke-width="2"/>`,text(cx,cy+7,teach?j.type:i+1,'text-anchor="middle" font-weight="750"'));
-  accessible.push(`Articulación ${i+1}: ${j.type==='R'?'giro':j.type==='P'?'desplazamiento lineal':'giro y desplazamiento axial'}`);
+  const movimiento={R:'giro alrededor de un eje',P:'desplazamiento lineal sobre un eje',C:'giro y desplazamiento independientes sobre el mismo eje, dibujados por separado',H:'giro y avance acoplados por el paso, dibujados como una hélice',E:'dos desplazamientos independientes en un plano',S:'tres giros alrededor de un punto'}[j.type]||'movimiento';
+  accessible.push(`Articulación ${i+1}: ${movimiento}`);
  });
  const end=project(g.links.at(-1));svg.push(text(end[0]+18,end[1]+5,'E','font-weight="700"'));
  return`<svg class="cc-svg" viewBox="0 0 510 385" role="img" aria-label="${accessible.join('. ')}. Extremo E. Esquema sin escala."><title>Movimientos del mecanismo</title>${svg.join('')}</svg>`;
 }
-function ccKinds(chapter,diff){return chapter===1?(diff===1?['identify','posture']:diff===2?['identify','compare','posture','wrist']:['identify','compare','posture','wrist','mistake']):(diff===1?['joint','sequence']:diff===2?['joint','sequence','variables','mobility']:['sequence','variables','mobility','coupled'])}
+function ccKinds(chapter,diff){return chapter===1?(diff===1?['identify','posture']:diff===2?['identify','compare','posture','wrist']:['identify','compare','posture','wrist','mistake']):(diff===1?['joint','sequence','pair']:diff===2?['joint','sequence','variables','mobility','pair']:['sequence','variables','mobility','coupled','pair'])}
 function makeClassification(chapter,diff,kind=pick(ccKinds(chapter,diff))){
  const model=pick(Object.keys(CC_MODELS)),spec=CC_MODELS[model],pose=ri(0,1),selected=ri(0,2),data={plates:[{model,pose,label:'Mecanismo'}],kind,model,selected};
  let statement='',answer='',options=[],type='choice';
@@ -4537,7 +4632,12 @@ function makeClassification(chapter,diff,kind=pick(ccKinds(chapter,diff))){
  if(kind==='mistake'){data.claim=pick(Object.keys(CC_MODELS).filter(m=>m!==model));statement=`Una ficha clasifica el mecanismo como «${CC_MODELS[data.claim].name}». Selecciona la descripción de sus movimientos que permite corregir esa ficha.`;choices(spec.description,Object.values(CC_MODELS).map(m=>m.description).filter(v=>v!==spec.description))}
  if(kind==='mobility'){const blocked=shuffle([1,2,3]).slice(0,ri(0,diff>=3?2:1));data.blocked=blocked;statement=`La figura representa una cadena abierta de tres articulaciones de un grado de libertad cada una. ${blocked.length?'Se bloquean las articulaciones '+blocked.join(' y ')+'.':'Todas están libres.'} No hay otros acoplamientos ni restricciones. ¿Cuántas coordenadas articulares independientes quedan?`;type='number';answer=3-blocked.length}
  if(kind==='coupled'){const coupled=Math.random()<.5;data.plates=[{model:coupled?'screwJoint':'freeJoint',pose:0,label:'Unión entre dos cuerpos'}];data.coupled=coupled;statement=coupled?'Una unión permite un giro θ y un desplazamiento axial d, ligados por d=h·θ/(2π), con paso h constante y no nulo. ¿Cuántas coordenadas independientes describen su movimiento relativo?':'Una unión permite girar sobre un eje y deslizarse a lo largo de ese mismo eje. El giro y el desplazamiento pueden variar de manera independiente. ¿Cuántas coordenadas independientes describen su movimiento relativo?';type='number';answer=coupled?1:2}
- return{id:'classification_'+kind,kind:'classification',chapter,type,visual:'classification',difficulty:diff,title:({identify:'Reconocer una arquitectura',sequence:'Leer la cadena desde la base',joint:'Interpretar el movimiento',variables:'Elegir las coordenadas articulares',compare:'Comparar la disposición de los ejes',posture:'Postura y arquitectura',wrist:'Distinguir brazo y muñeca',mistake:'Revisar una clasificación',mobility:'Articulaciones bloqueadas',coupled:'Movimientos independientes'})[kind],statement,answer,options,classificationData:data,params:{},chips:[],hints:[],steps:[],commonErrors:[],concepts:[chapter===1?'clasificación mecánica':'articulaciones y movilidad'],tolerance:0};
+ /* Lee la tabla de pares del tema 2.1 sobre la figura en vez de sobre el texto:
+    el alumno tiene que contar libertades a partir de las flechas dibujadas. */
+ if(kind==='pair'){const nombre=pick(ccPairModels()),par=CC_PAIRS[nombre];data.plates=[{model:nombre,pose:0,label:'Unión entre dos cuerpos'}];data.pair=nombre;statement='La figura muestra una única unión entre dos cuerpos. Cuenta las coordenadas independientes que describen su movimiento relativo. Las flechas indican los movimientos que permite; dos movimientos ligados entre sí cuentan como una sola coordenada.';type='number';answer=par.dof}
+ /* Contar coordenadas da un entero: cualquier margen por debajo de media unidad
+    es exacto, y deja de declarar una tolerancia nula, que no es comparable. */
+ return{id:'classification_'+kind,kind:'classification',chapter,type,visual:'classification',difficulty:diff,title:({identify:'Reconocer una arquitectura',sequence:'Leer la cadena desde la base',joint:'Interpretar el movimiento',variables:'Elegir las coordenadas articulares',compare:'Comparar la disposición de los ejes',posture:'Postura y arquitectura',wrist:'Distinguir brazo y muñeca',mistake:'Revisar una clasificación',mobility:'Articulaciones bloqueadas',coupled:'Movimientos independientes',pair:'Libertades de un par elemental'})[kind],statement,answer,options,classificationData:data,params:{},chips:[],hints:[],steps:[],commonErrors:[],concepts:[chapter===1?'clasificación mecánica':'articulaciones y movilidad'],tolerance:type==='number'?.25:0};
 }
 function renderClassification(exercise){
  const root=document.getElementById('exerciseVisual'),host=document.getElementById('classificationActivity');

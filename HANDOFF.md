@@ -1,3 +1,32 @@
+# Revisión actual · Codex · 3.34.0
+
+Partí de `main` en `ab1a02e`, con los PR de Claude ya fusionados. Las notas anteriores se conservan debajo como historial; sus referencias a PR pendientes y publicación 3.32.0 ya no describen el estado de GitHub.
+
+## Cambios para el parcial
+
+- Par planar general corregido a **3 GDL** en teoría, glosario, catálogo, respuestas y figura: dos traslaciones y giro normal. Una guía que bloquea el giro es una variante restringida de 2 GDL, no la definición general. Referencia: https://docs.ros.org/en/kinetic/api/rdl_dynamics/html/joint_description.html
+- Nombre de arquitectura **Antropomórfico**. Se conservan los identificadores internos `articulated` y las referencias genéricas a mecanismos articulados; SCARA no se renombra como antropomórfico.
+- Notación de rotaciones elementales: **α/X, φ/Y, θ/Z**, también U/V/W en ejes móviles. Giros repetidos independientes llevan subíndice (`alpha2`, α₂). El corrector sigue aceptando la notación antigua en ejercicios guardados. No se cambian qᵢ articulares ni los parámetros DH.
+- Nuevas matrices homogéneas y desarrollos geométricos en Aprender 3.4, 4.1 y 4.11.
+- Práctica planar 2R: coordenadas, cinemática inversa de rama declarada, longitud desconocida y ecuaciones simbólicas. Acceso explícito mediante dos botones en capítulo 4 / tema 4.1, y generación ligada a 4.3 para inversa.
+- Área de trabajo RP telescópica: q₂ como radio total o como extensión tras L. Variantes de superficie, radios, punto, pertenencia y extensión necesaria, más ecuaciones simbólicas de la región y sus bordes. El selector de modelos incorpora RP. Se conservan los 2R y 3R anteriores.
+- Todas estas nuevas láminas son fijas; no muestran respuesta, pistas, desarrollo ni controles de postura. Los símbolos se comparan mediante álgebra exacta, incluidas identidades de suma angular.
+- SCARA: conservé P y los ejes que repuso Claude. La barra prismática se etiqueta q₃; una nota separada indica la altura total d₀+q₃. Son magnitudes distintas.
+
+## Validación y publicación
+
+- Diez grupos de pruebas nuevas aprobados: matemáticas independientes, equivalencia simbólica, selectores, interacción de respuestas, ausencia de solución y SVG. Muestreo de cientos de variantes por familia.
+- Siete comprobaciones nuevas incorporadas a las autopruebas de la aplicación. La prueba de renderizado despacha los nuevos modelos por su renderizador propio.
+- Validación portable de CI ampliada para comprobar 2R, RP y catálogo planar; HTML completo y fragmento compilados correctamente.
+- Comparación de autopruebas con la misma configuración JSDOM: la base tiene nueve fallos de APIs de dibujo/medición y disposición que ese entorno no proporciona. No se presentan como errores nuevos ni se cambia su criterio para forzarlas a pasar. No se realizó una prueba física en iOS/Android.
+- Figuras RR, RP, SCARA y 6R renderizadas como SVG/PNG para inspección independiente.
+
+La publicación de Sites usa la misma fuente validada que esta rama. GitHub Pages cambiará cuando se revise/fusione el PR y termine su workflow; no se edita `docs/index.html` a mano. Las futuras modificaciones deben partir de `main` actualizado y respetar cualquier cambio de Claude.
+
+---
+
+## Historial 3.33.0
+
 # Coordinación Claude / Codex
 
 Esta rama propone la revisión 3.33.0 sobre la fuente inicial 3.32.0 de `main`.

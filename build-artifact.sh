@@ -1,56 +1,27 @@
 #!/usr/bin/env bash
-# Convierte robotutor.html (documento completo, tal como lo sirve chatgpt.site)
-# en robotutor-artifact.html, listo para publicar como Artifact de Claude.
-#
-# Qué hace:
-#  1. Quita <!DOCTYPE>, <html>, <head>, <body> — Artifacts aporta su propio envoltorio.
-#  2. Sube el <title> al principio: Artifacts solo lo busca en los primeros 8 KB
-#     y el CSS de KaTeX (200 KB) lo dejaba fuera de alcance.
-#  3. Restaura por JS los <meta> de la app (viewport-fit=cover y los de iOS),
-#     que se perdían al desaparecer el <head> original.
-#  4. Elimina el script de bot-management que Cloudflare inyecta al servir.
+# Default: standalone document for GitHub Pages. Optional third argument: artifact.
 set -euo pipefail
 SRC=${1:-robotutor.html}
-OUT=${2:-robotutor-artifact.html}
-
-# Localiza los límites en lugar de fijarlos a mano: así el script sobrevive
-# a que GPT añada o quite líneas en el original.
-L_TITLE=$(grep -n -m1 '^ *<title>' "$SRC" | cut -d: -f1)
-L_KTX_STYLE=$(grep -n -m1 '^ *<style>' "$SRC" | cut -d: -f1)
-L_HEAD_END=$(grep -n -m1 '^ *</head>' "$SRC" | cut -d: -f1)
-L_BODY=$(grep -n -m1 '^ *<body>' "$SRC" | cut -d: -f1)
-L_CF=$(grep -n -m1 'CF\$cv\$params' "$SRC" | cut -d: -f1)
-
-{
-  # Titulo recortado: Artifacts lo usa como nombre en la galeria y en la pestana,
-  # y debe mantenerse estable entre republicaciones.
-  echo "<title>RoboTutor Laboratorio Visual</title>"
-  cat <<'META'
-<script>
-/* Los <meta> de la app viajaban en el <head> original, que Artifacts sustituye
-   por el suyo. Se reponen aquí para conservar el comportamiento en iOS. */
-(function(){
- var vp=document.querySelector('meta[name="viewport"]');
- if(!vp){vp=document.createElement("meta");vp.setAttribute("name","viewport");document.head.appendChild(vp)}
- vp.setAttribute("content","width=device-width, initial-scale=1.0, viewport-fit=cover");
- var extra={"apple-mobile-web-app-capable":"yes","mobile-web-app-capable":"yes",
-  "apple-mobile-web-app-status-bar-style":"black-translucent",
-  "apple-mobile-web-app-title":"RoboTutor","format-detection":"telephone=no",
-  "theme-color":"#082458"};
- Object.keys(extra).forEach(function(n){
-  var e=document.querySelector('meta[name="'+n+'"]');
-  if(!e){e=document.createElement("meta");e.setAttribute("name",n);document.head.appendChild(e)}
-  e.setAttribute("content",extra[n]);
- });
-})();
-</script>
-META
-  # CSS y JS de KaTeX, hasta justo antes del <title>
-  sed -n "${L_KTX_STYLE},$((L_TITLE-1))p" "$SRC"
-  # Resto del head (CSS de la app) sin la etiqueta </head>
-  sed -n "$((L_TITLE+1)),$((L_HEAD_END-1))p" "$SRC"
-  # Cuerpo, sin <body> y cortando antes del script de Cloudflare
-  sed -n "$((L_BODY+1)),$((L_CF-1))p" "$SRC"
-} > "$OUT"
-
-echo "$OUT: $(wc -c < "$OUT") bytes, $(wc -l < "$OUT") lineas"
+OUT=${2:-docs/index.html}
+MODE=${3:-pages}
+python3 - "$SRC" "$OUT" "$MODE" <<'PY'
+from pathlib import Path
+import re, sys
+src, out, mode = sys.argv[1:]
+if mode not in ('pages', 'artifact'):
+    raise SystemExit('Mode must be pages or artifact')
+html = Path(src).read_text(encoding='utf-8-sig')
+# Remove only a transport-injected Cloudflare script, when present.
+html = re.sub(r'<script\b[^>]*>(?:(?!</script>)[\s\S])*?__CF\$cv\$params(?:(?!</script>)[\s\S])*?</script>', '', html, flags=re.I)
+if not re.search(r'<!doctype\s+html', html, re.I) or '</body>' not in html.lower():
+    raise SystemExit('The source must be a complete HTML document')
+if mode == 'artifact':
+    # Only document-level lines: script strings also contain SVG <title> tags.
+    html = re.sub(r'^[ \t]*<title>[^\n]*</title>[ \t]*\r?\n', '', html, count=1, flags=re.I | re.M)
+    wrapper = re.compile(r'\s*(?:<!doctype[^>]*>|</?(?:html|head|body)\b[^>]*>)\s*', re.I)
+    html = '\n'.join(line for line in html.splitlines() if not wrapper.fullmatch(line))
+    html = '<title>RoboTutor Laboratorio Visual</title>\n' + html
+Path(out).parent.mkdir(parents=True, exist_ok=True)
+Path(out).write_text(html, encoding='utf-8')
+print(f'{out}: {len(html.encode("utf-8"))} bytes ({mode})')
+PY

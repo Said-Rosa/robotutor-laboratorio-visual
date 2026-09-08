@@ -19,6 +19,7 @@ Partí de `main` en `ab1a02e`, con los PR de Claude ya fusionados. Las notas ant
 - Siete comprobaciones nuevas incorporadas a las autopruebas de la aplicación. La prueba de renderizado despacha los nuevos modelos por su renderizador propio.
 - Validación portable de CI ampliada para comprobar 2R, RP y catálogo planar; HTML completo y fragmento compilados correctamente.
 - Comparación de autopruebas con la misma configuración JSDOM: la base tiene nueve fallos de APIs de dibujo/medición y disposición que ese entorno no proporciona. No se presentan como errores nuevos ni se cambia su criterio para forzarlas a pasar. No se realizó una prueba física en iOS/Android.
+- La ejecución completa inicial dio 381/392: nueve limitaciones reproducidas en la base y dos expectativas de texto antiguas (cota SCARA y lectura del ángulo en la prueba de inversa). Se adaptaron ambas a las etiquetas nuevas y la repetición focalizada de esas dos más las siete nuevas pasó 9/9.
 - Figuras RR, RP, SCARA y 6R renderizadas como SVG/PNG para inspección independiente.
 
 La publicación de Sites usa la misma fuente validada que esta rama. GitHub Pages cambiará cuando se revise/fusione el PR y termine su workflow; no se edita `docs/index.html` a mano. Las futuras modificaciones deben partir de `main` actualizado y respetar cualquier cambio de Claude.

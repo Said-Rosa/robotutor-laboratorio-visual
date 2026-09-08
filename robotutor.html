@@ -12197,7 +12197,10 @@ function runSelfTests(){
     if(!rotulos.includes("P"))return false;
     /* y la cota del tramo debe seguir informando del recorrido */
     const cota=spatialDimensionLabels(modelo,e.kinematics.positions.length-1).at(-1);
-    if(!rotulos.includes(cota))return false;
+    if(modelo==="SCARA_RRP"){
+     // q3 es el desplazamiento del tramo; d0+q3 es la altura desde el suelo.
+     if(!rotulos.includes("q₃")||!rotulos.includes("Altura de E: d₀ + q₃"))return false;
+    }else if(!rotulos.includes(cota))return false;
    }
    return true;
   }],
@@ -13144,7 +13147,7 @@ function runSelfTests(){
     const e=makeChapter3(pick(DIFFICULTY_LEVELS));
     if(e.id!=="inverse_homogeneous_transform")continue;
     const fichas=(e.chips||[]).join(" ");
-    const g=fichas.match(/R([xyz])\(\s*(-?[\d.]+)\s*°?\)/);
+    const g=fichas.match(/R([xyz])\(\s*(?:[αφθ]\s*=\s*)?(-?[\d.]+)\s*°?\)/);
     const t=fichas.match(/p\s*=\s*\[\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*\]/);
     if(!g||!t)continue;
     revisadas++;

@@ -10283,7 +10283,10 @@ function runSelfTests(){
    /* Los ejercicios de área de trabajo también llevan lámina desde que se
       rediseñaron; la condición se había quedado sin ellos y solo pasaba
       mientras ninguno fuera el ejercicio en curso. */
-   const necesita=is2RExercise(e)||isSpatialExercise(e)||isWorkspaceExercise(e)||e?.visual==="frames3d";
+   /* Las clasificaciones también pintan lámina —es su enunciado— y faltaban en
+      la condición, así que la prueba dependía de que el ejercicio cargado al
+      arrancar no fuera una de ellas. */
+   const necesita=is2RExercise(e)||isSpatialExercise(e)||isWorkspaceExercise(e)||e?.visual==="frames3d"||e?.visual==="classification";
    return document.getElementById("exerciseVisual").hidden===!necesita;
   }],
   ["El pie declara una única versión",()=>{
@@ -12792,9 +12795,15 @@ function runSelfTests(){
    /* Una de las tres matrices ofrecidas como no válidas era un giro de 36,87°
       alrededor de X, con RᵀR = I y determinante +1: la clave pedía responder
       que no pertenecía a SO(3). Ahora la respuesta se calcula, no se supone. */
+   /* El ejercicio se pide por su nombre en vez de sortear el capítulo entero y
+      confiar en que salgan bastantes. Sorteándolo, el recuento dependía de en
+      qué punto de la secuencia sembrada cayera esta prueba, así que cualquier
+      cambio en otra parte de la suite podía dejarla por debajo del umbral sin
+      que ninguna matriz estuviera mal. */
    let revisadas=0;
-   for(let i=0;i<400;i++){
-    const e=makeChapter3(pick(DIFFICULTY_LEVELS));
+   for(const nivel of DIFFICULTY_LEVELS)
+   for(let i=0;i<25;i++){
+    const e=makeChapter3Kind(nivel,"validate");
     if(e.id!=="validate_rotation")continue;
     revisadas++;
     const trozo=e.statement.slice(e.statement.indexOf('class="formula"'));
@@ -13552,7 +13561,11 @@ function runSelfTests(){
       navegador no trae la API, la solución tiene que seguir funcionando. */
    const s=document.getElementById("solution"),boton=document.getElementById("showSolution");
    const previo={clase:s.className,texto:boton.textContent,plegando:s.dataset.plegando,
-    desactivado:boton.disabled};
+    desactivado:boton.disabled,ejercicio:appState.currentExercise};
+   /* El botón no responde en los ejercicios de solo enunciado —clasificaciones,
+      verdadero/falso, área de trabajo—, así que la prueba dependía de cuál
+      hubiera salido al arrancar. Se instala uno propio que sí despliega. */
+   appState.currentExercise=makeChapter3Kind(2,"rot");
    try{
     /* El botón está deshabilitado hasta intentar el ejercicio: eso es el
        antifraude y tiene su propia prueba. Aquí se mira el desplegado. */
@@ -13567,6 +13580,7 @@ function runSelfTests(){
     return s.style.height===""&&s.style.overflow==="";
    }finally{
     s.className=previo.clase;boton.textContent=previo.texto;boton.disabled=previo.desactivado;
+    appState.currentExercise=previo.ejercicio;
     if(previo.plegando===undefined)delete s.dataset.plegando;else s.dataset.plegando=previo.plegando;
    }
   }],
@@ -13860,7 +13874,17 @@ function runSelfTests(){
    return true;
   }],
   ["Banco del capítulo 3 incluye auditoría SE(3)",()=>CHAPTER3_KINDS[2].includes("validateSe3")&&CHAPTER3_KINDS[3].includes("validateSe3")],
-  ["Píldora teórica inicia cerrada",()=>Boolean(document.getElementById("exerciseTheory")&&!document.getElementById("exerciseTheoryDetails").open&&document.getElementById("exerciseTheoryContent").textContent.trim())],
+  ["Píldora teórica inicia cerrada",()=>{
+   /* No todo ejercicio lleva fundamento teórico: las clasificaciones y los
+      verdadero/falso se resuelven sobre la figura o el enunciado. Cuando la
+      sección está oculta no hay píldora que juzgar; lo que no puede pasar es
+      que se muestre abierta o vacía. */
+   const seccion=document.getElementById("exerciseTheory");
+   if(!seccion)return false;
+   if(seccion.hidden)return true;
+   return !document.getElementById("exerciseTheoryDetails").open&&
+    Boolean(document.getElementById("exerciseTheoryContent").textContent.trim());
+  }],
   ["Pegado matricial interpreta filas y columnas",()=>parsePastedMatrix("1 0"+String.fromCharCode(10)+"0 1",2,2).join(",")==="1,0,0,1"&&parsePastedMatrix("[1,0];[0,1]",2,2).length===4],
   ["Etapa básica conserva fila homogénea",()=>stageBlankValues({difficulty:1}).slice(12).join(",")==="0,0,0,1"],
   ["Clasificador reconoce signo opuesto",()=>classifyCellCause(-.5,.5,0,0,[ [.5] ],[[-.5]],{}).includes("signo")],

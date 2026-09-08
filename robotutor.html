@@ -782,6 +782,7 @@
           <button class="btn primary" id="newExercise">Generar ejercicio</button>
         </div>
 
+        <section id="planarGeometryFormat" class="reflection-formats" hidden aria-label="Método geométrico planar"><strong>Planar 2R · método geométrico</strong><button id="newPlanarNumeric" class="btn soft" type="button">Con datos numéricos</button><button id="newPlanarSymbolic" class="btn soft" type="button">Deducir ecuaciones</button></section>
         <section id="reflectionFormats" class="reflection-formats" hidden aria-label="Preguntas de teoría"><strong>Preguntas de teoría</strong><button id="newVF" class="btn soft" type="button">Verdadero / Falso</button><button id="newOpen" class="btn soft" type="button">Pregunta abierta</button></section>
       <section class="family-filter" id="familyFilter" aria-labelledby="familyFilterTitle">
           <div class="family-filter-head">
@@ -876,7 +877,7 @@
           <p class="sr-only" id="exerciseVisualDescription"></p>
           <section id="workspaceFormat" class="ws-format ws-area-controls" hidden aria-label="Opciones del ejercicio de área de trabajo">
             <div><label for="workspaceMode">Datos del ejercicio</label><select id="workspaceMode"><option value="mixed">Números y símbolos</option><option value="numeric">Con datos numéricos</option><option value="symbolic">Solo símbolos</option></select></div>
-            <div><label for="workspaceLinks">Eslabones en el plano</label><select id="workspaceLinks"><option value="all">Dos y tres eslabones</option><option value="2">Dos eslabones</option><option value="3">Tres eslabones</option></select></div>
+            <div><label for="workspaceLinks">Eslabones en el plano</label><select id="workspaceLinks"><option value="all">Dos y tres eslabones</option><option value="2">Dos eslabones</option><option value="3">Tres eslabones</option><option value="rp">RP telescópico · tipo parcial</option></select></div>
             <button type="button" id="workspaceGenerate" class="btn primary">Nuevo ejercicio de área</button>
           </section>
           <div id="classificationActivity" hidden></div>
@@ -1127,9 +1128,9 @@
             <div class="canvas-alt">Marco base y marco transformado. En la vista 3D: arrastra o usa las flechas para girar; rueda o +/− para acercar; Inicio restablece la cámara.</div>
           </div>
           <div class="frame-controls">
-            <div class="slider-field"><label for="frameRx"><span>Rₓ</span><output id="frameRxOut">20°</output></label><input id="frameRx" type="range" min="-180" max="180" value="20"></div>
-            <div class="slider-field"><label for="frameRy"><span>Rᵧ</span><output id="frameRyOut">30°</output></label><input id="frameRy" type="range" min="-180" max="180" value="30"></div>
-            <div class="slider-field"><label for="frameRz"><span>R_z</span><output id="frameRzOut">40°</output></label><input id="frameRz" type="range" min="-180" max="180" value="40"></div>
+            <div class="slider-field"><label for="frameRx"><span>α · giro en X</span><output id="frameRxOut">20°</output></label><input id="frameRx" type="range" min="-180" max="180" value="20"></div>
+            <div class="slider-field"><label for="frameRy"><span>φ · giro en Y</span><output id="frameRyOut">30°</output></label><input id="frameRy" type="range" min="-180" max="180" value="30"></div>
+            <div class="slider-field"><label for="frameRz"><span>θ · giro en Z</span><output id="frameRzOut">40°</output></label><input id="frameRz" type="range" min="-180" max="180" value="40"></div>
             <div class="slider-field"><label for="frameTx"><span>pₓ</span><output id="frameTxOut">1.5</output></label><input id="frameTx" type="range" min="-3" max="3" step="0.1" value="1.5"></div>
             <div class="slider-field"><label for="frameTy"><span>pᵧ</span><output id="frameTyOut">0.8</output></label><input id="frameTy" type="range" min="-3" max="3" step="0.1" value="0.8"></div>
             <div class="slider-field"><label for="frameTz"><span>p_z</span><output id="frameTzOut">1.0</output></label><input id="frameTz" type="range" min="-3" max="3" step="0.1" value="1.0"></div>
@@ -1275,18 +1276,18 @@ const chapters = [
      <tr><td>Cilíndrico</td><td>RPP</td><td>Acceso radial y vertical directo.</td><td>Espacio de trabajo poco uniforme.</td></tr>
      <tr><td>Esférico / polar</td><td>RRP</td><td>Buen alcance angular con poca estructura.</td><td>Geometría y control más complejos.</td></tr>
      <tr><td>SCARA</td><td>RRP</td><td>Muy rápido en ensamblaje sobre un plano.</td><td>Orientación limitada: casi todo vertical.</td></tr>
-     <tr><td>Articulado</td><td>RRR…</td><td>Máxima destreza y volumen útil por metro cuadrado.</td><td>Singularidades y control exigente.</td></tr>
+     <tr><td>Antropomórfico</td><td>RRR…</td><td>Máxima destreza y volumen útil por metro cuadrado.</td><td>Singularidades y control exigente.</td></tr>
      <tr><td>Paralelo / Delta</td><td>Cadenas cerradas</td><td>Poca masa móvil: aceleraciones enormes.</td><td>Espacio reducido y cinemática complicada.</td></tr>
     </tbody>
    </table>
    <figure class="lesson-plate" data-plate="scara" data-args='{"l1":3,"l2":2,"d0":3,"q1":30,"q2":45,"q3":-1}'>
     <figcaption>SCARA RRP: dos giros sobre ejes verticales paralelos y una elevación prismática. Los ejes paralelos son lo que le da velocidad en el plano y lo que le quita destreza en orientación.</figcaption>
    </figure>
-   <h4>Por qué el SCARA es rápido y el articulado es diestro</h4>
+   <h4>Por qué el SCARA es rápido y el antropomórfico es diestro</h4>
    <p>En un SCARA los dos ejes de giro son <strong>verticales y paralelos</strong>: la gravedad no genera par sobre ellos, así que los motores pueden dedicar todo su esfuerzo a acelerar. A cambio, la herramienta apunta siempre hacia abajo y solo puede girar sobre su eje.</p>
-   <p>Un articulado combina giros sobre ejes en distintas direcciones. Un robot de seis ejes con una muñeca adecuada puede controlar posición y orientación en poses compatibles con su geometría y sus límites, fuera de singularidades. El precio es que sus motores luchan contra la gravedad en casi toda postura y que aparecen configuraciones singulares dentro del volumen útil.</p>
+   <p>Un antropomórfico combina giros sobre ejes en distintas direcciones. Un robot de seis ejes con una muñeca adecuada puede controlar posición y orientación en poses compatibles con su geometría y sus límites, fuera de singularidades. El precio es que sus motores luchan contra la gravedad en casi toda postura y que aparecen configuraciones singulares dentro del volumen útil.</p>
    <figure class="lesson-plate" data-plate="industrial-6r" data-args='{}'>
-    <figcaption>Articulado de seis ejes: los tres primeros sitúan la muñeca y los tres últimos orientan la herramienta. Esa separación es la que se estudia en el capítulo 4 como desacoplo cinemático.</figcaption>
+    <figcaption>Antropomórfico de seis ejes: los tres primeros sitúan la muñeca y los tres últimos orientan la herramienta. Esa separación es la que se estudia en el capítulo 4 como desacoplo cinemático.</figcaption>
    </figure>
 <h4>La secuencia y la dirección de los ejes</h4>
 <p>Lee la cadena desde la base: R indica un giro y P una traslación. La secuencia indica el tipo y el orden, pero necesita la geometría de los ejes para identificar una arquitectura. En las figuras, las flechas curvas representan giros; las rectas de doble punta, deslizamientos. Las líneas discontinuas señalan los ejes.</p>
@@ -1295,11 +1296,11 @@ const chapters = [
  <figure><figcaption>Cilíndrico · RPP</figcaption><div data-cc-model="cylindrical"></div><p>Giro de la base, altura y alcance radial. El dibujo muestra esta disposición clásica.</p></figure>
  <figure><figcaption>Polar o esférico · RRP</figcaption><div data-cc-model="polar"></div><p>Los dos ejes de giro son perpendiculares; el último tramo se extiende radialmente.</p></figure>
  <figure><figcaption>SCARA · RRP</figcaption><div data-cc-model="scara"></div><p>Los dos ejes de giro son paralelos. El último desplazamiento cambia la altura.</p></figure>
- <figure><figcaption>Articulado · RRR</figcaption><div data-cc-model="articulated"></div><p>En este brazo clásico, el giro de base es perpendicular a los ejes paralelos del hombro y del codo.</p></figure>
+ <figure><figcaption>Antropomórfico · RRR</figcaption><div data-cc-model="articulated"></div><p>En este brazo clásico, el giro de base es perpendicular a los ejes paralelos del hombro y del codo.</p></figure>
 </div>
 <p><strong>Ejemplo comparado.</strong> SCARA y polar comparten RRP, pero colocar sus ejes de giro paralelos o perpendiculares cambia sus movimientos. Una respuesta basada únicamente en «dos R y una P» no permite distinguirlos.</p>
 <h4>La postura cambia; la arquitectura se conserva</h4>
-<p>Al variar las coordenadas articulares, el extremo cambia de posición. Se conservan las uniones y el orden de la cadena. Por eso un brazo articulado plegado y el mismo brazo extendido pertenecen a la misma arquitectura. Girar el dibujo o cambiar su punto de vista tampoco añade articulaciones.</p>
+<p>Al variar las coordenadas articulares, el extremo cambia de posición. Se conservan las uniones y el orden de la cadena. Por eso un brazo antropomórfico plegado y el mismo brazo extendido pertenecen a la misma arquitectura. Girar el dibujo o cambiar su punto de vista tampoco añade articulaciones.</p>
 <div class="cc-plates"><figure><figcaption>Un mismo brazo · postura A</figcaption><div data-cc-model="articulated"></div></figure><figure><figcaption>Un mismo brazo · postura B</figcaption><div data-cc-model="articulated" data-cc-pose="1"></div></figure></div>
 <h4>Brazo, muñeca y herramienta</h4>
 <p>Cuando un enunciado pide clasificar por las tres primeras articulaciones, limita la respuesta a ese tramo. Añadir una muñeca después de él no cambia esa clasificación, aunque amplíe las posibilidades del robot completo. La herramienta y su apertura tampoco se cuentan automáticamente como ejes del brazo.</p>
@@ -1325,9 +1326,9 @@ const chapters = [
    <p>Celda de paletizado, sacos de 20 kg, ciclos rápidos, volumen amplio.</p>
    <ul>
     <li>Un <strong>cartesiano</strong> es el más rígido y el más exacto, pero necesita una estructura del tamaño del volumen que cubre y acelera peor por su masa móvil.</li>
-    <li>Un <strong>articulado</strong> cubre el mismo volumen desde un pie pequeño, acelera mejor y llega a cualquier orientación.</li>
+    <li>Un <strong>antropomórfico</strong> cubre el mismo volumen desde un pie pequeño, acelera mejor y llega a cualquier orientación.</li>
    </ul>
-   <p>Gana el articulado, <strong>aunque sea menos rígido</strong>: en paletizado la exactitud exigida es de milímetros, y ahí pesan más el ciclo y el volumen. Con la misma tabla y una tarea de inserción de precisión, la decisión se invertiría. <em>El criterio decisivo lo pone la tarea, no la máquina.</em></p>
+   <p>Gana el antropomórfico, <strong>aunque sea menos rígido</strong>: en paletizado la exactitud exigida es de milímetros, y ahí pesan más el ciclo y el volumen. Con la misma tabla y una tarea de inserción de precisión, la decisión se invertiría. <em>El criterio decisivo lo pone la tarea, no la máquina.</em></p>
   `},
   {title:"1.5 Métricas y seguridad",html:String.raw`
    <h3>Cuatro palabras que no significan lo mismo</h3>
@@ -1370,11 +1371,11 @@ const chapters = [
 <tr><td>Prismática · P</td><td>Desplazamiento sobre un eje, descrito por d.</td><td>1</td></tr>
 <tr><td>Cilíndrica · C</td><td>Giro y desplazamiento sobre el mismo eje, independientes.</td><td>2</td></tr>
 <tr><td>Helicoidal · H</td><td>Giro y avance ligados por el paso de la unión.</td><td>1</td></tr>
-<tr><td>Planar · E</td><td>Dos desplazamientos independientes dentro de un plano.</td><td>2</td></tr>
+<tr><td>Planar · E</td><td>Dos traslaciones en el plano y un giro alrededor de su normal, independientes.</td><td>3</td></tr>
 <tr><td>Universal</td><td>Dos giros independientes.</td><td>2</td></tr>
 <tr><td>Esférica o rótula · S</td><td>Tres libertades de orientación alrededor de un punto.</td><td>3</td></tr>
 </tbody></table>
-<div class="callout"><strong>Sobre la unión planar.</strong> La tabla clásica le asigna dos grados de libertad porque la describe como dos deslizamientos dentro del plano. El contacto plano-sobre-plano completo admite además el giro alrededor de la normal, y entonces son tres. Conviene decir cuál de las dos versiones se está usando en lugar de citar el número suelto.</div>
+<div class="callout"><strong>Sobre la unión planar.</strong> El par planar general permite dos traslaciones y un giro: tiene tres grados de libertad. Si una guía bloquea el giro, quedan dos; esa es una variante restringida y debe indicarse expresamente. Un brazo planar 2R es otro mecanismo: sus dos articulaciones revolutas aportan dos coordenadas articulares.</div>
 <div class="callout warn"><strong>Nomenclatura.</strong> Algunos textos llaman <em>rotoprismática</em> a la unión que combina giro y desplazamiento. El nombre no distingue por sí solo la cilíndrica —donde ambos movimientos son libres— de la helicoidal —donde el paso los liga—, así que hay que mirar siempre si las coordenadas son independientes.</div>
 <p>Una articulación cilíndrica no es lo mismo que un robot de arquitectura cilíndrica. Tampoco basta decir «gira y desliza»: hay que indicar si los dos movimientos pueden variar por separado.</p>
 <h4>Los seis pares elementales, dibujados</h4>
@@ -1384,7 +1385,7 @@ const chapters = [
 <figure><figcaption>Prismática · P · 1 GDL</figcaption><div data-cc-model="prismaticJoint"></div><p>Un desplazamiento sobre un eje. Coordenada d.</p></figure>
 <figure><figcaption>Helicoidal · H · 1 GDL</figcaption><div data-cc-model="screwJoint"></div><p>Gira y avanza, pero el paso liga ambos: basta θ.</p></figure>
 <figure><figcaption>Cilíndrica · C · 2 GDL</figcaption><div data-cc-model="freeJoint"></div><p>El mismo eje que la helicoidal, con θ y d libres.</p></figure>
-<figure><figcaption>Planar · E · 2 GDL</figcaption><div data-cc-model="planarJoint"></div><p>Dos deslizamientos independientes en un plano.</p></figure>
+<figure><figcaption>Planar · E · 3 GDL</figcaption><div data-cc-model="planarJoint"></div><p>Dos traslaciones en el plano y un giro alrededor de la normal.</p></figure>
 <figure><figcaption>Esférica · S · 3 GDL</figcaption><div data-cc-model="sphericalJoint"></div><p>Tres giros alrededor de un punto fijo.</p></figure>
 </div>
 <p>Las dos primeras son las que aparecen en los robots industriales, porque son las que un accionamiento mueve y un sensor mide directamente. Las demás se emplean sobre todo para modelar uniones existentes o para describir cadenas cerradas, y en el modelo se sustituyen por combinaciones de R y P con eslabones intermedios de longitud nula.</p>
@@ -1548,9 +1549,9 @@ fᵢ: libertades permitidas por la articulación i</div>
    <p>Una matriz R de 3×3 representa la orientación de un marco respecto de otro. Sus columnas son los ejes del marco móvil expresados en el de referencia. No cualquier matriz de nueve números sirve: para ser una rotación tiene que cumplir dos condiciones.</p>
    <div class="formula">$$R^\top R = I \qquad \det(R) = +1 \qquad \Rightarrow \qquad R^{-1} = R^\top$$</div>
    <p>La primera dice que los ejes son unitarios y perpendiculares entre sí. La segunda descarta las reflexiones: una matriz con determinante −1 también conserva distancias, pero convierte una terna de mano derecha en una de mano izquierda, y ningún mecanismo puede hacer eso.</p>
-   <h4>Las tres rotaciones elementales</h4>
-   <div class="formula">$$R_x(\theta) = \begin{bmatrix} 1 & 0 & 0 \\ 0 & \cos\theta & -\sin\theta \\ 0 & \sin\theta & \cos\theta \end{bmatrix}
-   \quad R_y(\theta) = \begin{bmatrix} \cos\theta & 0 & \sin\theta \\ 0 & 1 & 0 \\ -\sin\theta & 0 & \cos\theta \end{bmatrix}
+   <h4>Las tres rotaciones elementales</h4><p>Notación del libro: α para OX, φ para OY y θ para OZ. En ejes móviles, U, V y W siguen respectivamente esa misma correspondencia. Si se repite un eje, usamos subíndices para distinguir los giros.</p>
+   <div class="formula">$$R_x(\alpha) = \begin{bmatrix} 1 & 0 & 0 \\ 0 & \cos\alpha & -\sin\alpha \\ 0 & \sin\alpha & \cos\alpha \end{bmatrix}
+   \quad R_y(\phi) = \begin{bmatrix} \cos\phi & 0 & \sin\phi \\ 0 & 1 & 0 \\ -\sin\phi & 0 & \cos\phi \end{bmatrix}
    \quad R_z(\theta) = \begin{bmatrix} \cos\theta & -\sin\theta & 0 \\ \sin\theta & \cos\theta & 0 \\ 0 & 0 & 1 \end{bmatrix}$$</div>
    <div class="callout"><strong>Por qué R<sub>y</sub> lleva los signos al revés.</strong> No es una errata. Con la mano derecha el orden cíclico es x→y→z→x. En R<sub>x</sub> el ciclo afectado es y→z y en R<sub>z</sub> es x→y, los dos «hacia delante»; en R<sub>y</sub> es z→x, que al escribirlo en el orden habitual de filas queda invertido. Ante la duda, aplica la matriz a un versor y mira adónde va.</div>
    <h4>Comprobación en diez segundos</h4>
@@ -1583,7 +1584,7 @@ fᵢ: libertades permitidas por la articulación i</div>
    <h4>Euler y Roll–Pitch–Yaw</h4>
    <p>Tres ángulos bastan para describir una orientación, pero hay muchas convenciones: ZYZ, ZYX, XYZ y más. Cada una compone en un orden y sobre unos ejes concretos, así que «ángulos de Euler (30°, 45°, 60°)» no identifica una orientación mientras no se diga cuál.</p>
    <p>RPY, la más habitual en robótica móvil y aérea, es ZYX sobre ejes fijos: primero <em>roll</em> sobre X, luego <em>pitch</em> sobre Y, luego <em>yaw</em> sobre Z.</p>
-   <div class="formula">$$R_{\text{RPY}}(\phi,\theta,\psi)=R_z(\psi)\,R_y(\theta)\,R_x(\phi)$$</div>
+   <div class="formula">$$R_{\text{RPY}}(\alpha,\phi,\theta)=R_z(\theta)\,R_y(\phi)\,R_x(\alpha)$$</div>
    <p>Todas estas secuencias tienen <strong>singularidades de representación</strong> —el conocido <em>gimbal lock</em>— cuando el ángulo intermedio alcanza ±90° y dos ejes de la secuencia quedan alineados. En ese punto se pierde un grado de libertad de la parametrización, no del robot.</p>
    <p>Esta aplicación trabaja con vectores columna y regla de la mano derecha, que es lo habitual en robótica y lo que usa ROS.</p>
   `},
@@ -2602,12 +2603,40 @@ Object.entries(theoryExpansion).forEach(([chapterId,topics])=>{
  if(chapter)chapter.topics.push(...topics);
 });
 
+
+/* Notación del parcial y distinción entre configuración y región alcanzable. */
+const examGeometryTheory={
+ '3.4':String.raw`<h4>Rotación y traslación con la notación del libro</h4>
+ <p>Con vectores columna, estas matrices describen primero un giro y después una traslación de vector p expresado en el sistema fijo OXYZ. α corresponde a OX, φ a OY y θ a OZ.</p>
+ <div class="formula">$$T((x,\alpha),p)=\begin{bmatrix}1&0&0&p_x\\0&\cos\alpha&-\sin\alpha&p_y\\0&\sin\alpha&\cos\alpha&p_z\\0&0&0&1\end{bmatrix}$$</div>
+ <div class="formula">$$T((y,\phi),p)=\begin{bmatrix}\cos\phi&0&\sin\phi&p_x\\0&1&0&p_y\\-\sin\phi&0&\cos\phi&p_z\\0&0&0&1\end{bmatrix}$$</div>
+ <div class="formula">$$T((z,\theta),p)=\begin{bmatrix}\cos\theta&-\sin\theta&0&p_x\\\sin\theta&\cos\theta&0&p_y\\0&0&1&p_z\\0&0&0&1\end{bmatrix}$$</div>
+ <p>Si la traslación se expresa en el marco que ya giró, su columna en el sistema fijo es Rp. El nombre del ángulo no altera la regla de composición. Los subíndices distinguen giros diferentes sobre el mismo eje: α, α₂, etc.</p>`,
+ '4.1':String.raw`<h4>Práctica geométrica de dos eslabones</h4>
+ <p>Para un 2R, q₁ se mide desde +X y q₂ desde la prolongación del primer eslabón. Primero sitúa el codo J; después suma el desplazamiento de J a E. Las dos proyecciones usan ángulos absolutos distintos.</p>
+ <div class="formula">$$X=L_1\cos q_1+L_2\cos(q_1+q_2),\qquad Y=L_1\sin q_1+L_2\sin(q_1+q_2)$$
+ $$X^2+Y^2=L_1^2+L_2^2+2L_1L_2\cos q_2$$</div>
+ <p>La primera pareja resuelve la posición de una configuración; la última relación permite comprobar la distancia al origen. Si L₁=3, L₂=2, q₁=0° y q₂=90°, entonces E=(3,2) y X²+Y²=13. Para hallar L₂ a partir de un punto conocido, la distancia de J a E da L₂, no la distancia de O a E.</p>
+ <p>En Practicar puedes elegir datos numéricos o deducir las ecuaciones. Las variantes numéricas piden coordenadas, una longitud desconocida o los ángulos de una rama de la cinemática inversa.</p>`,
+ '4.11':String.raw`<h4>RP telescópico: giro y distancia variable</h4>
+ <p>Este mecanismo tiene un giro q₁ y una prismática q₂ que desliza en la dirección del tubo. No tiene un codo que cambie la dirección entre los dos tramos. Debes leer desde dónde se mide q₂.</p>
+ <div class="table-wrap"><table><thead><tr><th>Definición de q₂</th><th>Radio desde O</th><th>Coordenadas de E</th></tr></thead><tbody>
+ <tr><td>Distancia total de O a E</td><td>r=q₂</td><td>X=q₂ cos q₁; Y=q₂ sin q₁</td></tr>
+ <tr><td>Extensión después de una longitud fija L</td><td>r=L+q₂</td><td>X=(L+q₂) cos q₁; Y=(L+q₂) sin q₁</td></tr></tbody></table></div>
+ <p>Si q₂∈[qmin,qmax] y q₁∈[a,b], con 0&lt;b−a≤2π, sustituye los extremos de q₂ para hallar r mín y r máx. El intervalo angular es independiente del radio. Las ecuaciones paramétricas, junto con esos intervalos, describen toda la región. Su borde radial interior satisface X²+Y²=r mín² y el exterior X²+Y²=r máx²; si el giro es parcial se añaden los segmentos radiales de direcciones a y b.</p>
+ <div class="formula">$$\mathcal W=\{(r\cos q_1,r\sin q_1):r_{min}\le r\le r_{max},\ a\le q_1\le b\},\qquad A=\frac{b-a}{2}(r_{max}^2-r_{min}^2)$$</div>
+ <p>En esta fórmula a y b van en radianes. Una vuelta completa produce disco o corona; un giro parcial produce sector circular o sector anular. Si r mín=0, el origen pertenece a la región aunque allí no exista una dirección polar única.</p>
+ <p><strong>Ejemplo:</strong> q₂ es distancia total, 1≤q₂≤3 m y 0°≤q₁≤90°. Resultan r mín=1 m, r máx=3 m y A=(π/2)(9−1)/2=2π m². Si los mismos límites describieran extensión tras L=2 m, los radios serían 3 y 5 m y A=4π m². Cambiar la definición de q₂ cambia el resultado.</p>
+ <p>En los ejercicios se alternan ecuaciones simbólicas, radios, superficie, pertenencia de puntos y extensión necesaria. Las configuraciones dibujadas son fijas y no representan la región ya resuelta.</p>`
+};
+for(const chapter of chapters)for(const topic of chapter.topics){const key=topic.title.split(' ')[0];if(examGeometryTheory[key])topic.html+=examGeometryTheory[key]}
+
 const glossary = [
 ["Actuador","Dispositivo que convierte energía eléctrica, neumática o hidráulica en movimiento o fuerza."],
 ["Articulación cilíndrica","Unión que permite girar y desplazarse a lo largo del mismo eje, con ambos movimientos independientes: dos grados de libertad."],
 ["Articulación esférica o rótula","Unión que permite tres giros independientes alrededor de un punto común. Orienta, pero no traslada."],
 ["Articulación helicoidal","Unión de tornillo: el giro y el avance comparten eje y quedan ligados por el paso, así que basta una coordenada."],
-["Articulación planar","Unión que permite dos desplazamientos independientes dentro de un plano. El contacto plano completo añade el giro sobre la normal."],
+["Articulación planar","Unión con tres grados de libertad: dos traslaciones en el plano y un giro alrededor de su normal. Bloquear el giro reduce la movilidad a dos."],
 ["Articulación prismática","Unión que permite una traslación relativa a lo largo de un eje."],
 ["Articulación revoluta","Unión que permite una rotación relativa alrededor de un eje."],
 ["Backlash","Holgura mecánica que produce una zona muerta al invertir el movimiento."],
@@ -2709,7 +2738,7 @@ const roadmap = [
    en este punto y renombra el archivo en consecuencia.
    Ojo: `progress.version` es otra cosa — numera el esquema de datos guardados en
    localStorage y avanza solo cuando cambia la forma de ese objeto. */
-const APP_VERSION="3.33.0";
+const APP_VERSION="3.34.0";
 const APP_STAGE="láminas claras · verdadero/falso y respuestas abiertas";
 /* Los cuatro niveles del curso. Toda comprobación de dificultad debe leer de aquí:
    el selector, las preferencias guardadas, la política pedagógica y los bancos. */
@@ -2796,6 +2825,7 @@ function contextLabel(state=appState){
  return `Capítulo ${c.id} · ${section}`;
 }
 function syncChapterUI(){
+ renderPlanarControls();
  renderReflectionControls();
  const c=chapterById(appState.currentChapter);
  renderWsFormat();
@@ -3692,6 +3722,7 @@ function conceptTopicIndex(){
 /* Devuelve la clave del tema que explica un ejercicio, o null si no se sabe. */
 function exerciseTopicKey(exercise){
  if(!exercise)return null;
+ if(exercise.geometryTopic)return exercise.geometryTopic;
  if(exercise.reflectionTopic||exercise.calculationTopic)return exercise.reflectionTopic||exercise.calculationTopic;
  if(exercise.id&&TOPIC_BY_EXERCISE[exercise.id])return TOPIC_BY_EXERCISE[exercise.id];
  const enunciado=String(exercise.statement||"");
@@ -3882,7 +3913,7 @@ document.addEventListener("visibilitychange",()=>{if(document.hidden)captureLear
 const CHOICE_BANKS=Object.freeze({
   1:[
    ["¿Qué propiedad distingue especialmente a un robot industrial frente a una máquina de automatización fija?","Su capacidad multipropósito y reprogramable.",["Su capacidad multipropósito y reprogramable.","Que siempre tiene apariencia humana.","Que no necesita sensores.","Que solo funciona con hidráulica."]],
-   ["¿Cuál estructura suele describirse como PPP?","Robot cartesiano.",["Robot cartesiano.","Robot articulado de seis ejes.","SCARA.","Robot esférico RRP."]],
+   ["¿Cuál estructura suele describirse como PPP?","Robot cartesiano.",["Robot cartesiano.","Robot antropomórfico de seis ejes.","SCARA.","Robot esférico RRP."]],
    ["¿Cuál afirmación es correcta?","La repetibilidad y la exactitud son especificaciones diferentes.",["La repetibilidad y la exactitud son especificaciones diferentes.","Todo robot colaborativo es seguro en cualquier aplicación.","El número de ejes siempre es igual al espacio cartesiano controlado.","Una máquina automática siempre es un robot."]],
    ["Una herramienta regresa siempre al mismo punto, pero ese punto está desplazado 3 mm respecto del valor programado. ¿Qué describe mejor la situación?","Buena repetibilidad y exactitud deficiente.",["Buena repetibilidad y exactitud deficiente.","Buena exactitud y repetibilidad deficiente.","Resolución nula.","El robot es necesariamente singular."]],
    ["¿Qué debe incluirse al comprobar la carga útil de una aplicación?","Herramienta, pieza, accesorios y efectos dinámicos.",["Herramienta, pieza, accesorios y efectos dinámicos.","Solo la masa de la pieza.","Únicamente el peso del brazo del robot.","Solo la fuerza nominal de la pinza."]],
@@ -3891,15 +3922,15 @@ const CHOICE_BANKS=Object.freeze({
    ["¿Qué significa que una aplicación use un robot denominado colaborativo?","Aún requiere una evaluación de riesgos de la aplicación completa.",["Aún requiere una evaluación de riesgos de la aplicación completa.","Que puede funcionar a cualquier velocidad junto a personas.","Que no necesita parada de emergencia.","Que la herramienta deja de ser peligrosa."]],
    ["¿Cuál acción pertenece a la calibración geométrica?","Estimar el cero articular y los marcos de base y herramienta.",["Estimar el cero articular y los marcos de base y herramienta.","Aumentar la velocidad máxima.","Cambiar el lenguaje de programación.","Desactivar un enclavamiento."]],
    ["Para estimar el tiempo de ciclo real, ¿qué debe considerarse?","Movimiento, proceso, esperas, aproximación y retiro.",["Movimiento, proceso, esperas, aproximación y retiro.","Solo la velocidad máxima de catálogo.","Únicamente la distancia cartesiana.","Solo el tiempo de apertura de la pinza."]],
-   ["¿Qué arquitectura suele ofrecer gran destreza espacial mediante una cadena abierta de varias articulaciones revolutas?","Robot articulado.",["Robot articulado.","Pórtico PPP.","Cilindro neumático aislado.","Mesa cartesiana de un eje."]],
+   ["¿Qué arquitectura suele ofrecer gran destreza espacial mediante una cadena abierta de varias articulaciones revolutas?","Robot antropomórfico.",["Robot antropomórfico.","Pórtico PPP.","Cilindro neumático aislado.","Mesa cartesiana de un eje."]],
    ["¿Qué grado de libertad aporta una articulación prismática?","Una traslación a lo largo de un eje.",["Una traslación a lo largo de un eje.","Una rotación alrededor de un eje.","Dos traslaciones perpendiculares.","Un giro y una traslación simultáneos."]],
    ["¿Qué significa la sigla TCP en robótica industrial?","Punto central de la herramienta.",["Punto central de la herramienta.","Par constante de par motor.","Tiempo de ciclo programado.","Control total de posición."]],
-   ["¿Qué estructura corresponde a la configuración RRR de tres ejes principales?","Robot articulado o antropomórfico.",["Robot articulado o antropomórfico.","Robot cartesiano.","Robot SCARA.","Robot cilíndrico."]],
+   ["¿Qué estructura corresponde a la configuración RRR de tres ejes principales?","Robot antropomórfico.",["Robot antropomórfico.","Robot cartesiano.","Robot SCARA.","Robot cilíndrico."]],
    ["¿Qué define el espacio de trabajo de un manipulador?","El conjunto de puntos alcanzables por su punto terminal.",["El conjunto de puntos alcanzables por su punto terminal.","La superficie de la celda de fabricación.","El volumen ocupado por el armario de control.","La zona vallada por normativa."]],
    ["¿Qué caracteriza a un robot de configuración cilíndrica?","Combina una rotación de base con dos desplazamientos lineales.",["Combina una rotación de base con dos desplazamientos lineales.","Tiene tres articulaciones rotacionales.","No posee ninguna articulación prismática.","Se mueve solo en el plano horizontal."]],
    ["¿Cuál es la función del efector final?","Ejecutar la tarea sobre la pieza o el entorno.",["Ejecutar la tarea sobre la pieza o el entorno.","Alimentar de energía al controlador.","Medir la temperatura de los motores.","Sostener el peso del armario eléctrico."]],
    ["¿Qué mide la repetibilidad de un manipulador?","La dispersión al volver reiteradamente a una misma pose enseñada.",["La dispersión al volver reiteradamente a una misma pose enseñada.","La distancia entre la pose alcanzada y la programada.","La velocidad máxima del eje más rápido.","La carga útil nominal en el extremo."]],
-   ["¿Qué es un robot SCARA?","Un manipulador de brazo articulado horizontal con rigidez vertical.",["Un manipulador de brazo articulado horizontal con rigidez vertical.","Un robot móvil con ruedas omnidireccionales.","Un manipulador paralelo de seis patas.","Un robot cartesiano de pórtico."]],
+   ["¿Qué es un robot SCARA?","Un manipulador de brazo con dos articulaciones de giro en el plano horizontal con rigidez vertical.",["Un manipulador de brazo con dos articulaciones de giro en el plano horizontal con rigidez vertical.","Un robot móvil con ruedas omnidireccionales.","Un manipulador paralelo de seis patas.","Un robot cartesiano de pórtico."]],
    ["¿Qué distingue una cadena cinemática abierta de una cerrada?","En la abierta existe un único camino entre base y efector.",["En la abierta existe un único camino entre base y efector.","La abierta no tiene articulaciones prismáticas.","La cerrada siempre tiene más grados de libertad.","La abierta solo admite control en velocidad."]],
    ["¿Qué elemento almacena y ejecuta el programa de movimiento?","El controlador del robot.",["El controlador del robot.","El reductor de la primera articulación.","El encoder absoluto de la muñeca.","La pinza neumática."]],
    ["Una celda debe alcanzar piezas dentro de un volumen rectangular estrecho y con alta precisión lineal. ¿Qué arquitectura conviene evaluar primero?","Cartesiana o de pórtico.",["Cartesiana o de pórtico.","Antropomórfica de seis ejes.","Esférica RRP.","Paralela tipo delta."]],
@@ -3919,7 +3950,7 @@ const CHOICE_BANKS=Object.freeze({
    ["Dos celdas idénticas dan resultados distintos con el mismo programa. Una está a 18 °C y otra a 34 °C. ¿Qué hipótesis conviene comprobar?","La dilatación térmica de estructura y husillos, y la deriva del cero articular.",["La dilatación térmica de estructura y husillos, y la deriva del cero articular.","Que el programa se haya corrompido por la temperatura.","Que el número de ejes sea diferente.","Que la carga útil dependa del idioma del controlador."]],
    ["Un punto está dentro del alcance del robot pero el controlador rechaza la pose. ¿Qué causas deben descartarse en orden?","Límites articulares, singularidades, colisiones y orientación no alcanzable.",["Límites articulares, singularidades, colisiones y orientación no alcanzable.","Únicamente que el punto esté fuera de alcance.","Solo la velocidad programada.","Exclusivamente la carga útil."]],
    ["La documentación indica repetibilidad ±0,05 mm, pero la tolerancia de la pieza es ±0,03 mm. ¿Qué conclusión es correcta?","El proceso no es capaz solo con el robot: hace falta utillaje, sensado o rediseño de tolerancia.",["El proceso no es capaz solo con el robot: hace falta utillaje, sensado o rediseño de tolerancia.","Basta con programar más lentamente.","La repetibilidad mejora al repetir el ciclo muchas veces.","La tolerancia de la pieza puede ignorarse."]],
-   ["Un robot articulado atraviesa una singularidad de muñeca durante una trayectoria lineal. ¿Qué se observa típicamente?","Velocidades articulares muy elevadas aunque la velocidad cartesiana sea moderada.",["Velocidades articulares muy elevadas aunque la velocidad cartesiana sea moderada.","Una parada suave sin efectos apreciables.","Un aumento de la carga útil disponible.","Una mejora de la exactitud en ese tramo."]],
+   ["Un robot antropomórfico atraviesa una singularidad de muñeca durante una trayectoria lineal. ¿Qué se observa típicamente?","Velocidades articulares muy elevadas aunque la velocidad cartesiana sea moderada.",["Velocidades articulares muy elevadas aunque la velocidad cartesiana sea moderada.","Una parada suave sin efectos apreciables.","Un aumento de la carga útil disponible.","Una mejora de la exactitud en ese tramo."]],
    ["El mantenimiento sustituye un reductor y el robot conserva la repetibilidad pero pierde exactitud absoluta. ¿Qué falta hacer?","Recalibrar el modelo geométrico y los ceros articulares.",["Recalibrar el modelo geométrico y los ceros articulares.","Nada: la repetibilidad garantiza la exactitud.","Cambiar todos los encoders.","Reducir la carga útil permanentemente."]],
    ["Una evaluación de riesgos de una celda colaborativa solo analizó el robot. ¿Qué falta?","Analizar la aplicación completa: herramienta, pieza, entorno, trayectorias y modos de fallo.",["Analizar la aplicación completa: herramienta, pieza, entorno, trayectorias y modos de fallo.","Nada, el robot es el único elemento relevante.","Solo el software de programación.","Únicamente la tensión de alimentación."]],
    ["Debe elegirse un manipulador para paletizar sacos de 22 kg a 900 ciclos por hora, con alcance de 2,6 m y una tolerancia de colocación de ±5 mm. Se dispone de un modelo de 25 kg nominales cuya carga admisible cae a 18 kg al máximo alcance. ¿Qué conclusión es técnicamente correcta?","El modelo no sirve tal cual: la carga admisible en el punto de trabajo real es inferior a la exigida.",["El modelo no sirve tal cual: la carga admisible en el punto de trabajo real es inferior a la exigida.","Sirve, porque su carga nominal supera los 22 kg.","Sirve si se reduce la velocidad a la mitad.","No puede decidirse sin conocer la exactitud absoluta."]],
@@ -4511,7 +4542,7 @@ function cleanMechanismSvg(k,options={}){
  const W=720,H=470,scale=Math.min(490/Math.max(1,maxU-minU),270/Math.max(1,maxV-minV)),map=p=>{const q=project(p);return{x:110+(q.u-minU)*scale,y:360-(q.v-minV)*scale}},P=points.map(map),parts=[];
  const colors=['#6c7d95','#2867b2','#008579','#a34bb4','#ba650e','#ba650e'],line=(a,b,attr='')=>`<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" ${attr}/>`;
  const label=(x,y,t,attr='')=>`<text x="${x}" y="${y}" fill="var(--text)" font-size="22" font-family="system-ui,sans-serif" ${attr}>${t}</text>`;
- const title=plane?'Proyección '+plane.toUpperCase():scara?'SCARA · brazos horizontales y eje vertical':'Robot de seis ejes · mecanismo';parts.push(label(24,34,title,'font-weight="700"'));
+ const title=plane?'Proyección '+plane.toUpperCase():scara?'SCARA · brazos horizontales y eje vertical':'Antropomórfico · seis ejes';parts.push(label(24,34,title,'font-weight="700"'));
  const base=P[0];parts.push(`<rect x="${base.x-28}" y="${base.y-4}" width="56" height="18" rx="5" fill="var(--soft)" stroke="var(--muted)" stroke-width="2"/>`);
  for(let i=0;i<P.length-1;i++){const length=Math.hypot(P[i+1].x-P[i].x,P[i+1].y-P[i].y);if(length<.01)continue;const prism=scara&&i===3;parts.push(line(P[i],P[i+1],`data-mechanism-link="${i}" stroke="${colors[i]}" stroke-width="${prism?9:15}" stroke-linecap="round"`));if(prism){parts.push(line(P[i],{x:P[i].x+(P[i+1].x-P[i].x)*.45,y:P[i].y+(P[i+1].y-P[i].y)*.45},'stroke="var(--card)" stroke-width="19"'),line(P[i],P[i+1],`stroke="${colors[i]}" stroke-width="3"`));const midx=(P[i].x+P[i+1].x)/2,midy=(P[i].y+P[i+1].y)/2;parts.push(label(midx+16,midy-12,'P','font-weight="700"'))}}
  /* Recta discontinua por cada articulación de revolución, igual que en el
@@ -4531,10 +4562,11 @@ function cleanMechanismSvg(k,options={}){
  for(const g of groups){parts.push(`<circle data-mechanism-joint="${g.ids.join('-')}" cx="${g.p.x}" cy="${g.p.y}" r="8" fill="var(--card)" stroke="var(--text)" stroke-width="2"/>`)}
  const tcp=P.at(-1);parts.push(`<circle data-tcp="true" cx="${tcp.x}" cy="${tcp.y}" r="8" fill="var(--card)" stroke="#c43a3a" stroke-width="3"/>`,line(tcp,{x:625,y:75},'stroke="#c43a3a" stroke-width="1.3" stroke-dasharray="4 3"'),label(630,78,'TCP','font-weight="750"'));
  const axisOrigin={x:50,y:395},axisLen=40,origin=project({x:0,y:0,z:0});for(const [i,a] of [[0,'X'],[1,'Y'],[2,'Z']]){if(plane&&((plane==='xy'&&i===2)||(plane==='xz'&&i===1)))continue;const v={x:0,y:0,z:0};v[['x','y','z'][i]]=1;const q=project(v),norm=Math.hypot(q.u-origin.u,q.v-origin.v)||1,end={x:axisOrigin.x+(q.u-origin.u)*axisLen/norm,y:axisOrigin.y-(q.v-origin.v)*axisLen/norm};parts.push(line(axisOrigin,end,`stroke="${['#be3b43','#07866b','#2867b2'][i]}" stroke-width="2"`),label(end.x+4,end.y,a))}
- /* La última etiqueta del SCARA debe ser el recorrido combinado d0+q3 —
-    exactamente el texto que usa spatialDimensionLabels — y no d0 y q3 por
-    separado, porque el recorrido total es lo que se lee en la cota. */
- const labels=scara?['d₀','L₁','L₂','d₀ + q₃']:['d₁','a₂','a₃','d₄','a₅ = 0','d₆'];labels.forEach((name,i)=>{const x=130+i*(scara?135:90);parts.push(`<rect x="${x}" y="410" width="24" height="6" rx="3" fill="${colors[i]}"/>`,label(x,447,name))});
+ /* La barra vertical móvil mide q3; d0+q3 es la altura desde el suelo.
+    Se distinguen en la leyenda y en una nota para evitar atribuir la altura
+    total a la longitud del tramo prismático. */
+ if(scara)parts.push(label(26,64,'Altura de E: d₀ + q₃'));
+ const labels=scara?['d₀','L₁','L₂','q₃']:['d₁','a₂','a₃','d₄','a₅ = 0','d₆'];labels.forEach((name,i)=>{const x=130+i*(scara?135:90);parts.push(`<rect x="${x}" y="410" width="24" height="6" rx="3" fill="${colors[i]}"/>`,label(x,447,name))});
  return`<svg xmlns="http://www.w3.org/2000/svg" class="clean-mechanism-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="${title}. Esquema fijo. Geometría identificada por colores. El TCP conserva la posición del modelo de cálculo."><title>${title}</title><rect width="720" height="470" fill="var(--card)"/>${parts.join('')}</svg>`;
 }
 
@@ -4543,7 +4575,7 @@ const CC_MODELS=Object.freeze({
  cylindrical:{name:'Cilíndrico',sequence:'RPP',description:'giro de la base, desplazamiento vertical y extensión radial'},
  polar:{name:'Polar o esférico',sequence:'RRP',description:'dos giros de ejes perpendiculares y una extensión radial'},
  scara:{name:'SCARA',sequence:'RRP',description:'dos giros de ejes paralelos y un desplazamiento vertical'},
- articulated:{name:'Articulado o antropomórfico',sequence:'RRR',description:'giro de base y dos giros de ejes paralelos en hombro y codo'}
+ articulated:{name:'Antropomórfico',sequence:'RRR',description:'giro de base y dos giros de ejes paralelos en hombro y codo'}
 });
 /* Los seis pares inferiores del catálogo clásico, con la letra que los nombra,
    los ejes que hay que dibujar y las coordenadas independientes que exigen.
@@ -4562,10 +4594,10 @@ const CC_PAIRS=Object.freeze({
  freeJoint:{type:'C',name:'Cilíndrica',letter:'C',dof:2,axis:[1,0,0],
   motion:'Giro y desplazamiento sobre el mismo eje, independientes.',variable:'θ y d',
   deviations:[{value:1,message:"El arco y la doble flecha se dibujan separados precisamente porque no están ligados: aquí giro y desplazamiento varían por su cuenta."}]},
- planarJoint:{type:'E',name:'Planar',letter:'E',dof:2,axis:[1,0,0],axisB:[0,1,0],
-  motion:'Dos desplazamientos independientes dentro de un plano.',variable:'d₁ y d₂',
-  deviations:[{value:1,message:"La lámina dibuja dos dobles flechas en direcciones distintas: son dos deslizamientos independientes, no uno."},
-   {value:3,message:"Has añadido el giro alrededor de la normal. El contacto plano completo lo admite, pero esta unión representa solo los dos deslizamientos."}]},
+ planarJoint:{type:'E',name:'Planar',letter:'E',dof:3,axis:[1,0,0],axisB:[0,1,0],
+  motion:'Dos traslaciones y un giro independientes en el plano.',variable:'d₁, d₂ y θ',
+  deviations:[{value:1,message:"La lámina muestra dos traslaciones y un giro independientes: se necesitan tres coordenadas."},
+   {value:2,message:"Falta el giro alrededor de la normal al plano. Solo habría dos libertades si una guía impidiera ese giro, restricción que aquí no existe."}]},
  sphericalJoint:{type:'S',name:'Esférica o rótula',letter:'S',dof:3,axis:[0,1,0],
   motion:'Tres giros independientes alrededor de un punto.',variable:'tres ángulos',
   deviations:[{value:1,message:"Los tres arcos son tres giros independientes: una rótula orienta en el espacio, no alrededor de un único eje."},
@@ -4636,7 +4668,7 @@ function ccSvg(model,pose=0,{teach=false}={}){
    const angle=Math.atan2(axis2[1]-axis1[1],axis2[0]-axis1[0])*180/Math.PI;svg.push(`<rect x="${p[0]-17}" y="${p[1]-11}" width="34" height="22" rx="3" transform="rotate(${angle} ${p[0]} ${p[1]})" fill="var(--card)" stroke="var(--cc-link)" stroke-width="3"/>`);
    if(j.type==='H')svg.push(rosca(j.axis));
    else svg.push(desliza(j.axis));
-   if(j.type==='E'&&j.axisB)svg.push(desliza(j.axisB));
+   if(j.type==='E'&&j.axisB)svg.push(desliza(j.axisB),gira(cross(j.axis,j.axisB)));
   }
   if(j.type==='R'||j.type==='C'){
    if(j.type==='R')svg.push(`<circle cx="${p[0]}" cy="${p[1]}" r="12" fill="var(--card)" stroke="var(--cc-link)" stroke-width="3"/>`);
@@ -4648,7 +4680,7 @@ function ccSvg(model,pose=0,{teach=false}={}){
   }
   const offset=j.type==='P'?[-33,-28]:[-32,29],cx=p[0]+offset[0],cy=p[1]+offset[1];
   svg.push(`<circle data-cc-joint="${i+1}" cx="${cx}" cy="${cy}" r="15" fill="var(--card)" stroke="var(--cc-link)" stroke-width="2"/>`,text(cx,cy+7,teach?j.type:i+1,'text-anchor="middle" font-weight="750"'));
-  const movimiento={R:'giro alrededor de un eje',P:'desplazamiento lineal sobre un eje',C:'giro y desplazamiento independientes sobre el mismo eje, dibujados por separado',H:'giro y avance acoplados por el paso, dibujados como una hélice',E:'dos desplazamientos independientes en un plano',S:'tres giros alrededor de un punto'}[j.type]||'movimiento';
+  const movimiento={R:'giro alrededor de un eje',P:'desplazamiento lineal sobre un eje',C:'giro y desplazamiento independientes sobre el mismo eje, dibujados por separado',H:'giro y avance acoplados por el paso, dibujados como una hélice',E:'dos traslaciones en el plano y un giro alrededor de su normal',S:'tres giros alrededor de un punto'}[j.type]||'movimiento';
   accessible.push(`Articulación ${i+1}: ${movimiento}`);
  });
  const end=project(g.links.at(-1));svg.push(text(end[0]+18,end[1]+5,'E','font-weight="700"'));
@@ -5027,7 +5059,7 @@ const CHOICE_RATIONALE=Object.freeze({
  "La medición de repetibilidad se realiza siempre aproximándose al punto desde la misma dirección y da ±0,02 mm. En producción, la aproximación varía y el error sube a ±0,12 mm. ¿Qué conclusión es correcta?":{clave:"Aproximarse siempre desde la misma dirección evita recorrer el juego de la transmisión: el protocolo de medida ocultaba una holgura que en producción sí se manifiesta.",fallos:{"La repetibilidad del fabricante era incorrecta.":"El valor es correcto para las condiciones en que se midió; lo que no representa es el uso real.","El robot ha sufrido una avería durante la producción.":"No hace falta avería alguna: el cambio está en el protocolo de aproximación.","La variación de dirección no puede afectar al resultado.":"Es justamente lo que revela la holgura: el error depende del sentido de llegada."}},
  "Un eje prismático vertical debe sostener 15 kg sin consumo eléctrico durante paradas prolongadas. ¿Qué combinación es la más adecuada?":{clave:"Un husillo de paso reducido es prácticamente irreversible y no deja caer la carga, y el freno de retención garantiza la sujeción aunque falte la energía.",fallos:{"Accionamiento directo sin freno, confiando en el lazo de posición.":"Con la potencia cortada el lazo no actúa y la carga cae.","Husillo de bolas de paso muy grande sin freno.":"Un paso grande es muy reversible: la carga haría girar el husillo y descendería.","Actuador neumático de simple efecto sin bloqueo.":"Al perder presión el actuador cede, y el aire comprimido no retiene bien una carga estática."}},
  "¿Qué propiedad distingue especialmente a un robot industrial frente a una máquina de automatización fija?":{clave:"Lo que separa a un robot de una máquina de automatización fija es que la misma estructura sirve para tareas distintas cambiando el programa, sin rehacer la mecánica.",fallos:{"Que siempre tiene apariencia humana.":"La apariencia humana define a un androide; la mayoría de los robots industriales son brazos articulados sin ningún parecido con una persona.","Que no necesita sensores.":"Un robot necesita al menos sensores de posición articular para cerrar sus lazos de control.","Que solo funciona con hidráulica.":"La hidráulica es una tecnología de accionamiento entre varias; hoy predomina el accionamiento eléctrico."}},
- "¿Cuál estructura suele describirse como PPP?":{clave:"PPP designa tres articulaciones prismáticas, es decir, tres desplazamientos lineales perpendiculares: esa es la definición del robot cartesiano.",fallos:{"Robot articulado de seis ejes.":"Un articulado de seis ejes es RRRRRR: todas sus articulaciones son de rotación.","SCARA.":"El SCARA es RRP: dos rotaciones en el plano horizontal y una prismática vertical.","Robot esférico RRP.":"Su propia sigla lo indica: combina dos rotaciones con una prismática, no tres prismáticas."}},
+ "¿Cuál estructura suele describirse como PPP?":{clave:"PPP designa tres articulaciones prismáticas, es decir, tres desplazamientos lineales perpendiculares: esa es la definición del robot cartesiano.",fallos:{"Robot antropomórfico de seis ejes.":"Un antropomórfico de seis ejes es RRRRRR: todas sus articulaciones son de rotación.","SCARA.":"El SCARA es RRP: dos rotaciones en el plano horizontal y una prismática vertical.","Robot esférico RRP.":"Su propia sigla lo indica: combina dos rotaciones con una prismática, no tres prismáticas."}},
  "¿Cuál afirmación es correcta?":{clave:"La repetibilidad describe la dispersión al volver al mismo punto y la exactitud, la distancia al punto programado. Un robot puede ser muy repetible y poco exacto a la vez.",fallos:{"Todo robot colaborativo es seguro en cualquier aplicación.":"La seguridad la determina la aplicación completa: la misma máquina puede ser segura con una pinza roma y peligrosa con una herramienta cortante.","El número de ejes siempre es igual al espacio cartesiano controlado.":"Un SCARA tiene cuatro ejes y no controla las seis coordenadas del espacio; un robot redundante tiene más ejes que grados cartesianos.","Una máquina automática siempre es un robot.":"Una máquina automática ejecuta una secuencia fija; lo que caracteriza al robot es poder reprogramarse para otra tarea."}},
  "Una herramienta regresa siempre al mismo punto, pero ese punto está desplazado 3 mm respecto del valor programado. ¿Qué describe mejor la situación?":{clave:"Volver siempre al mismo sitio es repetibilidad buena; que ese sitio esté desplazado del programado es exactitud deficiente, y suele corregirse calibrando el modelo geométrico.",fallos:{"Buena exactitud y repetibilidad deficiente.":"Es justo lo contrario: si la exactitud fuera buena el punto coincidiría con el programado, y aquí está desviado 3 mm de forma constante.","Resolución nula.":"Con resolución nula no habría movimiento controlado alguno; aquí el robot posiciona de forma perfectamente consistente.","El robot es necesariamente singular.":"Una singularidad es una configuración geométrica concreta y no produce un desplazamiento constante en todos los puntos."}},
  "¿Qué debe incluirse al comprobar la carga útil de una aplicación?":{clave:"La carga útil se consume con todo lo que cuelga de la brida y con las fuerzas de inercia del movimiento, no solo con el peso de la pieza.",fallos:{"Solo la masa de la pieza.":"La herramienta cuelga de la misma brida y consume carga útil antes que la pieza.","Únicamente el peso del brazo del robot.":"El peso propio del brazo lo soportan sus propios accionamientos y no forma parte de la carga útil declarada.","Solo la fuerza nominal de la pinza.":"La fuerza de agarre indica si la pieza se sujeta, no si el robot puede moverla."}},
@@ -5036,10 +5068,10 @@ const CHOICE_RATIONALE=Object.freeze({
  "¿Qué significa que una aplicación use un robot denominado colaborativo?":{clave:"La etiqueta colaborativa describe capacidades del robot, no una garantía de seguridad: quien determina el riesgo es la aplicación completa, con su herramienta, su pieza y su entorno.",fallos:{"Que puede funcionar a cualquier velocidad junto a personas.":"Precisamente la velocidad es uno de los parámetros que hay que limitar para cumplir los límites biomecánicos.","Que no necesita parada de emergencia.":"La parada de emergencia sigue siendo exigible: la colaboración no elimina los modos de fallo.","Que la herramienta deja de ser peligrosa.":"La herramienta suele ser el elemento más peligroso, y el robot colaborativo no la vuelve inofensiva."}},
  "¿Cuál acción pertenece a la calibración geométrica?":{clave:"La calibración geométrica corrige el modelo del robot: dónde está el cero de cada articulación y cómo se relacionan los marcos de base y herramienta con la realidad medida.",fallos:{"Aumentar la velocidad máxima.":"La velocidad es un parámetro de programación, no una corrección del modelo geométrico.","Cambiar el lenguaje de programación.":"El lenguaje afecta a cómo se escribe el programa, no a la geometría del manipulador.","Desactivar un enclavamiento.":"Desactivar un enclavamiento es una acción sobre la seguridad de la celda, ajena a la calibración."}},
  "Para estimar el tiempo de ciclo real, ¿qué debe considerarse?":{clave:"El tiempo de ciclo real lo forman todos los tramos: los movimientos, el proceso, las esperas de transferencia y los tramos lentos de aproximación y retiro.",fallos:{"Solo la velocidad máxima de catálogo.":"La velocidad punta apenas se alcanza en trayectos cortos, donde domina la aceleración.","Únicamente la distancia cartesiana.":"La distancia no basta: dos trayectos iguales tardan distinto según aceleración, orientación y esperas.","Solo el tiempo de apertura de la pinza.":"Es una contribución más, normalmente pequeña frente al movimiento y al proceso."}},
- "¿Qué arquitectura suele ofrecer gran destreza espacial mediante una cadena abierta de varias articulaciones revolutas?":{clave:"El robot articulado encadena varias articulaciones de rotación, y esa acumulación de giros es lo que le da destreza para orientar la herramienta en el espacio.",fallos:{"Pórtico PPP.":"Un pórtico solo traslada según tres ejes perpendiculares: posiciona bien, pero no reorienta.","Cilindro neumático aislado.":"Un cilindro aporta un único grado de libertad lineal.","Mesa cartesiana de un eje.":"Con un solo eje no hay destreza espacial de ningún tipo."}},
+ "¿Qué arquitectura suele ofrecer gran destreza espacial mediante una cadena abierta de varias articulaciones revolutas?":{clave:"El robot antropomórfico encadena varias articulaciones de rotación, y esa acumulación de giros es lo que le da destreza para orientar la herramienta en el espacio.",fallos:{"Pórtico PPP.":"Un pórtico solo traslada según tres ejes perpendiculares: posiciona bien, pero no reorienta.","Cilindro neumático aislado.":"Un cilindro aporta un único grado de libertad lineal.","Mesa cartesiana de un eje.":"Con un solo eje no hay destreza espacial de ningún tipo."}},
  "¿Qué grado de libertad aporta una articulación prismática?":{clave:"Una articulación prismática desliza a lo largo de un eje: aporta exactamente una traslación.",fallos:{"Una rotación alrededor de un eje.":"Esa es la articulación de revolución, la otra familia básica.","Dos traslaciones perpendiculares.":"Cada articulación aporta un solo grado de libertad; dos traslaciones exigen dos prismáticas.","Un giro y una traslación simultáneos.":"Esa combinación corresponde a una articulación helicoidal, que no es la prismática simple."}},
  "¿Qué significa la sigla TCP en robótica industrial?":{clave:"TCP es el Tool Center Point, el punto de la herramienta cuya posición y orientación se programan y controlan.",fallos:{"Par constante de par motor.":"El par del motor es una magnitud de accionamiento, no un punto de referencia geométrico.","Tiempo de ciclo programado.":"El tiempo de ciclo es una medida de productividad, no un marco de referencia.","Control total de posición.":"No es un modo de control sino el punto sobre el que se define el movimiento."}},
- "¿Qué estructura corresponde a la configuración RRR de tres ejes principales?":{clave:"RRR son tres articulaciones de rotación encadenadas, que es la estructura del robot articulado o antropomórfico.",fallos:{"Robot cartesiano.":"El cartesiano es PPP: tres articulaciones prismáticas.","Robot SCARA.":"El SCARA es RRP: sus dos rotaciones van seguidas de una prismática vertical.","Robot cilíndrico.":"El cilíndrico combina una rotación con dos desplazamientos lineales, es decir RPP."}},
+ "¿Qué estructura corresponde a la configuración RRR de tres ejes principales?":{clave:"RRR son tres articulaciones de rotación encadenadas, que es la estructura del robot antropomórfico.",fallos:{"Robot cartesiano.":"El cartesiano es PPP: tres articulaciones prismáticas.","Robot SCARA.":"El SCARA es RRP: sus dos rotaciones van seguidas de una prismática vertical.","Robot cilíndrico.":"El cilíndrico combina una rotación con dos desplazamientos lineales, es decir RPP."}},
  "¿Qué define el espacio de trabajo de un manipulador?":{clave:"El espacio de trabajo es el conjunto de puntos que el extremo del robot puede alcanzar: una propiedad geométrica del manipulador, no de la instalación.",fallos:{"La superficie de la celda de fabricación.":"La celda es el recinto donde se instala; el espacio de trabajo depende solo del robot.","El volumen ocupado por el armario de control.":"El armario es un equipo auxiliar que no interviene en el alcance.","La zona vallada por normativa.":"El vallado se dimensiona a partir del espacio de trabajo, pero no es lo mismo que él."}},
  "¿Qué caracteriza a un robot de configuración cilíndrica?":{clave:"El robot cilíndrico gira sobre su base y se desplaza linealmente en altura y en radio: de ahí que su espacio de trabajo tenga forma de cilindro.",fallos:{"Tiene tres articulaciones rotacionales.":"Esa es la estructura articulada RRR; el cilíndrico solo tiene una rotación.","No posee ninguna articulación prismática.":"Justo al contrario: sus dos desplazamientos lineales son prismáticos.","Se mueve solo en el plano horizontal.":"El desplazamiento vertical forma parte de su definición."}},
  "¿Cuál es la función del efector final?":{clave:"El efector final es el elemento que realmente actúa sobre la pieza o el entorno: pinza, ventosa, antorcha o herramienta de proceso.",fallos:{"Alimentar de energía al controlador.":"La alimentación corresponde a la instalación eléctrica, no al extremo del brazo.","Medir la temperatura de los motores.":"Esa es una función de la sensorización interna del accionamiento.","Sostener el peso del armario eléctrico.":"El armario se instala aparte y no cuelga del manipulador."}},
@@ -5064,7 +5096,7 @@ const CHOICE_RATIONALE=Object.freeze({
  "Dos celdas idénticas dan resultados distintos con el mismo programa. Una está a 18 °C y otra a 34 °C. ¿Qué hipótesis conviene comprobar?":{clave:"Dieciséis grados de diferencia dilatan la estructura y los husillos y pueden desplazar el cero articular: es la explicación más probable de que el mismo programa dé resultados distintos.",fallos:{"Que el programa se haya corrompido por la temperatura.":"Un programa almacenado no se degrada por una diferencia de temperatura ambiente.","Que el número de ejes sea diferente.":"Las celdas se describen como idénticas, y el número de ejes es una diferencia que no pasaría inadvertida.","Que la carga útil dependa del idioma del controlador.":"El idioma de la interfaz no tiene ninguna relación con la capacidad mecánica."}},
  "Un punto está dentro del alcance del robot pero el controlador rechaza la pose. ¿Qué causas deben descartarse en orden?":{clave:"Alcanzar el punto es solo la primera condición. El rechazo puede venir de los límites de cada articulación, de una singularidad, de una colisión prevista o de una orientación imposible en ese punto.",fallos:{"Únicamente que el punto esté fuera de alcance.":"El enunciado ya indica que el punto está dentro del alcance.","Solo la velocidad programada.":"La velocidad puede provocar un error de trayectoria, pero no que la pose sea rechazada por inalcanzable.","Exclusivamente la carga útil.":"La carga limita lo que se puede mover, no si la pose es geométricamente alcanzable."}},
  "La documentación indica repetibilidad ±0,05 mm, pero la tolerancia de la pieza es ±0,03 mm. ¿Qué conclusión es correcta?":{clave:"Si la dispersión del robot es mayor que la tolerancia de la pieza, el proceso no puede ser capaz solo con el robot: hace falta utillaje que guíe, sensado que corrija, o revisar la tolerancia.",fallos:{"Basta con programar más lentamente.":"Ir más despacio mejora la exactitud dinámica, pero no reduce la dispersión intrínseca de la repetibilidad.","La repetibilidad mejora al repetir el ciclo muchas veces.":"Repetir no reduce la dispersión: precisamente la repetibilidad se mide repitiendo.","La tolerancia de la pieza puede ignorarse.":"La tolerancia es el requisito del producto y es lo único que no se puede ignorar."}},
- "Un robot articulado atraviesa una singularidad de muñeca durante una trayectoria lineal. ¿Qué se observa típicamente?":{clave:"En una singularidad de muñeca dos ejes se alinean y el robot necesita velocidades articulares enormes para producir un movimiento cartesiano modesto.",fallos:{"Una parada suave sin efectos apreciables.":"Lo característico es lo contrario: movimientos bruscos y a menudo un error del controlador.","Un aumento de la carga útil disponible.":"La carga admisible no mejora en una singularidad; la capacidad de control empeora.","Una mejora de la exactitud en ese tramo.":"En las proximidades de una singularidad la exactitud del seguimiento se degrada."}},
+ "Un robot antropomórfico atraviesa una singularidad de muñeca durante una trayectoria lineal. ¿Qué se observa típicamente?":{clave:"En una singularidad de muñeca dos ejes se alinean y el robot necesita velocidades articulares enormes para producir un movimiento cartesiano modesto.",fallos:{"Una parada suave sin efectos apreciables.":"Lo característico es lo contrario: movimientos bruscos y a menudo un error del controlador.","Un aumento de la carga útil disponible.":"La carga admisible no mejora en una singularidad; la capacidad de control empeora.","Una mejora de la exactitud en ese tramo.":"En las proximidades de una singularidad la exactitud del seguimiento se degrada."}},
  "El mantenimiento sustituye un reductor y el robot conserva la repetibilidad pero pierde exactitud absoluta. ¿Qué falta hacer?":{clave:"Cambiar un reductor altera la relación entre el encoder del motor y la articulación real: el robot sigue siendo consistente, pero su modelo geométrico ha dejado de corresponder y hay que recalibrarlo.",fallos:{"Nada: la repetibilidad garantiza la exactitud.":"Son propiedades independientes: se puede volver siempre al mismo sitio equivocado.","Cambiar todos los encoders.":"Los encoders no han fallado; lo que cambió es la transmisión entre motor y articulación.","Reducir la carga útil permanentemente.":"La carga no tiene relación con un desvío sistemático de posición."}},
  "Una evaluación de riesgos de una celda colaborativa solo analizó el robot. ¿Qué falta?":{clave:"El riesgo lo genera la aplicación completa: la herramienta que se monta, la pieza que se transporta, las trayectorias reales y lo que puede fallar. Analizar solo el robot deja fuera casi todo.",fallos:{"Nada, el robot es el único elemento relevante.":"La herramienta y la pieza suelen ser la fuente principal de riesgo en una celda colaborativa.","Solo el software de programación.":"El software es una parte; faltarían igualmente la herramienta, la pieza y el entorno.","Únicamente la tensión de alimentación.":"El riesgo eléctrico es un capítulo aparte y no sustituye al análisis mecánico del contacto."}},
  "Debe elegirse un manipulador para paletizar sacos de 22 kg a 900 ciclos por hora, con alcance de 2,6 m y una tolerancia de colocación de ±5 mm. Se dispone de un modelo de 25 kg nominales cuya carga admisible cae a 18 kg al máximo alcance. ¿Qué conclusión es técnicamente correcta?":{clave:"La carga admisible depende del punto de trabajo: a 2,6 m el modelo solo admite 18 kg, y la aplicación exige 22 kg justamente ahí. El nominal de catálogo es irrelevante en ese punto.",fallos:{"Sirve, porque su carga nominal supera los 22 kg.":"El nominal se declara en condiciones favorables; en el punto de trabajo real la capacidad ha caído a 18 kg.","Sirve si se reduce la velocidad a la mitad.":"Bajar la velocidad reduce los efectos dinámicos, pero no eleva la carga admisible estática al máximo alcance.","No puede decidirse sin conocer la exactitud absoluta.":"La tolerancia pedida es de ±5 mm, holgada para cualquier robot de paletizado: el criterio limitante es la carga."}},
@@ -5291,6 +5323,7 @@ function chainKinematics(steps){
    en la superficie de práctica. Los catálogos anteriores se conservan. */
 /* Exact polynomial algebra modulo sin(t)^2 + cos(t)^2 = 1.
    Coefficients remain rational. No sampling or execution of student input. */
+function bookSymbol(name){return String(name).replace(/alpha/g,'α').replace(/phi/g,'φ').replace(/theta/g,'θ').replace(/2/g,'₂').replace(/3/g,'₃')}
 function nsReduce(poly){
  let result=new Map();
  function term(factors,coef){
@@ -5308,10 +5341,10 @@ function nsTrig(ast){
  const terms=wsNormalize(ast);let c=nsNum(1),s=nsNum(0),turns=0;
  function append(C,S){const next=wsPolyAdd(nsMul(c,C),nsMul(s,S),-1n);s=wsPolyAdd(nsMul(s,C),nsMul(c,S));c=next}
  for(const [key,f] of terms){const factors=JSON.parse(key);
-  if(factors.length!==1)throw Error('el ángulo debe ser una suma lineal de alpha, beta, gamma y múltiplos de pi/2');
+  if(factors.length!==1)throw Error('el ángulo debe ser una suma de los ángulos del enunciado y múltiplos de pi/2');
   const name=factors[0];
   if(name==='pi'){if((2n*f[0])%f[1]||2n*f[0]/f[1]>16n||2n*f[0]/f[1]<-16n)throw Error('usa múltiplos de pi/2 entre -8*pi y 8*pi');turns+=Number(2n*f[0]/f[1]);continue}
-  if(!['alpha','beta','gamma'].includes(name)||f[1]!==1n||f[0]>4n||f[0]<-4n)throw Error('usa ángulos del enunciado con coeficientes enteros entre -4 y 4');
+  if(!/^(?:alpha|phi|theta|beta|gamma|q)[0-9]*$/.test(name)||f[1]!==1n||f[0]>4n||f[0]<-4n)throw Error('usa ángulos del enunciado con coeficientes enteros entre -4 y 4');
   for(let i=0;i<Number(f[0]<0n?-f[0]:f[0]);i++)append(wsAtom('c:'+name),nsMul(nsNum(f[0]<0n?-1:1),wsAtom('s:'+name)));
  }
  for(let i=0;i<((turns%4)+4)%4;i++)append(nsNum(0),nsNum(1));
@@ -5344,23 +5377,23 @@ function nsPolyText(poly){if(!poly.size)return'0';return [...poly].map(([key,f])
  return(f[0]<0n?'-':'+')+((magnitude===1n&&f[1]===1n&&factors.length)?'':coef+(factors.length?'*':''))+factors.join('*');
  }).join('').replace(/^\+/,'')}
 function makeNarrativeSymbolic(diff,{frameMode=pick(['fixed','mobile','mixed']),target='matrix'}={}){
- const count=diff<=2?3:diff===3?4:5,raw=narrativeChainSteps(diff,frameMode,count),symbols=[];let angle=0,translation=0;
- const sequence=raw.map(step=>{if(step.type==='rot'){const name=['alpha','beta','gamma'][angle++];symbols.push(name);return{type:'rot',axis:step.axis,frame:step.frame,angle:name}}
+ const count=diff<=2?3:diff===3?4:5,raw=narrativeChainSteps(diff,frameMode,count),symbols=[];let angle=0,translation=0;const usedAngles={};
+ const sequence=raw.map(step=>{if(step.type==='rot'){const base={x:'alpha',y:'phi',z:'theta'}[step.axis],index=(usedAngles[base]||0)+1;usedAngles[base]=index;const name=base+(index>1?index:'');angle++;symbols.push(name);return{type:'rot',axis:step.axis,frame:step.frame,angle:name}}
  const vector=translation++?['d','e','f']:['a','b','c'];symbols.push(...vector);return{type:'trans',vector,frame:step.frame}});
  const point=target==='matrix'?null:target==='point'?['pu','pv','pw']:['px','py','pz'];if(point)symbols.push(...point);
  const T=nsCompose(sequence),result=point?nsMatrixMul(target==='point'?T:nsInverse(T),point.map(wsAtom).concat([nsNum(1)]).map(p=>[p])).slice(0,3):T;
  const fields=[],answer={};result.forEach((row,i)=>row.forEach((poly,j)=>{const key=`r${i+1}c${j+1}`;fields.push({key,label:point?`${target==='point'?['x','y','z'][i]:['u','v','w'][i]} de P`:`T${i+1}${j+1}`,row:i+1});answer[key]=nsPolyText(poly)}));
- const text=sequence.map(step=>step.type==='trans'?`una traslación de vector (${step.vector.join(', ')}), expresado en ${step.frame==='fijo'?'OXYZ':'el sistema móvil obtenido hasta ese instante'}`:`un giro de ${step.angle} alrededor del eje ${step.frame==='fijo'?'O'+AXIS_FIXED_NAME[step.axis]:'O′'+AXIS_MOBILE_NAME[step.axis]} del sistema ${step.frame==='fijo'?'fijo OXYZ':'móvil obtenido hasta ese instante'}`).join('; después, ');
+ const text=sequence.map(step=>step.type==='trans'?`una traslación de vector (${step.vector.join(', ')}), expresado en ${step.frame==='fijo'?'OXYZ':'el sistema móvil obtenido hasta ese instante'}`:`un giro de ${bookSymbol(step.angle)} alrededor del eje ${step.frame==='fijo'?'O'+AXIS_FIXED_NAME[step.axis]:'O′'+AXIS_MOBILE_NAME[step.axis]} del sistema ${step.frame==='fijo'?'fijo OXYZ':'móvil obtenido hasta ese instante'}`).join('; después, ');
  const request=point?`Un punto P tiene coordenadas (${point.join(', ')}) en ${target==='point'?'el sistema final O′UVW':'OXYZ'}. Determina sus coordenadas en ${target==='point'?'OXYZ':'el sistema final O′UVW'} en función de los símbolos del enunciado.`:'Obtén la matriz homogénea 4×4 del sistema final O′UVW respecto de OXYZ, en función de los símbolos del enunciado.';
  return{id:'narrative_symbolic_'+(point?target:frameMode),kind:'narrative',chapter:3,type:'symbolic',difficulty:diff,title:`Tipo parcial · simbólico · ${count} matrices${point?' · punto':''}`,
  statement:`<p>Inicialmente, el sistema móvil O′UVW coincide con el sistema fijo OXYZ. Se realizan, en el orden indicado, ${text}.</p><p><strong>${request}</strong></p><p>No se asignan valores a los ángulos, desplazamientos ni coordenadas. Son parámetros reales independientes; las longitudes usan la misma unidad. Los sistemas son dextrógiros y los giros positivos siguen la regla de la mano derecha.</p>`,
  symbols,symbolFields:fields,answer,rows:result.length,cols:result[0].length,chips:[],hints:[],steps:[],commonErrors:[],concepts:['composición simbólica','cambio de coordenadas'],narrativeData:{sequence,count,frameMode,target,point}};
 }
-function nsInputs(exercise){const rows=[...new Set(exercise.symbolFields.map(f=>f.row))];return`<div class="ws-symbolic-answer ns-answer"><p>Variables: <strong>${exercise.symbols.join(', ')}</strong>.</p>${rows.map(row=>`<fieldset><legend>${exercise.cols===1?'Coordenada '+row:'Fila '+row}</legend><div class="ns-fields">${exercise.symbolFields.filter(f=>f.row===row).map(f=>`<label for="wsAnswer-${f.key}">${f.label}<input id="wsAnswer-${f.key}" data-ws-answer="${f.key}" type="text" autocomplete="off" spellcheck="false" placeholder="Tu expresión" aria-describedby="wsSyntax"><span data-ws-status="${f.key}"></span></label>`).join('')}</div></fieldset>`).join('')}<p id="wsSyntax">Admite +, −, *, paréntesis, potencias de 0 a 4, división por números, sin(alpha), sen(alpha), cos(beta) y sumas de ángulos. Puedes escribir α, β, γ y p_u. Se aceptan formas factorizadas o desarrolladas e identidades trigonométricas en esta notación; no uses valores aproximados.</p><button type="button" class="btn soft" id="wsClearExpressions">Limpiar expresiones</button></div>`}
+function nsInputs(exercise){const rows=[...new Set(exercise.symbolFields.map(f=>f.row))];return`<div class="ws-symbolic-answer ns-answer"><p>Variables: <strong>${exercise.symbols.join(', ')}</strong>.</p>${rows.map(row=>`<fieldset><legend>${exercise.symbolEngine==='trig'?'Expresión '+row:exercise.cols===1?'Coordenada '+row:'Fila '+row}</legend><div class="ns-fields">${exercise.symbolFields.filter(f=>f.row===row).map(f=>`<label for="wsAnswer-${f.key}">${f.label}<input id="wsAnswer-${f.key}" data-ws-answer="${f.key}" type="text" autocomplete="off" spellcheck="false" placeholder="Tu expresión" aria-describedby="wsSyntax"><span data-ws-status="${f.key}"></span></label>`).join('')}</div></fieldset>`).join('')}<p id="wsSyntax">Admite +, −, *, paréntesis, potencias de 0 a 4, división por números, ${exercise.symbolEngine==='trig'?'sin(q1), sen(q1), cos(q1+q2) y los símbolos del enunciado. Puedes escribir q₁, q₂, L₁ y L₂.':'sin(alpha), sen(alpha), cos(phi) y sumas de ángulos. Puedes escribir α, φ, θ, subíndices como α₂ (alpha2) y p_u.'} Se aceptan formas factorizadas o desarrolladas e identidades trigonométricas en esta notación; no uses valores aproximados.</p><button type="button" class="btn soft" id="wsClearExpressions">Limpiar expresiones</button></div>`}
 
 
 function isNarrativeExercise(exercise){return Boolean(exercise?.chapter===3&&exercise.kind==="narrative")}
-function isStatementOnlyExercise(exercise){return exercise?.kind==="reflection"||Boolean(exercise?.calculationTopic)||exercise?.kind==="classification"||wsIsExercise(exercise)||isNarrativeExercise(exercise)}
+function isStatementOnlyExercise(exercise){return exercise?.kind==="geometric-2r"||exercise?.kind==="reflection"||Boolean(exercise?.calculationTopic)||exercise?.kind==="classification"||wsIsExercise(exercise)||isNarrativeExercise(exercise)}
 function narrativeChainSteps(diff,frameMode,count){
  if(![3,4,5].includes(count))throw new Error("El parcial requiere 3, 4 o 5 matrices.");
  if(!["fixed","mobile","mixed"].includes(frameMode))throw new Error("Referencia no válida.");
@@ -5380,7 +5413,7 @@ function narrativeStepText(step,index){
  const reference=step.frame==="fijo"?"el sistema fijo OXYZ":index===0?"el sistema móvil inicial":"el sistema móvil obtenido hasta ese instante";
  if(step.type==="trans")return`una traslación de vector (${step.vector.join(", ")}), expresado en ${reference}`;
  const axis=step.frame==="fijo"?`O${AXIS_FIXED_NAME[step.axis]}`:`O′${AXIS_MOBILE_NAME[step.axis]}`;
- return`un giro de ${angleLabel(step.deg)} alrededor del eje ${axis} del ${reference.slice(3)}`;
+ return`un giro de ${bookSymbol({x:"alpha",y:"phi",z:"theta"}[step.axis])} = ${angleLabel(step.deg)} alrededor del eje ${axis} del ${reference.slice(3)}`;
 }
 function makeNarrativeTransform(diff,{frameMode=pick(["fixed","mobile","mixed"]),target="matrix",count=diff<=2?3:diff===3?4:5}={}){
  if(!["matrix","point","inversePoint"].includes(target))throw new Error("Incógnita no válida.");
@@ -5901,7 +5934,7 @@ function makeChapter3Kind(diff,kind){
  if(kind==="rot"){
   let A=rot(axis,a);
   return{id:"rotation_matrix",chapter:3,type:"matrix",visual:"frames3d",title:"Matriz de rotación",statement:"Construye la matriz de rotación indicada usando vectores columna y la regla de la mano derecha.",
-    rows:3,cols:3,answer:A,chips:[`Eje ${axis.toUpperCase()}`,angleLabel(a)],
+    rows:3,cols:3,answer:A,chips:[`Eje ${axis.toUpperCase()}`,`${bookSymbol({x:"alpha",y:"phi",z:"theta"}[axis])} = ${angleLabel(a)}`],
     visualData:{R:A,p:[0,0,0]},
     commonErrors:["invertir el signo del seno respecto de la regla de la mano derecha","alterar la fila y la columna del eje de giro, que deben quedar como en la identidad"],
     hints:[`El eje ${axis.toUpperCase()} permanece invariable.`,`Calcula seno y coseno sin redondear prematuramente.`,`Comprueba RᵀR≈I y det(R)≈1.`],
@@ -5912,7 +5945,7 @@ function makeChapter3Kind(diff,kind){
   let R1=rot(a1,d1),R2=rot(a2,d2),A=frame==="fijo"?mul(R2,R1):mul(R1,R2),wrongOrder=frame==="fijo"?mul(R1,R2):mul(R2,R1);
   return{id:"rotation_composition",chapter:3,type:"matrix",visual:"frames3d",title:"Composición de rotaciones",
    statement:"Compón las dos rotaciones en el orden indicado y respecto del marco especificado.",
-    rows:3,cols:3,answer:A,chips:[`1. R${a1}(${angleLabel(d1)})`,`2. R${a2}(${angleLabel(d2)})`,`Marco ${frame}`],
+    rows:3,cols:3,answer:A,chips:[`1. R${a1}(${bookSymbol({x:"alpha",y:"phi",z:"theta"}[a1])} = ${angleLabel(d1)})`,`2. R${a2}(${bookSymbol({x:"alpha",y:"phi",z:"theta"}[a2])} = ${angleLabel(d2)})`,`Marco ${frame}`],
     visualData:{R:A,p:[0,0,0]},diagnosticAlternatives:[{matrix:wrongOrder,message:`El resultado coincide con el producto en orden contrario. En un marco ${frame}, revisa si la segunda rotación debe pre o postmultiplicarse.`}],
     commonErrors:["multiplicar en el orden de lectura sin atender a si el marco es fijo o móvil","dar por conmutativo el producto de rotaciones"],
     hints:[frame==="fijo"?"La segunda rotación se premultiplica.":"La segunda rotación se postmultiplica.","El producto matricial no es conmutativo.","Comprueba la ortonormalidad del resultado."],
@@ -5927,7 +5960,7 @@ function makeChapter3Kind(diff,kind){
  let T=hom(rot(axis,a),p);
  if(kind==="hom")return{id:"homogeneous_transform",kind:"homogeneous-transform",chapter:3,type:"matrix",visual:"frames3d",title:"Transformación homogénea",
   statement:"Construye la matriz homogénea a partir de la rotación y la traslación indicadas.",rows:4,cols:4,answer:T,
-   chips:[`R${axis}(${angleLabel(a)})`,`p=[${p.join(", ")}]ᵀ`],
+   chips:[`R${axis}(${bookSymbol({x:"alpha",y:"phi",z:"theta"}[axis])} = ${angleLabel(a)})`,`p=[${p.join(", ")}]ᵀ`],
    visualData:{R:T.slice(0,3).map(r=>r.slice(0,3)),p},
    commonErrors:["colocar la traslación en la última fila en lugar de la cuarta columna","omitir la fila homogénea [0,0,0,1]"],
    hints:["R ocupa el bloque superior izquierdo 3×3.","p va en la cuarta columna.","La última fila es [0,0,0,1]."],
@@ -5937,7 +5970,7 @@ function makeChapter3Kind(diff,kind){
     `Resultado:\n${mtxt(T)}`]};
  if(kind==="inverse"){let A=invT(T),inverseP=A.slice(0,3).map(r=>r[3]),Rt=tr(T.slice(0,3).map(r=>r.slice(0,3))),wrongNegP=hom(Rt,p.map(value=>-value));return{id:"inverse_homogeneous_transform",kind:"inverse-transform",chapter:3,type:"matrix",visual:"frames3d",title:"Transformación inversa",
   statement:"Calcula la transformación homogénea inversa de la pose indicada.",rows:4,cols:4,answer:A,
-  chips:[`R${axis}(${angleLabel(a)})`,`p=[${p.join(", ")}]ᵀ`,`Usa R⁻¹=Rᵀ`],
+  chips:[`R${axis}(${bookSymbol({x:"alpha",y:"phi",z:"theta"}[axis])} = ${angleLabel(a)})`,`p=[${p.join(", ")}]ᵀ`,`Usa R⁻¹=Rᵀ`],
   visualData:{R:A.slice(0,3).map(r=>r.slice(0,3)),p:inverseP,direct:{R:T.slice(0,3).map(r=>r.slice(0,3)),p},inverse:{R:A.slice(0,3).map(r=>r.slice(0,3)),p:inverseP}},
   diagnosticAlternatives:[{matrix:wrongNegP,message:"La rotación fue transpuesta, pero la traslación se trató como −p. Debe expresarse en el marco inverso: −Rᵀp."}],
   commonErrors:["escribir −p en la cuarta columna en lugar de −Rᵀp","invertir T como una matriz cualquiera sin aprovechar que R⁻¹=Rᵀ"],
@@ -5949,7 +5982,7 @@ function makeChapter3Kind(diff,kind){
  let P=[ri(-3,3),ri(-3,3),ri(-3,3)],Ph=[[P[0]],[P[1]],[P[2]],[1]],Q=mul(T,Ph).slice(0,3),rotOnly=mul(T.slice(0,3).map(row=>row.slice(0,3)),P.map(value=>[value]));
  return{id:"point_transform",chapter:3,type:"matrix",visual:"frames3d",title:"Transformación de un punto",
   statement:"Expresa el punto en el marco transformado usando la pose indicada.",
-  rows:3,cols:1,answer:Q,chips:[`R${axis}(${angleLabel(a)})`,`P=[${P.join(", ")}]ᵀ`,`p=[${p.join(", ")}]ᵀ`],
+  rows:3,cols:1,answer:Q,chips:[`R${axis}(${bookSymbol({x:"alpha",y:"phi",z:"theta"}[axis])} = ${angleLabel(a)})`,`P=[${P.join(", ")}]ᵀ`,`p=[${p.join(", ")}]ᵀ`],
   visualData:{R:T.slice(0,3).map(r=>r.slice(0,3)),p,note:"Transformación activa del punto P mediante T",
    figurePoint:{mode:"activa",origin:P,world:Q.map(r=>r[0]),knownLabel:"P",knownValue:P,unknownLabel:"P′"}},
   diagnosticAlternatives:[{matrix:rotOnly,message:"El resultado coincide con RP: se aplicó la rotación, pero falta sumar la traslación p."}],
@@ -5957,6 +5990,87 @@ function makeChapter3Kind(diff,kind){
   hints:["Usa P'=RP+p.","La respuesta tiene tres componentes.","Mantén grados y radianes consistentes."],
   steps:["Calcula RP.","Suma p.",`Resultado:\n${mtxt(Q)}`]};
 }
+/* Fixed exam worksheets. q1/q2 are joint coordinates; textbook α/φ/θ are
+   reserved for elementary spatial rotations, not substituted into robot DH. */
+function makeGeometric2R(diff,variant=pick(['point','point','inverse','length'])){
+ const L1=ri(3,6),L2=ri(2,5),q1=pick([-30,0,30,45,60]),q2=pick([45,60,90,120]);
+ const x=L1*Math.cos(rad(q1))+L2*Math.cos(rad(q1+q2)),y=L1*Math.sin(rad(q1))+L2*Math.sin(rad(q1+q2));
+ const base={id:'geometric_2r_'+variant,chapter:4,difficulty:diff,kind:'geometric-2r',model:'Planar2R',visual:'planarWorksheet',geometryTopic:variant==='inverse'?'4.3':'4.1',title:'Planar 2R · método geométrico',params:{L1,L2,q1,q2,variant},chips:[],hints:[],steps:[],commonErrors:[],concepts:['método geométrico','cinemática planar'],tolerance:.003};
+ const convention='q₁ se mide desde +X; q₂ desde la prolongación del primer eslabón. Los giros positivos son antihorarios. Longitudes en metros. ';
+ if(variant==='symbolic')return{...base,type:'symbolic',symbolEngine:'trig',rows:3,cols:1,symbols:['L1','L2','q1','q2'],symbolFields:[{key:'x',row:1,label:'X(q₁,q₂)'},{key:'y',row:2,label:'Y(q₁,q₂)'},{key:'r2',row:3,label:'Distancia al origen al cuadrado: X² + Y²'}],answer:{x:'L1*cos(q1)+L2*cos(q1+q2)',y:'L1*sin(q1)+L2*sin(q1+q2)',r2:'L1^2+L2^2+2*L1*L2*cos(q2)'},params:{...base.params,symbolic:true},statement:`${convention}Sean L₁,L₂&gt;0 y q₁,q₂ parámetros libres, sin datos numéricos. Deduce mediante el método geométrico las coordenadas de E y su distancia al origen al cuadrado. Expresa las ecuaciones con L1, L2, q1 y q2. Los ángulos simbólicos están en radianes. Esquema sin escala.`};
+ if(variant==='inverse')return{...base,type:'matrix',rows:2,cols:1,answer:[[q1],[q2]],tolerance:.02,statement:`${convention}L₁=${L1}, L₂=${L2} y objetivo E=(${x.toFixed(6)}, ${y.toFixed(6)}). Halla [q₁; q₂], en grados, mediante geometría. Selecciona la rama 0°&lt;q₂&lt;180° y representa q₁ en [−180°,180°). La postura dibujada es ilustrativa, no es la solución.`,params:{...base.params,target:[x,y],illustrative:true}};
+ if(variant==='length')return{...base,type:'number',answer:L2,statement:`${convention}L₁=${L1}, q₁=${q1}°, q₂=${q2}° y E=(${x.toFixed(6)}, ${y.toFixed(6)}). Halla la longitud positiva L₂ por el método geométrico. Esquema sin escala.`,params:{...base.params,unknownLink:2},numericAlternatives:[{value:Math.hypot(x,y),message:'La distancia desde la base no es la longitud desde el codo.'}]};
+ return{...base,type:'matrix',rows:2,cols:1,answer:[[x],[y]],statement:`${convention}L₁=${L1}, L₂=${L2}, q₁=${q1}° y q₂=${q2}°. Halla las coordenadas [X; Y] de E mediante el método geométrico. La figura representa la configuración indicada.`};
+}
+function makeWorkspaceRP(diff,variant=pick(['area','radii','point','membership','extension'])){
+ const symbolic=['region','offset'].includes(variant),offset=variant==='offset'||(!symbolic&&diff>=2&&Math.random()<.5),L=offset?ri(1,3):0;
+ const qmin=pick([0,1,2]),qmax=qmin+ri(2,5),[amin,amax]=pick([[0,360],[0,90],[-60,60],[30,150],[120,240]]),q1=(amin+amax)/2,q2=(qmin+qmax)/2,rmin=L+qmin,rmax=L+qmax;
+ const A=rad(amax-amin)*(rmax*rmax-rmin*rmin)/2;
+ const base={id:'workspace_rp_'+variant,chapter:4,difficulty:diff,kind:'workspace',visual:'workspace2d',geometryTopic:'4.11',title:'Área de trabajo · RP telescópico',params:{rp:true,offset,L,qmin,qmax,amin,amax,q1,q2,variant,symbolic},chips:[],hints:[],steps:[],commonErrors:[],concepts:['área de trabajo','método geométrico','rotación y extensión'],tolerance:.003};
+ const definition=offset?'q₂ es la extensión medida desde el final de una longitud fija L, no desde O.':'q₂ es la distancia radial total desde O hasta E, no solo la parte que sobresale del tubo.';
+ const assumptions=`El brazo RP de la figura gira en O y desliza en la dirección del tubo. q₁ se mide desde +X, positivo antihorario. ${definition} El giro y la extensión son independientes. Considera un mecanismo ideal, sin obstáculos ni colisiones. `;
+ if(symbolic){
+  const lo=offset?'(L+qmin)':'qmin',hi=offset?'(L+qmax)':'qmax',r=offset?'(L+q2)':'q2';
+  return{...base,type:'symbolic',symbolEngine:'trig',rows:5,cols:1,symbols:[...(offset?['L']:[]),'q1','q2','qmin','qmax','a','b'],symbolFields:[{key:'x',row:1,label:'X(q₁,q₂)'},{key:'y',row:2,label:'Y(q₁,q₂)'},{key:'lo',row:3,label:'Borde radial interior: X² + Y² = …'},{key:'hi',row:4,label:'Borde radial exterior: X² + Y² = …'},{key:'area',row:5,label:'Superficie A'}],answer:{x:r+'*cos(q1)',y:r+'*sin(q1)',lo:lo+'^2',hi:hi+'^2',area:'(b-a)*('+hi+'^2-'+lo+'^2)/2'},statement:assumptions+`${offset?'L&gt;0. ':''}q₂∈[qmin,qmax], con 0≤qmin&lt;qmax, y q₁∈[a,b], con 0&lt;b−a≤2π; a y b están en radianes. Describe la región alcanzable mediante sus ecuaciones paramétricas X e Y y ese dominio articular. Obtén también las ecuaciones de sus bordes radiales y su superficie A. Conserva todos los parámetros simbólicos. Esquema sin escala.`};
+ }
+ const data=`${offset?'L='+L+' m. ':''}q₂∈[${qmin},${qmax}] m y q₁∈[${amin}°,${amax}°]. Incluye las fronteras. `;
+ if(variant==='radii')return{...base,type:'matrix',rows:2,cols:1,answer:[[rmin],[rmax]],statement:assumptions+data+'Determina los radios interior y exterior, en el orden [menor; mayor], en metros.'};
+ if(variant==='point'){const r=L+q2;return{...base,type:'matrix',rows:2,cols:1,answer:[[r*Math.cos(rad(q1))],[r*Math.sin(rad(q1))]],statement:assumptions+data+`Para la configuración q₁=${q1}° y q₂=${q2} m, halla [X; Y] de E, en metros.`}}
+ if(variant==='extension')return{...base,type:'number',answer:qmax,statement:assumptions+`${offset?'L='+L+' m. ':''}El extremo debe alcanzar una distancia radial máxima de ${rmax} m desde O. Determina el valor máximo necesario de q₂, en metros. No midas la figura.`,params:{...base.params,unknownExtension:true},numericAlternatives:[{value:rmax+L,message:'Revisa desde dónde se mide la extensión y dónde empieza el tramo fijo.'}]};
+ if(variant==='membership'){
+  const r=pick([rmin,(rmin+rmax)/2,rmax+1]),angle=pick([amin,(amin+amax)/2,amax+30]),px=r*Math.cos(rad(angle)),py=r*Math.sin(rad(angle));
+  const inside=r>=rmin&&r<=rmax&&(r===0||amax-amin===360||angle<=amax);
+  return{...base,type:'choice',options:['Sí, pertenece.','No, no pertenece.'],answer:inside?'Sí, pertenece.':'No, no pertenece.',params:{...base.params,target:[px,py]},statement:assumptions+data+`El punto P=(${px.toFixed(5)}, ${py.toFixed(5)}) m se define exactamente por radio ${r} m y dirección ${angle}°. Decide si pertenece a la región alcanzable. Las coordenadas cartesianas se muestran redondeadas.`};
+ }
+ return{...base,type:'number',answer:A,tolerance:.02,statement:assumptions+data+'Determina mediante el método geométrico la superficie total de la región alcanzable, en m².',numericAlternatives:[{value:Math.PI*(rmax*rmax-rmin*rmin),message:'Comprueba si el giro abarca una vuelta completa.'},{value:rad(amax-amin)*(rmax-rmin)**2/2,message:'La diferencia de cuadrados no es el cuadrado de una diferencia.'}]};
+}
+function planarExamSvg(e){
+ const p=e.params,rp=Boolean(p.rp),symbolic=p.symbolic||p.unknownLink||p.unknownExtension,illustrative=symbolic||p.illustrative||rp&&p.variant!=='point';
+ const q1=rp?(p.amax-p.amin===360&&illustrative?35:p.q1):illustrative?35:p.q1,q2=rp?(p.qmin+p.qmax)/2:illustrative?65:p.q2,L1=rp?p.L:symbolic?4:p.L1,L2=rp?0:symbolic?3:p.L2;
+ const O=[0,0],J=rp?[L1*Math.cos(rad(q1)),L1*Math.sin(rad(q1))]:[L1*Math.cos(rad(q1)),L1*Math.sin(rad(q1))],E=rp?[(L1+q2)*Math.cos(rad(q1)),(L1+q2)*Math.sin(rad(q1))]:[J[0]+L2*Math.cos(rad(q1+q2)),J[1]+L2*Math.sin(rad(q1+q2))];
+ const points=[O,J,E,...(p.target?[p.target]:[])],lo=[Math.min(0,...points.map(a=>a[0])),Math.min(0,...points.map(a=>a[1]))],hi=[Math.max(1,...points.map(a=>a[0])),Math.max(1,...points.map(a=>a[1]))],k=Math.min(400/(hi[0]-lo[0]),240/(hi[1]-lo[1]));
+ const map=a=>[120+(a[0]-lo[0])*k,340-(a[1]-lo[1])*k],o=map(O),j=map(J),end=map(E),parts=[],font=window.matchMedia('(max-width:600px)').matches?29:25;
+ const line=(a,b,style='')=>`<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" ${style}/>`;
+ const text=(a,t,color='var(--text)')=>`<text x="${a[0]}" y="${a[1]}" font-size="${font}" fill="${color}" paint-order="stroke" stroke="var(--card)" stroke-width="5" stroke-linejoin="round">${traceHtmlEscape(t)}</text>`;
+ const arc=(c,start,angle,label,r=44)=>{const a=rad(start),b=rad(start+angle),m=(a+b)/2;return`<path d="M${c[0]+r*Math.cos(a)} ${c[1]-r*Math.sin(a)} A${r} ${r} 0 ${Math.abs(angle)>180?1:0} ${angle>=0?0:1} ${c[0]+r*Math.cos(b)} ${c[1]-r*Math.sin(b)}" fill="none" stroke="var(--ws-third)" stroke-width="2"/>`+text([c[0]+(r+16)*Math.cos(m),c[1]-(r+16)*Math.sin(m)],label)};
+ parts.push(line([35,o[1]],[600,o[1]],'stroke="var(--muted)" stroke-width="1.3"'),line([o[0],405],[o[0],35],'stroke="var(--muted)" stroke-width="1.3"'),text([605,o[1]+8],'X'),text([o[0]-28,32],'Y'));
+ if(rp){
+  const length=(L1+q2)*k,body=p.offset?L1*k:length*.64,inner=Math.max(0,body*.22);
+  parts.push(`<g transform="translate(${o[0]} ${o[1]}) rotate(${-q1})"><rect data-rp-housing="true" x="0" y="-17" width="${body}" height="34" rx="5" fill="var(--soft)" stroke="var(--ws-first)" stroke-width="3"/><rect data-rp-slider="true" x="${inner}" y="-7" width="${length-inner}" height="14" fill="var(--ws-second)"/><path d="M${body} -20 V20" stroke="var(--ws-first)" stroke-width="4"/>${line([p.offset?body:0,-48],[length,-48],'stroke="var(--muted)" stroke-width="2"')}${line([p.offset?body:0,-54],[p.offset?body:0,-40],'stroke="var(--muted)" stroke-width="2"')}${line([length,-54],[length,-40],'stroke="var(--muted)" stroke-width="2"')}</g>`);
+  const middle=map([(p.offset?L1+q2/2:q2/2)*Math.cos(rad(q1)),(p.offset?L1+q2/2:q2/2)*Math.sin(rad(q1))]);
+  parts.push(text([middle[0]-20,middle[1]-65],'q₂','var(--ws-second)'));
+  if(p.offset)parts.push(text([(o[0]+j[0])/2+15,(o[1]+j[1])/2+34],'L','var(--ws-first)'));
+ }else{
+  parts.push(line(o,j,'data-link="1" stroke="var(--ws-first)" stroke-width="16" stroke-linecap="round"'),line(j,end,'data-link="2" stroke="var(--ws-second)" stroke-width="13" stroke-linecap="round"'));
+  parts.push(text([(o[0]+j[0])/2-20,(o[1]+j[1])/2-28],'L₁','var(--ws-first)'),text([(j[0]+end[0])/2+22,(j[1]+end[1])/2],p.unknownLink?'L₂ = ?':'L₂','var(--ws-second)'));
+  parts.push(line(j,[j[0]+80*Math.cos(rad(q1)),j[1]-80*Math.sin(rad(q1))],'stroke="var(--muted)" stroke-dasharray="5 4"'),arc(j,q1,q2,'q₂',35));
+ }
+ parts.push(arc(o,0,q1,'q₁'));
+ for(const a of rp?[o]:[o,j])parts.push(`<circle cx="${a[0]}" cy="${a[1]}" r="9" fill="var(--card)" stroke="var(--text)" stroke-width="2"/>`);
+ parts.push(text([o[0]-28,o[1]+30],'O'),`<circle cx="${end[0]}" cy="${end[1]}" r="6" fill="var(--ws-second)"/>`,text([end[0]+15,end[1]-15],p.illustrative?'E ilustrativo':'E'));
+ if(p.target){const a=map(p.target);parts.push(`<circle data-target="true" cx="${a[0]}" cy="${a[1]}" r="7" fill="var(--ws-third)"/>`,text([a[0]+15,a[1]+32],p.illustrative?'E objetivo':'P'))}
+ return`<svg xmlns="http://www.w3.org/2000/svg" class="ws-svg" viewBox="0 0 680 450" role="img" aria-label="${rp?'RP telescópico':'Planar 2R'}: figura fija sin solución"><title>${rp?'Giro y extensión radial':'Dos eslabones · método geométrico'}</title><rect width="680" height="450" fill="var(--card)"/>${parts.join('')}</svg>`;
+}
+function renderPlanarWorksheet(e){
+ const root=document.getElementById('exerciseVisual'),host=document.getElementById('workspaceActivity');root.hidden=false;host.hidden=false;
+ for(const id of ['exercise2RPanel','exerciseSpatialPanel','exerciseFramePanel','exerciseProjectionStrip','workspaceFormat'])document.getElementById(id).hidden=true;
+ document.getElementById('practiceView').classList.add('ws-practice');
+ document.getElementById('exerciseVisualTitle').textContent='Método geométrico · plano XY';document.getElementById('exerciseVisualKind').textContent='2 eslabones · RR';
+ const caption=e.params.symbolic||e.params.unknownLink?'Esquema sin escala. Usa los parámetros del enunciado.':e.params.illustrative?'Postura ilustrativa. El punto objetivo está señalado.':'Configuración fija según los datos del enunciado.';
+ for(const id of ['exerciseVisualCaption','exerciseVisualDescription'])document.getElementById(id).textContent=caption;
+ host.innerHTML=`<div class="ws-drawing">${planarExamSvg(e)}</div>`;
+ const answer=document.getElementById('answerArea');if(answer.parentElement===root.parentElement)root.parentElement.insertBefore(root,answer);
+}
+function renderPlanarControls(){const host=document.getElementById('planarGeometryFormat');if(host)host.hidden=examEnCurso()||appState.currentChapter!==4||Boolean(appState.practiceTopicKey&&!['4.1','4.3'].includes(appState.practiceTopicKey))}
+function initPlanarControls(){
+ for(const [id,symbolic] of [['newPlanarNumeric',false],['newPlanarSymbolic',true]])document.getElementById(id).onclick=()=>{
+  if(examEnCurso())return;
+  const diff=Number(document.getElementById('difficulty').value),e=symbolic?makeGeometric2R(diff,'symbolic'):makeGeometric2R(diff,appState.practiceTopicKey==='4.3'?'inverse':undefined);
+  appState.practiceTopicKey=e.geometryTopic;appState.currentExercise=e;document.getElementById('feedback').className='feedback';renderExercise();
+ };
+ renderPlanarControls();
+}
+
 function make2R(diff){
  let L1=ri(2,6),L2=ri(2,6),t1=pick([0,30,45,60,90,120]),t2=pick([0,30,45,60,90,-30,-45]);
  let solved=solveRobot2R(L1,L2,t1,t2),x=round(solved.effector.x),y=round(solved.effector.y),phi=round(solved.phiDegRaw);
@@ -6829,6 +6943,7 @@ function kinematicsCandidates(diff){
   :diff===3?[makeSpatial3R,makeScara,makeSpatial2R,makeDh3R,makeRrrp,makeIndustrial6R]
   :[makeIndustrial6R,makeRrrp,makeDh3R,makeScara,makeSpatial3R];
  const lista=[];
+ planar.push(makeGeometric2R);
  planar.forEach(make=>lista.push({family:"2d",make}));
  espacial.forEach(make=>lista.push({family:"3d",make:plausibleSpatial(make)}));
  jacobianos.forEach(make=>lista.push({family:"jacobiano",make}));
@@ -6932,8 +7047,9 @@ function legacyTopicNumericGenerators(key,diff){
   "5.2":[makeGravity2R],"5.3":[makeSecondOrderSpecs],"5.5":diff===1?[makeInertia2R]:[makeInertia2R,makeCoriolis2R],"5.6":diff>=2?[makePidGainDesign]:[],"5.7":[makeSafetyDistance]};
  if(key==="4.1"){
   const spatial=diff===1?[makeSpatial2R]:diff===2?[makeSpatial2R,makeSpatial3R,makeScara]:diff===3?[makeSpatial3R,makeScara,makeSpatial2R,makeRrrp,makeIndustrial6R]:[makeIndustrial6R,makeRrrp,makeScara,makeSpatial3R];
-  return[make2R,makePlanar3R,...spatial.map(make=>plausibleSpatial(make))];
+  return[makeGeometric2R,make2R,makePlanar3R,...spatial.map(make=>plausibleSpatial(make))];
  }
+ if(key==="4.3")return[d=>makeGeometric2R(d,"inverse")];
  if(key==="4.2")return diff>=3?[plausibleSpatial(makeDh3R)]:[];
  if(key==="4.5")return diff===1?[makeJacobianVelocity2R]:diff===2?[makeJacobianVelocity2R,makeJacobian2R]:[makeJacobian2R,makeJacobianInverse2R,makeJacobianVelocity2R];
  if(key==="4.11")return[makeWorkspaceExercise];
@@ -9725,6 +9841,7 @@ function renderVisualPanelForExercise(exercise){
  const root=document.getElementById("exerciseVisual");if(!root)return;
  document.getElementById("workspaceActivity").hidden=true;document.getElementById("practiceView").classList.remove("ws-practice");
  if(exercise?.kind==="classification"){renderClassification(exercise);return}
+ if(exercise?.kind==="geometric-2r"){renderPlanarWorksheet(exercise);return}
  if(wsIsExercise(exercise)){renderWsActivity(exercise);return}
  const stages=document.getElementById("stageWorkbench");if(stages?.parentElement===root.parentElement)root.parentElement.insertBefore(root,stages);
  const panel2R=document.getElementById("exercise2RPanel"),spatialPanel=document.getElementById("exerciseSpatialPanel"),framePanel=document.getElementById("exerciseFramePanel"),projectionStrip=document.getElementById("exerciseProjectionStrip");
@@ -11818,7 +11935,8 @@ function runSelfTests(){
       const e=generadores[capitulo](nivel);
       e.difficulty=nivel;
       try{
-       if(is2RExercise(e))robot2RSvgMarkup(buildRobot2RDiagramSpec(e));
+       if(e.kind==="geometric-2r"||e.params?.rp)planarExamSvg(e);
+       else if(is2RExercise(e))robot2RSvgMarkup(buildRobot2RDiagramSpec(e));
        else if(isWorkspaceExercise(e))workspaceSvgMarkup(buildWorkspaceDiagramSpec(e));
        else if(isSpatialExercise(e))spatialRobotSvgMarkup(e.kinematics,{model:e.model,highlight:(e.visualConfig||{}).highlight||"position",planar:e.model==="Planar3R",params:e.params||{},plate:true,view:"mechanism"});
        else if(e.visual==="frames3d")frameDiagramSvgMarkup(frameExercisePoses(e,e.visualData||{R:identityMatrix(3),p:[0,0,0]}).poses,{height:400,plate:true});
@@ -12079,7 +12197,10 @@ function runSelfTests(){
     if(!rotulos.includes("P"))return false;
     /* y la cota del tramo debe seguir informando del recorrido */
     const cota=spatialDimensionLabels(modelo,e.kinematics.positions.length-1).at(-1);
-    if(!rotulos.includes(cota))return false;
+    if(modelo==="SCARA_RRP"){
+     // q3 es el desplazamiento del tramo; d0+q3 es la altura desde el suelo.
+     if(!rotulos.includes("q₃")||!rotulos.includes("Altura de E: d₀ + q₃"))return false;
+    }else if(!rotulos.includes(cota))return false;
    }
    return true;
   }],
@@ -13026,7 +13147,7 @@ function runSelfTests(){
     const e=makeChapter3(pick(DIFFICULTY_LEVELS));
     if(e.id!=="inverse_homogeneous_transform")continue;
     const fichas=(e.chips||[]).join(" ");
-    const g=fichas.match(/R([xyz])\(\s*(-?[\d.]+)\s*°?\)/);
+    const g=fichas.match(/R([xyz])\(\s*(?:[αφθ]\s*=\s*)?(-?[\d.]+)\s*°?\)/);
     const t=fichas.match(/p\s*=\s*\[\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*\]/);
     if(!g||!t)continue;
     revisadas++;
@@ -14008,13 +14129,24 @@ function runSelfTests(){
  beginDeterministicRun();
  const errorLecturaPrevio=progressLoadError,progresoUsuario=progress;
  progress=JSON.parse(JSON.stringify(progresoUsuario));
+ tests.push(
+  ["Par planar general: dos traslaciones y un giro",()=>CC_PAIRS.planarJoint.dof===3&&ccSvg('planarJoint').includes('giro alrededor de su normal')],
+  ["Arquitectura RRR se nombra antropomórfica",()=>CC_MODELS.articulated.name==='Antropomórfico'],
+  ["Símbolos de giro respetan X, Y, Z y no repiten parámetros",()=>{
+   for(let i=0;i<12;i++){const e=makeNarrativeSymbolic(4),seen=new Set();for(const st of e.narrativeData.sequence)if(st.type==='rot'){if(!st.angle.startsWith({x:'alpha',y:'phi',z:'theta'}[st.axis])||seen.has(st.angle))return false;seen.add(st.angle)}}return true;
+  }],
+  ["Planar 2R: proyección expandida equivale a la suma angular",()=>{const e=makeGeometric2R(2,'symbolic'),f=e.symbolFields[0];return wsFieldCanonical('L1*cos(q1)+L2*(cos(q1)*cos(q2)-sin(q1)*sin(q2))',e,f)===wsFieldCanonical(e.answer.x,e,f)&&wsFieldCanonical('L1*cos(q1)+L2*cos(q2)',e,f)!==wsFieldCanonical(e.answer.x,e,f)}],
+  ["RP: superficie proporcional al giro y diferencia de cuadrados",()=>{for(let i=0;i<20;i++){const e=makeWorkspaceRP(3,'area'),p=e.params,area=(p.amax-p.amin)/360*Math.PI*((p.L+p.qmax)**2-(p.L+p.qmin)**2);if(Math.abs(e.answer-area)>1e-9)return false}return true}],
+  ["RP simbólico: la extensión se suma a la longitud fija",()=>{const e=makeWorkspaceRP(3,'offset'),f=e.symbolFields[0];return wsFieldCanonical('(L+q2)*cos(q1)',e,f)===wsFieldCanonical(e.answer.x,e,f)&&wsFieldCanonical('q2*cos(q1)',e,f)!==wsFieldCanonical(e.answer.x,e,f)}],
+  ["Nuevas láminas de parcial: figura fija sin controles ni solución",()=>[makeGeometric2R(2,'symbolic'),makeWorkspaceRP(2,'region')].every(e=>isStatementOnlyExercise(e)&&!/<input|<button|NaN|Infinity/.test(planarExamSvg(e)))]
+ );
  const results=(()=>{try{return safeStorage.aislar(()=>tests.map(([name,test])=>{try{return{name,ok:Boolean(test())}}catch(error){return{name,ok:false,error:error.message}}}),{rt4:JSON.stringify(progress)})}finally{progress=progresoUsuario;progressLoadError=errorLecturaPrevio;familyFilterSuspended=false;endDeterministicRun();renderStorageStatus();renderStats()}})();
  const failures=results.filter(r=>!r.ok),passed=results.length-failures.length;
  const status=document.getElementById("selfTestStatus");status.textContent=`Autopruebas ${passed}/${results.length}`;status.className=`self-test ${failures.length?"bad":"ok"}`;
  if(failures.length)console.error("RoboTutor: autopruebas fallidas",failures);else console.info(`RoboTutor: ${passed}/${results.length} autopruebas correctas.`);
  return{passed,total:results.length,failures,results};
 }
-window.RoboTutor={makeReflection,reflectionPool,REFLECTION_BANK,startReflection,reviewOpen,readOpenDraft,calculationMeta,calculationChoices,cleanMechanismPoints,cleanMechanismSvg,makeClassification,ccKinds,ccGeometry,ccSvg,CC_MODELS,renderClassificationLessons,makeWorkspaceThree,makeWorkspaceThreeSymbolic,wsThreeDiagram,makeNarrativeSymbolic,nsParse,nsCompose,nsPolyText,makeNarrativeTransform,narrativeChainSteps,isNarrativeExercise,startTopicPractice,leaveTopicPractice,topicPracticeAvailability,makeTopicExercise,topicNumericGenerators,topicChapter3Kinds,topicChoicePool,APP_VERSION,APP_STAGE,DIFFICULTY_LEVELS,DIFFICULTY_NAMES,appState,runSelfTests,Parser,shuffle,composeChain,chainProductText,makeChainFixed,makeChainMixed,makePointFromMovingTranslation,makeHomogeneousApplyPoint,makePointRotatedTranslated,makePointFixedToMoving,makeQuaternionFromAxisAngle,makeQuaternionCompose,makeQuaternionAngle,quaternionFromAxisAngle,quaternionProduct,quaternionAngleDeg,makeCylindricalToCartesian,makeCartesianToCylindrical,makeSphericalToCartesian,makeCartesianToSpherical,makeChapter3,makeChoice,makeKinematicsExercise,makeChapter5,makeFoundationExercise,NUMERIC_GENERATORS,CONCEPT_SHARE,workspace2R,workspace3R,radius2R,annulusArea,classifyWorkspacePoint,makeWorkspaceExercise,makeWorkspaceToolOffset2R,makeWorkspaceToolAngled2R,makeWorkspaceLinkPoint2R,toolReach2R,workspaceToolPoint2R,makeWorkspaceSectorArea2R,makeWorkspaceSectorSpan2R,makeWorkspaceSectorEffect,workspaceSector2R,elbowShift2R,makeWorkspaceRadii2R,makeWorkspaceArea2R,makeWorkspaceLimited2R,makeWorkspace3R,makeWorkspaceScaraVolume,makeWorkspaceMembership,workspaceSvgMarkup,buildWorkspaceDiagramSpec,makeWorkspaceEquation,makeWorkspaceIdentify,workspacePoseForDisplay,EXERCISE_FAMILIES,activeFamilies,familyIds,familyAllowed,exerciseFamily,CHAPTER3_FAMILY,solutionPitfallsMarkup,numericAlternativeMatch,scalarDifferenceCause,spatialScalarAlternatives,SOLUTION_REASONING,solutionReasoning,solutionReasoningMarkup,createSeededRandom,SELFTEST_SEED,makeAccuracyStats,makeFindError,makeSafetyDistance,makeGravity2R,roadmap,safeStorage,downloadJson,save,CHAPTER3_KINDS,LABEL_OFFSETS,ensureStageState,validateProgressData,progress,kinematicsCandidates,chapter5Candidates,chapter3Kinds,workspaceArmPoints,workspaceArm2R,workspaceArm3R,chooseSpatialCamera,spatialFillScore,spatialFramingPoints,paintSpatialRobot,syncExamUI,abandonExam,solutionProcedureMarkup,plainTraceFactor,saveExam,loadStoredExam,discardStoredExam,restoreExamOnBoot,EXAM_STORAGE_KEY,chargeExamTime,examRecorrido,examVecino,motionOff,viewFadeKeyframes,contentEnterKeyframes,fadeInView,enterContent,unfoldElement,foldElement,revealInView,announceExercise,onceOnly,whenAnimationEnds,announceFeedback,wrongCellKeyframes,cellsToPulse,pulseWrongCells,animateHeight,detailsClosedHeight,announceLesson,switchTheme,applyThemeEverywhere,LESSON_PLATES,renderLessonPlates,composeExam,startExam,submitExam,answerIsCorrect,examRemainingMs,examFormat,stopExamClock,exerciseTopicKey,topicByKey,topicLabel,topicReport,topicHistorySeries,recordTopicResult,conceptTopicIndex,spatialMinLinkRatio,spatialPostureIsPlausible,plausibleSpatial,createLabelPlacer,drawSpatialRobotFrame,paintSpatialRobot,renderSpatialPlate,renderScaraProjectionSvg,spatialRobotSvgMarkup,scaraProjectionSvgMarkup,createSvgSurface,svgParseFont,svgMeasure,chainKinematics,chainProductFactors,chainSideBreakdown,matrixStructureCheck,buildPedagogyTrace,chapters,painterOrder,jointLocalAxis,jointIsRevolute,jointRotationFrame,spatialProjection,spatialDimensionLabels,pickInformativeAsk,makeIndustrial6R,makeDh3R,makeSpatial2R,makeSpatial3R,makeScara,makeRrrp,makeJacobian2R,makeJacobianVelocity2R,makeJacobianInverse2R,jacobian2R,jacobianApply,jacobianSolve,angleLabel,exerciseFramePoints,frameProjector,drawFrameDiagram,paintFrameDiagram,frameDiagramSvgMarkup,frameExercisePoses,renderFramePlate,chainGhostFrames,makePayloadBudget,makeCycleTime,makeReachDistance,makeAccuracyStats,makeGearRatio,makeRmsTorque,makeToolMoment,makeEncoderResolution,makeGripForce,pedagogyLevelPolicy,solutionRevealPolicy,visibleStepIndexes,solutionStepsMarkup,baseTolerance,cellTolerance,angleTolerance,make2R,rot,hom,invT,forward2R,solveRobot2R,solveIK,solvePlanar2RIk,solveScaraRrpIk,makeTargetStrike,targetStrikeError,KinematicsEngine,dhTransform,isSO3Matrix,isSE3Matrix,validateDhFrameRules,exerciseTheorySpec,matrixLatex,firstObservableDifference,firstCapturedStageDifference,parsePastedMatrix,classifyCellCause,buildRobot2RDiagramSpec,robot2RSvgMarkup,drawScaraProjection,drawFrameExercise,matrixCellPolicy,formatAngle,CHOICE_BANKS,CHOICE_LEVELS,choicePool,CHOICE_RATIONALE,choiceRationale,choiceFailureReason,ROBOT2R_VISUAL_FIXTURES,gravityTorque2R,inertiaMatrix2R,coriolisCoupling2R,makeInertia2R,makeCoriolis2R,makeCubicTrajectory,makeTrapezoidalProfile,makeSecondOrderSpecs,makePidGainDesign,manipulabilityPlanar2R,simulatePID1DOF,makeGravity2R,makeSafetyDistance,makeFindError};
+window.RoboTutor={makeGeometric2R,makeWorkspaceRP,planarExamSvg,CC_PAIRS,makeReflection,reflectionPool,REFLECTION_BANK,startReflection,reviewOpen,readOpenDraft,calculationMeta,calculationChoices,cleanMechanismPoints,cleanMechanismSvg,makeClassification,ccKinds,ccGeometry,ccSvg,CC_MODELS,renderClassificationLessons,makeWorkspaceThree,makeWorkspaceThreeSymbolic,wsThreeDiagram,makeNarrativeSymbolic,nsParse,nsCompose,nsPolyText,makeNarrativeTransform,narrativeChainSteps,isNarrativeExercise,startTopicPractice,leaveTopicPractice,topicPracticeAvailability,makeTopicExercise,topicNumericGenerators,topicChapter3Kinds,topicChoicePool,APP_VERSION,APP_STAGE,DIFFICULTY_LEVELS,DIFFICULTY_NAMES,appState,runSelfTests,Parser,shuffle,composeChain,chainProductText,makeChainFixed,makeChainMixed,makePointFromMovingTranslation,makeHomogeneousApplyPoint,makePointRotatedTranslated,makePointFixedToMoving,makeQuaternionFromAxisAngle,makeQuaternionCompose,makeQuaternionAngle,quaternionFromAxisAngle,quaternionProduct,quaternionAngleDeg,makeCylindricalToCartesian,makeCartesianToCylindrical,makeSphericalToCartesian,makeCartesianToSpherical,makeChapter3,makeChoice,makeKinematicsExercise,makeChapter5,makeFoundationExercise,NUMERIC_GENERATORS,CONCEPT_SHARE,workspace2R,workspace3R,radius2R,annulusArea,classifyWorkspacePoint,makeWorkspaceExercise,makeWorkspaceToolOffset2R,makeWorkspaceToolAngled2R,makeWorkspaceLinkPoint2R,toolReach2R,workspaceToolPoint2R,makeWorkspaceSectorArea2R,makeWorkspaceSectorSpan2R,makeWorkspaceSectorEffect,workspaceSector2R,elbowShift2R,makeWorkspaceRadii2R,makeWorkspaceArea2R,makeWorkspaceLimited2R,makeWorkspace3R,makeWorkspaceScaraVolume,makeWorkspaceMembership,workspaceSvgMarkup,buildWorkspaceDiagramSpec,makeWorkspaceEquation,makeWorkspaceIdentify,workspacePoseForDisplay,EXERCISE_FAMILIES,activeFamilies,familyIds,familyAllowed,exerciseFamily,CHAPTER3_FAMILY,solutionPitfallsMarkup,numericAlternativeMatch,scalarDifferenceCause,spatialScalarAlternatives,SOLUTION_REASONING,solutionReasoning,solutionReasoningMarkup,createSeededRandom,SELFTEST_SEED,makeAccuracyStats,makeFindError,makeSafetyDistance,makeGravity2R,roadmap,safeStorage,downloadJson,save,CHAPTER3_KINDS,LABEL_OFFSETS,ensureStageState,validateProgressData,progress,kinematicsCandidates,chapter5Candidates,chapter3Kinds,workspaceArmPoints,workspaceArm2R,workspaceArm3R,chooseSpatialCamera,spatialFillScore,spatialFramingPoints,paintSpatialRobot,syncExamUI,abandonExam,solutionProcedureMarkup,plainTraceFactor,saveExam,loadStoredExam,discardStoredExam,restoreExamOnBoot,EXAM_STORAGE_KEY,chargeExamTime,examRecorrido,examVecino,motionOff,viewFadeKeyframes,contentEnterKeyframes,fadeInView,enterContent,unfoldElement,foldElement,revealInView,announceExercise,onceOnly,whenAnimationEnds,announceFeedback,wrongCellKeyframes,cellsToPulse,pulseWrongCells,animateHeight,detailsClosedHeight,announceLesson,switchTheme,applyThemeEverywhere,LESSON_PLATES,renderLessonPlates,composeExam,startExam,submitExam,answerIsCorrect,examRemainingMs,examFormat,stopExamClock,exerciseTopicKey,topicByKey,topicLabel,topicReport,topicHistorySeries,recordTopicResult,conceptTopicIndex,spatialMinLinkRatio,spatialPostureIsPlausible,plausibleSpatial,createLabelPlacer,drawSpatialRobotFrame,paintSpatialRobot,renderSpatialPlate,renderScaraProjectionSvg,spatialRobotSvgMarkup,scaraProjectionSvgMarkup,createSvgSurface,svgParseFont,svgMeasure,chainKinematics,chainProductFactors,chainSideBreakdown,matrixStructureCheck,buildPedagogyTrace,chapters,painterOrder,jointLocalAxis,jointIsRevolute,jointRotationFrame,spatialProjection,spatialDimensionLabels,pickInformativeAsk,makeIndustrial6R,makeDh3R,makeSpatial2R,makeSpatial3R,makeScara,makeRrrp,makeJacobian2R,makeJacobianVelocity2R,makeJacobianInverse2R,jacobian2R,jacobianApply,jacobianSolve,angleLabel,exerciseFramePoints,frameProjector,drawFrameDiagram,paintFrameDiagram,frameDiagramSvgMarkup,frameExercisePoses,renderFramePlate,chainGhostFrames,makePayloadBudget,makeCycleTime,makeReachDistance,makeAccuracyStats,makeGearRatio,makeRmsTorque,makeToolMoment,makeEncoderResolution,makeGripForce,pedagogyLevelPolicy,solutionRevealPolicy,visibleStepIndexes,solutionStepsMarkup,baseTolerance,cellTolerance,angleTolerance,make2R,rot,hom,invT,forward2R,solveRobot2R,solveIK,solvePlanar2RIk,solveScaraRrpIk,makeTargetStrike,targetStrikeError,KinematicsEngine,dhTransform,isSO3Matrix,isSE3Matrix,validateDhFrameRules,exerciseTheorySpec,matrixLatex,firstObservableDifference,firstCapturedStageDifference,parsePastedMatrix,classifyCellCause,buildRobot2RDiagramSpec,robot2RSvgMarkup,drawScaraProjection,drawFrameExercise,matrixCellPolicy,formatAngle,CHOICE_BANKS,CHOICE_LEVELS,choicePool,CHOICE_RATIONALE,choiceRationale,choiceFailureReason,ROBOT2R_VISUAL_FIXTURES,gravityTorque2R,inertiaMatrix2R,coriolisCoupling2R,makeInertia2R,makeCoriolis2R,makeCubicTrajectory,makeTrapezoidalProfile,makeSecondOrderSpecs,makePidGainDesign,manipulabilityPlanar2R,simulatePID1DOF,makeGravity2R,makeSafetyDistance,makeFindError};
 
 /* ---------- MODO EXAMEN · PANTALLAS ---------- */
 const examSetupState={formatoId:"parcial",capitulos:[],dificultad:3};
@@ -14572,7 +14704,7 @@ function wsNormalize(ast){
  throw Error("expresión no admitida");
 }
 function wsParseExpression(raw,variables,{normalize=wsNormalize,trig=false,maxLength=240,maxTokens=120}={}){
- if(trig)raw=String(raw).replace(/α/g,"alpha").replace(/β/g,"beta").replace(/γ/g,"gamma").replace(/sen\s*\(/gi,"sin(");
+ if(trig)raw=String(raw).replace(/α/g,"alpha").replace(/φ/g,"phi").replace(/β/g,"beta").replace(/γ/g,"gamma").replace(/sen\s*\(/gi,"sin(");
  let text=String(raw).trim().replace(/L₂,₀/gi,"L20").replace(/[−–—]/g,"-").replace(/[×·⋅]/g,"*").replace(/÷/g,"/").replace(/π/g,"pi").replace(/θ/g,"theta").replace(/₁/g,"1").replace(/₂/g,"2").replace(/₃/g,"3").replace(/₀/g,"0").replace(/²/g,"^2").replace(/³/g,"^3").replace(/√/g,"sqrt").replace(/_/g,"").replace(/,/g,".").replace(/\s/g,"").toLowerCase();
  if(text.includes("=")){const pair=text.split("=");if(pair.length!==2||!/^[a-z0-9]+$/.test(pair[0]))throw Error("escribe una expresión para cada casilla");text=pair[1]}
  if(!text||text.length>maxLength)throw Error(text?`máximo ${maxLength} caracteres por expresión`:"casilla vacía");
@@ -14600,7 +14732,7 @@ function wsParseExpression(raw,variables,{normalize=wsNormalize,trig=false,maxLe
  const ast=expression();if(i!==stream.length)throw Error("revisa los paréntesis y operadores");const poly=normalize(ast);return{ast,poly,canonical:wsCanonical(poly)};
 }
 function wsFieldCanonical(text,exercise,field){
- if(isNarrativeExercise(exercise))return nsParse(text,exercise.symbols).canonical;
+ if(isNarrativeExercise(exercise)||exercise.symbolEngine==="trig")return nsParse(text,exercise.symbols).canonical;
  const entered=wsParseExpression(text,exercise.symbols),expected=wsParseExpression(exercise.answer[field.key],exercise.symbols);
  /* sqrt(p²)=abs(p), también si el cuadrado se escribió desarrollado. */
  if(entered.ast.t==="fn"&&entered.ast.name==="sqrt"&&expected.ast.t==="fn"&&expected.ast.name==="abs"){
@@ -14612,7 +14744,7 @@ function wsFieldCanonical(text,exercise,field){
 }
 function wsReadAnswers(exercise){return Object.fromEntries(exercise.symbolFields.map(f=>{const el=document.querySelector(`[data-ws-answer="${f.key}"]`);try{return[f.key,wsFieldCanonical(el?.value||"",exercise,f)]}catch(e){throw Error(`${f.label}: ${e.message}`)}}))}
 function wsSymbolicCorrect(exercise,answer){return Boolean(answer&&exercise.symbolFields.every(f=>answer[f.key]===wsFieldCanonical(exercise.answer[f.key],exercise,f)))}
-function wsSymbolicInputs(exercise){if(isNarrativeExercise(exercise))return nsInputs(exercise);return`<div class="ws-symbolic-answer"><p>Escribe las expresiones usando <strong>${exercise.symbols.join(", ")}</strong> y pi. No se requieren valores numéricos.</p>${exercise.symbolFields.map(f=>`<label for="wsAnswer-${f.key}">${f.label}<input id="wsAnswer-${f.key}" data-ws-answer="${f.key}" type="text" autocomplete="off" spellcheck="false" placeholder="Tu expresión" aria-describedby="wsSyntax"><span data-ws-status="${f.key}"></span></label>`).join("")}<p id="wsSyntax">Admite +, −, *, / por números, ^ de 0 a 4, paréntesis, abs(...), sqrt(...) y cos(theta). Puedes usar L₁, L₂, L₃, π y multiplicación implícita. Las expresiones se comparan algebraicamente dentro de esta notación.</p><button type="button" class="btn soft" id="wsClearExpressions">Limpiar expresiones</button></div>`}
+function wsSymbolicInputs(exercise){if(isNarrativeExercise(exercise)||exercise.symbolEngine==="trig")return nsInputs(exercise);return`<div class="ws-symbolic-answer"><p>Escribe las expresiones usando <strong>${exercise.symbols.join(", ")}</strong> y pi. No se requieren valores numéricos.</p>${exercise.symbolFields.map(f=>`<label for="wsAnswer-${f.key}">${f.label}<input id="wsAnswer-${f.key}" data-ws-answer="${f.key}" type="text" autocomplete="off" spellcheck="false" placeholder="Tu expresión" aria-describedby="wsSyntax"><span data-ws-status="${f.key}"></span></label>`).join("")}<p id="wsSyntax">Admite +, −, *, / por números, ^ de 0 a 4, paréntesis, abs(...), sqrt(...) y cos(theta). Puedes usar L₁, L₂, L₃, π y multiplicación implícita. Las expresiones se comparan algebraicamente dentro de esta notación.</p><button type="button" class="btn soft" id="wsClearExpressions">Limpiar expresiones</button></div>`}
 function wsMarkSymbolic(exercise,answers){for(const f of exercise.symbolFields){const input=document.querySelector(`[data-ws-answer="${f.key}"]`),label=document.querySelector(`[data-ws-status="${f.key}"]`);if(!input||!label)continue;const ok=answers[f.key]===wsFieldCanonical(exercise.answer[f.key],exercise,f);input.setAttribute("aria-invalid",String(!ok));label.textContent=ok?"✓ Expresión equivalente":"Revisa esta expresión";label.className=ok?"ws-correct":"ws-review"}}
 
 /* Ejercicios geométricos de área: el modelo y los datos del enunciado son
@@ -14746,13 +14878,14 @@ function wsGenerate(diff){
  const symbolic=!isolated&&(wsPractice.mode==="symbolic"||(wsPractice.mode==="mixed"&&Math.random()<.4));
  let candidates=[];
  if(symbolic){
-  if(links!=="3")for(const kind of(diff<=1?["full"]:diff===2?["full","limited"]:["full","limited","telescopic"]))candidates.push({key:"symbolic2-"+kind,make:()=>makeWorkspaceSymbolic(diff,kind)});
-  if(links!=="2")for(const kind of["dominant1","dominant2","dominant3","disk",...(diff>=3?["locked"]:[])])candidates.push({key:"symbolic3-"+kind,make:()=>makeWorkspaceThreeSymbolic(diff,kind)});
+  if(links!=="3"&&links!=="rp")for(const kind of(diff<=1?["full"]:diff===2?["full","limited"]:["full","limited","telescopic"]))candidates.push({key:"symbolic2-"+kind,make:()=>makeWorkspaceSymbolic(diff,kind)});
+  if(links!=="2"&&links!=="rp")for(const kind of["dominant1","dominant2","dominant3","disk",...(diff>=3?["locked"]:[])])candidates.push({key:"symbolic3-"+kind,make:()=>makeWorkspaceThreeSymbolic(diff,kind)});
  }else{
   const legacy=[...(WORKSPACE_GENERATORS[diff]||WORKSPACE_GENERATORS[2]),makeWorkspaceTelescopic];
-  for(const make of legacy)if(links==="all"||(links==="3")===(make===makeWorkspace3R))candidates.push({key:make.name,make:()=>make(diff)});
-  if(links!=="2")for(const variant of["radii","area","membership","missing",...(diff>=3?["locked","limited"]:[])])candidates.push({key:"numeric3-"+variant,make:()=>makeWorkspaceThree(diff,variant)});
+  for(const make of legacy)if(links!=="rp"&&(links==="all"||(links==="3")===(make===makeWorkspace3R)))candidates.push({key:make.name,make:()=>make(diff)});
+  if(links!=="2"&&links!=="rp")for(const variant of["radii","area","membership","missing",...(diff>=3?["locked","limited"]:[])])candidates.push({key:"numeric3-"+variant,make:()=>makeWorkspaceThree(diff,variant)});
  }
+ if(links!=="3")for(const variant of(symbolic?["region","offset"]:["area","radii","point","membership","extension"]))candidates.push({key:"rp-"+variant,make:()=>makeWorkspaceRP(diff,variant)});
  const varied=isolated?candidates:candidates.filter(c=>c.key!==wsPractice.lastKey),chosen=pick(varied.length?varied:candidates);
  if(!isolated)wsPractice.lastKey=chosen.key;
  return chosen.make();
@@ -14768,6 +14901,7 @@ function wsPrepareView(exercise){
 function wsLatex(raw){return String(raw).replace(/L20/g,"L_{2,0}").replace(/L1/g,"L_1").replace(/L2(?![0-9])/g,"L_2").replace(/L3/g,"L_3").replace(/dmax/g,"d_{\\max}").replace(/theta/g,"\\theta").replace(/pi/g,"\\pi").replace(/abs/g,"\\operatorname{abs}").replace(/sqrt/g,"\\operatorname{sqrt}").replace(/cos/g,"\\cos").replace(/\*/g,"\\cdot ")}
 function wsAdvanced(exercise){const p=exercise.params;return Boolean(p.L3||p.herramienta||p.puntoBrazo||p.q1Incognita||exercise.id==="workspace_sector_effect")}
 function wsDiagram(exercise){
+ if(exercise.params?.rp)return planarExamSvg(exercise);
  if(exercise.params?.L3)return wsThreeDiagram(exercise);
  const p=exercise.params,v=wsPrepareView(exercise),symbolic=Boolean(p.symbolic),k=v.scale*v.zoom;
  if(wsAdvanced(exercise)){
@@ -14804,7 +14938,7 @@ function renderWsActivity(exercise){
  document.getElementById("exerciseVisualTitle").textContent="Área de trabajo · plano XY";
  const caption=symbolic?"Esquema sin escala. Las longitudes y los límites son los indicados en el enunciado.":"Configuración ilustrativa fija. Los datos y los límites son los indicados en el enunciado.";
  document.getElementById("exerciseVisualCaption").textContent=caption;
- document.getElementById("exerciseVisualKind").textContent=p.L3?"3 eslabones":"2 eslabones";
+ document.getElementById("exerciseVisualKind").textContent=p.rp?"RP telescópico":p.L3?"3 eslabones":"2 eslabones";
  renderWsFormat();
  document.getElementById("exerciseVisualDescription").textContent=caption;
  host.innerHTML=`${exercise.id==="workspace_volume_scara"?`<p class="ws-scale-note">Vista superior del SCARA. Recorrido vertical, perpendicular a XY: ${p.recorrido}.</p>`:""}<div class="ws-drawing geo-lab">${wsDiagram(exercise)}</div><div class="ws-link-legend" aria-label="Leyenda de eslabones"><span><i style="--link:var(--ws-first)"></i>Primer eslabón</span><span><i style="--link:var(--ws-second)"></i>Segundo eslabón</span>${p.L3?'<span><i style="--link:var(--ws-third)"></i>Tercer eslabón</span>':""}<span class="ws-point-key">E · extremo estudiado</span></div>`;
@@ -14852,7 +14986,7 @@ renderStorageStatus();
 /* El aviso solo se retira si se llegó hasta aquí sin errores. */
 const bootNotice=document.getElementById("bootNotice");if(bootNotice)bootNotice.remove();
 restoreLearnBookmarkState();
-applyTheme(progress.theme);syncChapterUI();renderFamilyFilter();renderLearn();renderGlossary();renderSources();renderRoadmap();renderStats();generateExercise();draw2R();updateFrameLab();updatePidLab();initGeoLab();initWsPractice();initReflection();setTimeout(()=>renderMath(document),400);
+applyTheme(progress.theme);syncChapterUI();renderFamilyFilter();renderLearn();renderGlossary();renderSources();renderRoadmap();renderStats();generateExercise();draw2R();updateFrameLab();updatePidLab();initGeoLab();initWsPractice();initPlanarControls();initReflection();setTimeout(()=>renderMath(document),400);
 /* La batería tarda unos 3,4 s y corre con el generador aleatorio sembrado y el
    filtro de familias suspendido, así que mientras dura la aplicación no responde
    como debe. Ejecutarla en el arranque hacía esperar al alumno antes del primer

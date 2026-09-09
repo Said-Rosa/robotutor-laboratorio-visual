@@ -4787,24 +4787,30 @@ function makeClassification(chapter,diff,kind=pick(ccKinds(chapter,diff))){
  if(kind==='wrist'){const count=pick([1,2,3]);data.wrist=count;statement=`Al mecanismo mostrado se le añade, después de E, una muñeca de ${count} ${count===1?'giro independiente':'giros independientes'}. ¿Cómo se clasifica el brazo si se consideran únicamente sus tres primeras articulaciones?`;choices(spec.name,Object.values(CC_MODELS).map(m=>m.name).filter(n=>n!==spec.name));ficha=classificationRationale(kind,spec,data,{count})}
  if(kind==='mistake'){data.claim=pick(Object.keys(CC_MODELS).filter(m=>m!==model));statement=`Una ficha clasifica el mecanismo como «${CC_MODELS[data.claim].name}». Selecciona la descripción de sus movimientos que permite corregir esa ficha.`;choices(spec.description,Object.values(CC_MODELS).map(m=>m.description).filter(v=>v!==spec.description));ficha=classificationRationale(kind,spec,data,{claim:data.claim})}
  if(kind==='mobility'){const blocked=shuffle([1,2,3]).slice(0,ri(0,diff>=3?2:1));data.blocked=blocked;statement=`La figura representa una cadena abierta de tres articulaciones de un grado de libertad cada una. ${blocked.length?'Se bloquean las articulaciones '+blocked.join(' y ')+'.':'Todas están libres.'} No hay otros acoplamientos ni restricciones. ¿Cuántas coordenadas articulares independientes quedan?`;type='number';answer=3-blocked.length;
+  ficha={clave:`La cadena tiene tres articulaciones de un grado de libertad cada una. ${blocked.length?`Bloquear ${blocked.length===1?'una':'dos'} fija ${blocked.length===1?'su coordenada':'sus coordenadas'}, así que quedan ${3-blocked.length}.`:'Ninguna está bloqueada, así que las tres conservan su coordenada.'}`,fallos:{}};
   desvios=[{value:6,message:"Seis son los grados de libertad de un cuerpo libre en el espacio. Aquí se cuentan coordenadas articulares, y cada articulación aporta una."}];
   if(blocked.length)desvios.push(
    {value:3,message:"Has contado las tres articulaciones de la cadena sin descontar las que el enunciado bloquea."},
    {value:blocked.length,message:"Has contado las articulaciones bloqueadas. La pregunta pide las que siguen siendo libres."});}
  if(kind==='coupled'){const coupled=Math.random()<.5;data.plates=[{model:coupled?'screwJoint':'freeJoint',pose:0,label:'Unión entre dos cuerpos'}];data.coupled=coupled;statement=coupled?'Una unión permite un giro θ y un desplazamiento axial d, ligados por d=h·θ/(2π), con paso h constante y no nulo. ¿Cuántas coordenadas independientes describen su movimiento relativo?':'Una unión permite girar sobre un eje y deslizarse a lo largo de ese mismo eje. El giro y el desplazamiento pueden variar de manera independiente. ¿Cuántas coordenadas independientes describen su movimiento relativo?';type='number';answer=coupled?1:2;
+  ficha={clave:coupled?'El paso liga el giro con el avance mediante d = h·θ/(2π): al fijar θ queda fijado d, así que basta una coordenada.':'El giro y el desplazamiento comparten eje, pero varían por separado: hacen falta dos coordenadas independientes.',fallos:{}};
   desvios=coupled?[{value:2,message:"Has contado el giro y el avance como dos coordenadas. El paso los liga: al elegir θ queda determinado d, así que basta una."}]
    :[{value:1,message:"Has supuesto que el giro y el desplazamiento están ligados. Aquí pueden variar por separado, así que hacen falta dos coordenadas."}]}
  /* Lee la tabla de pares del tema 2.1 sobre la figura en vez de sobre el texto:
     el alumno tiene que contar libertades a partir de las flechas dibujadas. */
- if(kind==='pair'){const nombre=pick(ccPairModels()),par=CC_PAIRS[nombre];data.plates=[{model:nombre,pose:0,label:'Unión entre dos cuerpos'}];data.pair=nombre;statement='La figura muestra una única unión entre dos cuerpos. Cuenta las coordenadas independientes que describen su movimiento relativo. Las flechas indican los movimientos que permite; dos movimientos ligados entre sí cuentan como una sola coordenada.';type='number';answer=par.dof;desvios=par.deviations}
+ if(kind==='pair'){const nombre=pick(ccPairModels()),par=CC_PAIRS[nombre];data.plates=[{model:nombre,pose:0,label:'Unión entre dos cuerpos'}];data.pair=nombre;statement='La figura muestra una única unión entre dos cuerpos. Cuenta las coordenadas independientes que describen su movimiento relativo. Las flechas indican los movimientos que permite; dos movimientos ligados entre sí cuentan como una sola coordenada.';type='number';answer=par.dof;desvios=par.deviations;
+  ficha={clave:`La unión dibujada es ${par.name.toLowerCase()}: ${par.motion} Cada trazo de movimiento vale por una coordenada, y aquí son ${par.dof}. Coordenada${par.dof===1?'':'s'}: ${par.variable}.`,fallos:{}}}
  /* Algunas familias sortean solo una parte de sus distractores, así que la ficha
     se recorta a las opciones que de verdad se ofrecen: un motivo sobre una
     opción ausente no lo llegaría a leer nadie. */
- if(ficha&&ficha.fallos){
+ if(ficha&&ficha.fallos&&type==='choice'){
   const motivos={};
   for(const [opcion,motivo] of Object.entries(ficha.fallos))if(options.includes(opcion)&&opcion!==answer)motivos[opcion]=motivo;
   ficha=Object.keys(motivos).length?{...ficha,fallos:motivos}:null;
  }
+ /* Las variantes numéricas no tienen distractores que recortar: su ficha se
+    reduce a la clave, que es el desarrollo que abre la solución. */
+ if(ficha&&type!=='choice')ficha={clave:ficha.clave,fallos:{}};
  /* Contar coordenadas da un entero: cualquier margen por debajo de media unidad
     es exacto, y deja de declarar una tolerancia nula, que no es comparable. */
  return{id:'classification_'+kind,kind:'classification',chapter,type,visual:'classification',difficulty:diff,title:({identify:'Reconocer una arquitectura',sequence:'Leer la cadena desde la base',joint:'Interpretar el movimiento',variables:'Elegir las coordenadas articulares',compare:'Comparar la disposición de los ejes',posture:'Postura y arquitectura',wrist:'Distinguir brazo y muñeca',mistake:'Revisar una clasificación',mobility:'Articulaciones bloqueadas',coupled:'Movimientos independientes',pair:'Libertades de un par elemental'})[kind],statement,answer,options,classificationData:data,params:{},chips:[],hints:[],steps:ficha?[`Lectura de la figura: ${ficha.clave}`,`Respuesta correcta: ${answer}`]:[],commonErrors:[],concepts:[chapter===1?'clasificación mecánica':'articulaciones y movilidad'],tolerance:type==='number'?.25:0,...(desvios&&desvios.length?{numericAlternatives:desvios}:{}),...(ficha?{rationale:ficha}:{})};
@@ -6011,10 +6017,50 @@ function makeGeometric2R(diff,variant=pick(['point','point','inverse','length'])
  const x=L1*Math.cos(rad(q1))+L2*Math.cos(rad(q1+q2)),y=L1*Math.sin(rad(q1))+L2*Math.sin(rad(q1+q2));
  const base={id:'geometric_2r_'+variant,chapter:4,difficulty:diff,kind:'geometric-2r',model:'Planar2R',visual:'planarWorksheet',geometryTopic:variant==='inverse'?'4.3':'4.1',title:'Planar 2R · método geométrico',params:{L1,L2,q1,q2,variant},chips:[],hints:[],steps:[],commonErrors:[],concepts:['método geométrico','cinemática planar'],tolerance:.003};
  const convention='q₁ se mide desde +X; q₂ desde la prolongación del primer eslabón. Los giros positivos son antihorarios. Longitudes en metros. ';
- if(variant==='symbolic')return{...base,type:'symbolic',symbolEngine:'trig',rows:3,cols:1,symbols:['L1','L2','q1','q2'],symbolFields:[{key:'x',row:1,label:'X(q₁,q₂)'},{key:'y',row:2,label:'Y(q₁,q₂)'},{key:'r2',row:3,label:'Distancia al origen al cuadrado: X² + Y²'}],answer:{x:'L1*cos(q1)+L2*cos(q1+q2)',y:'L1*sin(q1)+L2*sin(q1+q2)',r2:'L1^2+L2^2+2*L1*L2*cos(q2)'},params:{...base.params,symbolic:true},statement:`${convention}Sean L₁,L₂&gt;0 y q₁,q₂ parámetros libres, sin datos numéricos. Deduce mediante el método geométrico las coordenadas de E y su distancia al origen al cuadrado. Expresa las ecuaciones con L1, L2, q1 y q2. Los ángulos simbólicos están en radianes. Esquema sin escala.`};
- if(variant==='inverse')return{...base,type:'matrix',rows:2,cols:1,answer:[[q1],[q2]],tolerance:.02,statement:`${convention}L₁=${L1}, L₂=${L2} y objetivo E=(${x.toFixed(6)}, ${y.toFixed(6)}). Halla [q₁; q₂], en grados, mediante geometría. Selecciona la rama 0°&lt;q₂&lt;180° y representa q₁ en [−180°,180°). La postura dibujada es ilustrativa, no es la solución.`,params:{...base.params,target:[x,y],illustrative:true}};
- if(variant==='length')return{...base,type:'number',answer:L2,statement:`${convention}L₁=${L1}, q₁=${q1}°, q₂=${q2}° y E=(${x.toFixed(6)}, ${y.toFixed(6)}). Halla la longitud positiva L₂ por el método geométrico. Esquema sin escala.`,params:{...base.params,unknownLink:2},numericAlternatives:[{value:Math.hypot(x,y),message:'La distancia desde la base no es la longitud desde el codo.'}]};
- return{...base,type:'matrix',rows:2,cols:1,answer:[[x],[y]],statement:`${convention}L₁=${L1}, L₂=${L2}, q₁=${q1}° y q₂=${q2}°. Halla las coordenadas [X; Y] de E mediante el método geométrico. La figura representa la configuración indicada.`};
+ /* Desarrollo del método geométrico. El codo se sitúa primero y el segundo
+    tramo se suma como vector: el error habitual es tratar q₂ como ángulo
+    absoluto en vez de relativo al primer eslabón. */
+ const jx=L1*Math.cos(rad(q1)),jy=L1*Math.sin(rad(q1)),abs=q1+q2;
+ const pasosDirectos=[
+  `Codo J = (L₁·cos q₁, L₁·sen q₁) = (${fmt(jx,4)}, ${fmt(jy,4)}).`,
+  `q₂ se mide desde la prolongación del primer eslabón, así que el segundo tramo apunta a q₁+q₂ = ${abs}° respecto de +X.`,
+  `E = J + L₂·(cos(q₁+q₂), sin(q₁+q₂)).`,
+  `X = ${L1}·cos ${q1}° + ${L2}·cos ${abs}° = ${fmt(x,4)}.`,
+  `Y = ${L1}·sen ${q1}° + ${L2}·sen ${abs}° = ${fmt(y,4)}.`];
+ const pistasDirectas=[
+  'Sitúa primero el codo: su posición solo depende de L₁ y q₁.',
+  'El segundo tramo no apunta a q₂ sino a q₁+q₂, porque q₂ es relativo al eslabón anterior.',
+  'Suma al codo el vector del segundo tramo, componente a componente.'];
+ const erroresDirectos=[
+  'usar q₂ como ángulo absoluto desde +X en lugar de q₁+q₂',
+  'sumar las longitudes en lugar de proyectar cada tramo sobre X e Y'];
+ if(variant==='symbolic')return{...base,type:'symbolic',symbolEngine:'trig',rows:3,cols:1,symbols:['L1','L2','q1','q2'],symbolFields:[{key:'x',row:1,label:'X(q₁,q₂)'},{key:'y',row:2,label:'Y(q₁,q₂)'},{key:'r2',row:3,label:'Distancia al origen al cuadrado: X² + Y²'}],answer:{x:'L1*cos(q1)+L2*cos(q1+q2)',y:'L1*sin(q1)+L2*sin(q1+q2)',r2:'L1^2+L2^2+2*L1*L2*cos(q2)'},params:{...base.params,symbolic:true},steps:[
+  'Codo: J = (L₁·cos q₁, L₁·sen q₁).',
+  'El segundo tramo apunta a q₁+q₂, porque q₂ se mide desde la prolongación del primero.',
+  'X = L₁·cos q₁ + L₂·cos(q₁+q₂); Y = L₁·sen q₁ + L₂·sen(q₁+q₂).',
+  'Al sumar los cuadrados, sen²+cos² deja L₁²+L₂², y los productos cruzados se agrupan como cos((q₁+q₂)−q₁) = cos q₂.',
+  'X² + Y² = L₁² + L₂² + 2·L₁·L₂·cos q₂: la distancia al origen no depende de q₁.'],
+ hints:['Escribe cada tramo como un vector y súmalos.','El ángulo del segundo tramo es absoluto: q₁+q₂.','Para X²+Y², desarrolla y usa cos(A−B) en los términos cruzados.'],
+ commonErrors:['tratar q₂ como ángulo absoluto','dejar q₁ dentro de la distancia al origen'],
+ statement:`${convention}Sean L₁,L₂&gt;0 y q₁,q₂ parámetros libres, sin datos numéricos. Deduce mediante el método geométrico las coordenadas de E y su distancia al origen al cuadrado. Expresa las ecuaciones con L1, L2, q1 y q2. Los ángulos simbólicos están en radianes. Esquema sin escala.`};
+ if(variant==='inverse')return{...base,type:'matrix',rows:2,cols:1,answer:[[q1],[q2]],tolerance:.02,steps:[
+  `Distancia al objetivo: X²+Y² = ${fmt(x*x+y*y,4)}.`,
+  'De X²+Y² = L₁²+L₂²+2·L₁·L₂·cos q₂ se despeja el coseno del codo.',
+  `cos q₂ = (X²+Y² − L₁² − L₂²)/(2·L₁·L₂) = ${fmt((x*x+y*y-L1*L1-L2*L2)/(2*L1*L2),4)}.`,
+  `La rama pedida es 0°&lt;q₂&lt;180°, así que se toma el arcocoseno positivo: q₂ = ${q2}°.`,
+  `q₁ = atan2(Y,X) − atan2(L₂·sen q₂, L₁+L₂·cos q₂) = ${fmt(Math.atan2(y,x)*180/Math.PI,3)}° − ${fmt(Math.atan2(L2*Math.sin(rad(q2)),L1+L2*Math.cos(rad(q2)))*180/Math.PI,3)}° = ${q1}°.`],
+ hints:['Suma los cuadrados de X e Y: q₁ desaparece y queda solo cos q₂.','El signo del arcocoseno elige la rama; el enunciado fija 0°&lt;q₂&lt;180°.','Para q₁, resta al ángulo del punto el que abre el segundo tramo respecto del primero.'],
+ commonErrors:['quedarse con la rama de codo contrario a la pedida','usar arctan en lugar de atan2 y perder el cuadrante'],
+ statement:`${convention}L₁=${L1}, L₂=${L2} y objetivo E=(${x.toFixed(6)}, ${y.toFixed(6)}). Halla [q₁; q₂], en grados, mediante geometría. Selecciona la rama 0°&lt;q₂&lt;180° y representa q₁ en [−180°,180°). La postura dibujada es ilustrativa, no es la solución.`,params:{...base.params,target:[x,y],illustrative:true}};
+ if(variant==='length')return{...base,type:'number',answer:L2,statement:`${convention}L₁=${L1}, q₁=${q1}°, q₂=${q2}° y E=(${x.toFixed(6)}, ${y.toFixed(6)}). Halla la longitud positiva L₂ por el método geométrico. Esquema sin escala.`,params:{...base.params,unknownLink:2},steps:[
+  `Resta la contribución del primer eslabón: X − L₁·cos q₁ = ${fmt(x-jx,4)} y Y − L₁·sen q₁ = ${fmt(y-jy,4)}.`,
+  'Ese vector es exactamente el segundo tramo, así que su norma es L₂.',
+  `L₂ = √(${fmt(x-jx,4)}² + ${fmt(y-jy,4)}²) = ${fmt(L2,4)}.`,
+  'Comprobación: L₂ también sale de X − L₁·cos q₁ = L₂·cos(q₁+q₂), dividiendo entre el coseno cuando no se anula.'],
+ hints:['Quita del punto lo que aporta el primer eslabón.','Lo que queda es el vector del segundo tramo, no la distancia desde la base.','La longitud es la norma de ese vector y es positiva.'],
+ commonErrors:['confundir la distancia desde la base con la longitud del segundo eslabón','dividir entre un coseno nulo en vez de usar la norma'],
+ numericAlternatives:[{value:Math.hypot(x,y),message:'La distancia desde la base no es la longitud desde el codo.'}]};
+ return{...base,type:'matrix',rows:2,cols:1,answer:[[x],[y]],steps:pasosDirectos,hints:pistasDirectas,commonErrors:erroresDirectos,statement:`${convention}L₁=${L1}, L₂=${L2}, q₁=${q1}° y q₂=${q2}°. Halla las coordenadas [X; Y] de E mediante el método geométrico. La figura representa la configuración indicada.`};
 }
 function makeWorkspaceRP(diff,variant=pick(['area','radii','point','membership','extension'])){
  const symbolic=['region','offset'].includes(variant),offset=variant==='offset'||(!symbolic&&diff>=2&&Math.random()<.5),L=offset?ri(1,3):0;
@@ -6025,12 +6071,48 @@ function makeWorkspaceRP(diff,variant=pick(['area','radii','point','membership',
  const assumptions=`El brazo RP de la figura gira en O y desliza en la dirección del tubo. q₁ se mide desde +X, positivo antihorario. ${definition} El giro y la extensión son independientes. Considera un mecanismo ideal, sin obstáculos ni colisiones. `;
  if(symbolic){
   const lo=offset?'(L+qmin)':'qmin',hi=offset?'(L+qmax)':'qmax',r=offset?'(L+q2)':'q2';
-  return{...base,type:'symbolic',symbolEngine:'trig',rows:5,cols:1,symbols:[...(offset?['L']:[]),'q1','q2','qmin','qmax','a','b'],symbolFields:[{key:'x',row:1,label:'X(q₁,q₂)'},{key:'y',row:2,label:'Y(q₁,q₂)'},{key:'lo',row:3,label:'Borde radial interior: X² + Y² = …'},{key:'hi',row:4,label:'Borde radial exterior: X² + Y² = …'},{key:'area',row:5,label:'Superficie A'}],answer:{x:r+'*cos(q1)',y:r+'*sin(q1)',lo:lo+'^2',hi:hi+'^2',area:'(b-a)*('+hi+'^2-'+lo+'^2)/2'},statement:assumptions+`${offset?'L&gt;0. ':''}q₂∈[qmin,qmax], con 0≤qmin&lt;qmax, y q₁∈[a,b], con 0&lt;b−a≤2π; a y b están en radianes. Describe la región alcanzable mediante sus ecuaciones paramétricas X e Y y ese dominio articular. Obtén también las ecuaciones de sus bordes radiales y su superficie A. Conserva todos los parámetros simbólicos. Esquema sin escala.`};
+  return{...base,type:'symbolic',symbolEngine:'trig',rows:5,cols:1,symbols:[...(offset?['L']:[]),'q1','q2','qmin','qmax','a','b'],symbolFields:[{key:'x',row:1,label:'X(q₁,q₂)'},{key:'y',row:2,label:'Y(q₁,q₂)'},{key:'lo',row:3,label:'Borde radial interior: X² + Y² = …'},{key:'hi',row:4,label:'Borde radial exterior: X² + Y² = …'},{key:'area',row:5,label:'Superficie A'}],answer:{x:r+'*cos(q1)',y:r+'*sin(q1)',lo:lo+'^2',hi:hi+'^2',area:'(b-a)*('+hi+'^2-'+lo+'^2)/2'},
+   steps:[
+    `Radio de una configuración: r = ${offset?'L + q₂':'q₂'}. El giro orienta, pero no cambia la distancia a O.`,
+    'Paramétricas: X = r·cos q₁ e Y = r·sen q₁, con q₁ en [a,b] y q₂ en [qmin,qmax].',
+    `Bordes radiales: X²+Y² = r², evaluado en los extremos de q₂, da ${lo}² por dentro y ${hi}² por fuera.`,
+    'Superficie del sector anular: A = (b−a)·(r máx² − r mín²)/2, con a y b en radianes.',
+    'Con b−a = 2π la expresión se reduce a la corona π(r máx² − r mín²).'],
+   hints:['Escribe primero el radio en función de los parámetros; después oriéntalo con q₁.','Los bordes salen de sustituir los extremos del intervalo de q₂.','El factor angular y el radial se multiplican: no se suman.'],
+   commonErrors:['suponer una vuelta completa cuando el giro es un intervalo cualquiera','escribir el cuadrado de la diferencia de radios en vez de la diferencia de cuadrados'],
+   statement:assumptions+`${offset?'L&gt;0. ':''}q₂∈[qmin,qmax], con 0≤qmin&lt;qmax, y q₁∈[a,b], con 0&lt;b−a≤2π; a y b están en radianes. Describe la región alcanzable mediante sus ecuaciones paramétricas X e Y y ese dominio articular. Obtén también las ecuaciones de sus bordes radiales y su superficie A. Conserva todos los parámetros simbólicos. Esquema sin escala.`};
  }
  const data=`${offset?'L='+L+' m. ':''}q₂∈[${qmin},${qmax}] m y q₁∈[${amin}°,${amax}°]. Incluye las fronteras. `;
- if(variant==='radii')return{...base,type:'matrix',rows:2,cols:1,answer:[[rmin],[rmax]],statement:assumptions+data+'Determina los radios interior y exterior, en el orden [menor; mayor], en metros.'};
- if(variant==='point'){const r=L+q2;return{...base,type:'matrix',rows:2,cols:1,answer:[[r*Math.cos(rad(q1))],[r*Math.sin(rad(q1))]],statement:assumptions+data+`Para la configuración q₁=${q1}° y q₂=${q2} m, halla [X; Y] de E, en metros.`}}
- if(variant==='extension')return{...base,type:'number',answer:qmax,statement:assumptions+`${offset?'L='+L+' m. ':''}El extremo debe alcanzar una distancia radial máxima de ${rmax} m desde O. Determina el valor máximo necesario de q₂, en metros. No midas la figura.`,params:{...base.params,unknownExtension:true},numericAlternatives:[{value:rmax+L,message:'Revisa desde dónde se mide la extensión y dónde empieza el tramo fijo.'}]};
+ /* El RP no tiene codo: el radio es una sola magnitud y el giro solo orienta.
+    Por eso los radios salen de sustituir los extremos de q₂ y el sector queda
+    fijado por el intervalo de q₁, independiente del radio. */
+ const radioTexto=offset?`r = L + q₂ = ${L} + q₂`:'r = q₂';
+ const pasosRadio=[
+  `${radioTexto}: la distancia de O a E depende solo de la extensión, no del giro.`,
+  `Extremo interior, con q₂=${qmin}: r mín = ${fmt(rmin,4)} m.`,
+  `Extremo exterior, con q₂=${qmax}: r máx = ${fmt(rmax,4)} m.`];
+ const pistasRadio=[
+  offset?'La longitud fija L no es parte de q₂: se suma antes de medir el radio.':'Aquí q₂ ya es la distancia total desde O, no solo lo que sobresale.',
+  'Sustituye los dos extremos del intervalo de q₂; el giro no cambia el radio.',
+  'El intervalo angular recorta un sector, pero no altera los radios.'];
+ const erroresRadio=[
+  offset?'olvidar sumar la longitud fija L al radio':'sumar una longitud fija que el enunciado no declara',
+  'mezclar el intervalo angular con el radial'];
+ if(variant==='radii')return{...base,type:'matrix',rows:2,cols:1,answer:[[rmin],[rmax]],steps:pasosRadio,hints:pistasRadio,commonErrors:erroresRadio,statement:assumptions+data+'Determina los radios interior y exterior, en el orden [menor; mayor], en metros.'};
+ if(variant==='point'){const r=L+q2;return{...base,type:'matrix',rows:2,cols:1,answer:[[r*Math.cos(rad(q1))],[r*Math.sin(rad(q1))]],steps:[
+  `${radioTexto} = ${fmt(r,4)} m para q₂=${q2}.`,
+  'En polares, X = r·cos q₁ e Y = r·sen q₁: el giro solo orienta el radio.',
+  `X = ${fmt(r,4)}·cos ${q1}° = ${fmt(r*Math.cos(rad(q1)),4)}; Y = ${fmt(r,4)}·sen ${q1}° = ${fmt(r*Math.sin(rad(q1)),4)}.`],
+ hints:['Calcula primero el radio; después oriéntalo con q₁.','No hay segundo ángulo: el RP no tiene codo.','Comprueba que X²+Y² recupere el radio.'],
+ commonErrors:['componer dos ángulos como en un 2R','confundir el radio con su proyección sobre X'],
+ statement:assumptions+data+`Para la configuración q₁=${q1}° y q₂=${q2} m, halla [X; Y] de E, en metros.`}}
+ if(variant==='extension')return{...base,type:'number',answer:qmax,steps:[
+  `El alcance máximo se da con la extensión máxima: r máx = ${offset?`L + q₂ = ${L} + q₂`:'q₂'}.`,
+  `Se impone r máx = ${fmt(rmax,4)} m y se despeja: q₂ = ${offset?`${fmt(rmax,4)} − ${L}`:`${fmt(rmax,4)}`} = ${fmt(qmax,4)} m.`,
+  'El intervalo angular no interviene: girar no acerca ni aleja el extremo.'],
+ hints:[offset?'Descuenta la longitud fija antes de leer la extensión.':'Aquí la extensión ya es la distancia total.','El radio máximo corresponde al valor máximo de q₂.','El giro no cambia la distancia a la base.'],
+ commonErrors:['dar el radio en lugar de la extensión','mezclar el límite angular con el radial'],
+ statement:assumptions+`${offset?'L='+L+' m. ':''}El extremo debe alcanzar una distancia radial máxima de ${rmax} m desde O. Determina el valor máximo necesario de q₂, en metros. No midas la figura.`,params:{...base.params,unknownExtension:true},numericAlternatives:[{value:rmax+L,message:'Revisa desde dónde se mide la extensión y dónde empieza el tramo fijo.'}]};
  if(variant==='membership'){
   const r=pick([rmin,(rmin+rmax)/2,rmax+1]),angle=pick([amin,(amin+amax)/2,amax+30]),px=r*Math.cos(rad(angle)),py=r*Math.sin(rad(angle));
   const radioDentro=r>=rmin&&r<=rmax,anguloDentro=r===0||amax-amin===360||angle<=amax;
@@ -6049,7 +6131,15 @@ function makeWorkspaceRP(diff,variant=pick(['area','radii','point','membership',
    },
    statement:assumptions+data+`El punto P=(${px.toFixed(5)}, ${py.toFixed(5)}) m se define exactamente por radio ${r} m y dirección ${angle}°. Decide si pertenece a la región alcanzable. Las coordenadas cartesianas se muestran redondeadas.`};
  }
- return{...base,type:'number',answer:A,tolerance:.02,statement:assumptions+data+'Determina mediante el método geométrico la superficie total de la región alcanzable, en m².',numericAlternatives:[{value:Math.PI*(rmax*rmax-rmin*rmin),message:'Comprueba si el giro abarca una vuelta completa.'},{value:rad(amax-amin)*(rmax-rmin)**2/2,message:'La diferencia de cuadrados no es el cuadrado de una diferencia.'}]};
+ return{...base,type:'number',answer:A,tolerance:.02,steps:[
+  `Radios: r mín = ${fmt(rmin,4)} m y r máx = ${fmt(rmax,4)} m.`,
+  `Barrido angular: de ${amin}° a ${amax}°, es decir ${fmt(rad(amax-amin),4)} rad.`,
+  'La región es un sector anular: A = (b−a)·(r máx² − r mín²)/2, con el ángulo en radianes.',
+  `A = ${fmt(rad(amax-amin),4)}·(${fmt(rmax*rmax,4)} − ${fmt(rmin*rmin,4)})/2 = ${fmt(A,4)} m².`,
+  amax-amin===360?'Con una vuelta completa la fórmula se reduce a la corona π(r máx²−r mín²).':'Con un giro parcial solo se barre la fracción correspondiente de la corona.'],
+ hints:['Pasa el intervalo angular a radianes antes de multiplicar.','Es una diferencia de cuadrados de radios, no el cuadrado de la diferencia.','Con vuelta completa el factor angular vale 2π y aparece la corona.'],
+ commonErrors:['dar por hecha la vuelta completa cuando el giro es parcial','elevar al cuadrado la diferencia de radios'],
+ numericAlternatives:[{value:Math.PI*(rmax*rmax-rmin*rmin),message:'Comprueba si el giro abarca una vuelta completa.'},{value:rad(amax-amin)*(rmax-rmin)**2/2,message:'La diferencia de cuadrados no es el cuadrado de una diferencia.'}]};
 }
 function planarExamSvg(e){
  const p=e.params,rp=Boolean(p.rp),symbolic=p.symbolic||p.unknownLink||p.unknownExtension,illustrative=symbolic||p.illustrative||rp&&p.variant!=='point';
@@ -7440,7 +7530,17 @@ function traceStepMarkup(trace,index,policy){
 }
 function renderMatrixBreakdown(exercise){
  const root=document.getElementById("matrixBreakdown"),details=document.getElementById("matrixBreakdownDetails"),content=document.getElementById("matrixBreakdownContent"),status=document.getElementById("matrixBreakdownStatus"),solutionButton=document.getElementById("showSolution");
- if(isStatementOnlyExercise(exercise)){root.hidden=true;details.open=false;content.innerHTML="";solutionButton.disabled=true;solutionButton.setAttribute("aria-disabled","true");return}
+ /* La auditoría matricial no aplica a estos ejercicios, pero la solución sí:
+    se deja caer en la misma puerta por intento que gobierna al resto. Algunas
+    familias aún no tienen desarrollo escrito, y abrir un panel vacío sería peor
+    que no ofrecerlo, así que el botón lo dice en lugar de mentir. */
+ if(isStatementOnlyExercise(exercise)){
+  root.hidden=true;details.open=false;content.innerHTML="";
+  const intentado=Boolean(exercise?.attempted),abierta=intentado&&solutionHasContent(exercise);
+  solutionButton.disabled=!abierta;solutionButton.setAttribute("aria-disabled",String(!abierta));
+  solutionButton.textContent=abierta?"Ver solución":intentado?"Sin desarrollo escrito":"Solución tras intentar";
+  return;
+ }
  if(!exercise?.attempted){root.hidden=true;details.open=false;content.innerHTML="";status.textContent="Disponible después de comprobar";solutionButton.disabled=true;solutionButton.setAttribute("aria-disabled","true");solutionButton.textContent="Solución tras intentar";return}
  if(exercise.type==="symbolic"){root.hidden=true;solutionButton.disabled=false;solutionButton.setAttribute("aria-disabled","false");solutionButton.textContent="Ver solución";return}
  const trace=exercise.pedagogyTrace||buildPedagogyTrace(exercise),policy=pedagogyLevelPolicy(exercise.difficulty),diagnostic=exercise.lastAttempt?.diagnostic||{kind:"ok",title:"Intento registrado",message:"El intento fue registrado por el verificador."},wasOpen=details.open;
@@ -7855,6 +7955,13 @@ function solutionProcedureMarkup(exercise){
   ${secuencia}${pasos}${resultado}
  </details>`;
 }
+/* Un ejercicio tiene desarrollo si alguna de las cuatro secciones del panel
+   aporta texto: razonamiento, procedimiento, pasos o errores frecuentes. */
+function solutionHasContent(exercise){
+ if(!exercise)return false;
+ const html=solutionReasoningMarkup(exercise)+solutionProcedureMarkup(exercise)+solutionStepsMarkup(exercise)+solutionPitfallsMarkup(exercise);
+ return html.replace(/<[^>]*>/g,"").trim().length>0;
+}
 function solutionStepsMarkup(exercise){
  const pasos=(exercise&&exercise.steps)||[];
  const region=exercise&&exercise.kind==="workspace"&&!exercise.params?.telescopic&&Number.isFinite(exercise.params&&exercise.params.radialMax)
@@ -7885,7 +7992,14 @@ function renderExercise(){
  const exercise=appState.currentExercise;if(!exercise)return;
  document.getElementById("check").textContent=exercise.type==="open"?"Revisar mi respuesta":"Comprobar";
  const worksheet=isStatementOnlyExercise(exercise);
- for(const id of ["hint","showSolution","solution","chips"])document.getElementById(id).hidden=worksheet;
+ /* Las fichas de datos sí se ocultan en estos ejercicios: repetirían el
+    enunciado o adelantarían parámetros que se leen en la figura. La pista y la
+    solución no, porque son el desarrollo que el alumno necesita justo después
+    de fallar. Quedan bajo la misma puerta que el resto de la aplicación: el
+    botón no se abre hasta el primer intento, y abrirlo cuenta como resolución
+    con ayuda. Durante un examen los oculta el CSS de body[data-exam]. */
+ document.getElementById("chips").hidden=worksheet;
+ for(const id of ["hint","showSolution","solution"])document.getElementById(id).hidden=false;
  if(worksheet){document.getElementById("solution").classList.remove("show");document.getElementById("matrixBreakdownContent").innerHTML=""}
  document.getElementById("practiceView").removeAttribute("data-topic-empty");
  renderTopicPracticeContext();
@@ -7918,7 +8032,7 @@ function renderExercise(){
  renderStageWorkbench(exercise);
  renderQuickInputs();
  document.getElementById("solutionLevel").textContent=solutionRevealPolicy(exercise.difficulty).label;
- document.getElementById("solutionSteps").innerHTML=worksheet?"":solutionReasoningMarkup(exercise)+solutionProcedureMarkup(exercise)+solutionStepsMarkup(exercise)+solutionPitfallsMarkup(exercise);
+ document.getElementById("solutionSteps").innerHTML=solutionReasoningMarkup(exercise)+solutionProcedureMarkup(exercise)+solutionStepsMarkup(exercise)+solutionPitfallsMarkup(exercise);
  renderMatrixBreakdown(exercise);
  renderVisualPanelForExercise(exercise);
  renderMath(document.getElementById("practiceView"));
@@ -14480,7 +14594,10 @@ document.getElementById("angleUnit").addEventListener("change",()=>{save();gener
 document.getElementById("check").addEventListener("click",check);
 document.getElementById("hint").addEventListener("click",hint);
 document.getElementById("showSolution").addEventListener("click",()=>{
- if(isStatementOnlyExercise(appState.currentExercise))return;
+ /* En los ejercicios de solo enunciado la solución se abre igual, pero nunca
+    antes de haberlo intentado: sin esa guarda bastaría con pulsar el botón
+    para leer el desarrollo sin resolver nada. */
+ if(isStatementOnlyExercise(appState.currentExercise)&&!appState.currentExercise.attempted)return;
  if(examEnCurso()||!appState.currentExercise)return;
  const s=document.getElementById("solution"),boton=document.getElementById("showSolution");
  /* mientras se pliega la clase sigue puesta: sin esta guarda, pulsar dos veces

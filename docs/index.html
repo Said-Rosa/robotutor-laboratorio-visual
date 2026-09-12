@@ -676,6 +676,13 @@
 
     .reflection-formats{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:14px;margin:12px 0;border:1px solid var(--line);border-radius:12px;background:var(--soft)}
     #openAnswer{display:block;width:100%;min-height:170px;resize:vertical;padding:14px;border:1px solid var(--line);border-radius:12px;color:var(--text);background:var(--card);font:inherit;line-height:1.6}#openNotice{font-size:.9rem;line-height:1.6}#openReview{padding:18px;border:1px solid var(--line);border-radius:12px;margin-top:18px;background:var(--soft)}
+    .dh-table-wrap{overflow-x:auto;margin:10px 0}
+    .dh-table{border-collapse:collapse;min-width:min(100%,430px)}
+    .dh-table th,.dh-table td{border:1px solid var(--line);padding:5px 7px;text-align:center}
+    .dh-table thead th{background:var(--soft);font-size:.82rem;white-space:nowrap}
+    .dh-table tbody th{background:var(--soft);font-weight:700;width:2.2rem}
+    .dh-table td{padding:4px}
+    .dh-table .cell{width:5.2rem;margin:0}
     .clean-mechanism-svg{width:100%;height:auto;display:block;background:var(--card)}.book-plate:has(.clean-mechanism-svg){background:var(--card)}
     @media(max-width:600px){.reflection-formats>strong{width:100%}.clean-mechanism-svg text{font-size:29px}}
 </style>
@@ -866,6 +873,18 @@
                 <div class="plate-svg" id="exerciseProjectionXZ"></div>
                 <figcaption>Vista lateral · plano XZ</figcaption>
               </figure>
+            </div>
+          </div>
+          <div id="exerciseDhPanel" hidden>
+            <div class="spatial-canvas book-plate">
+              <div class="plate-svg" id="exerciseDhPlate"></div>
+              <div class="spatial-note">Se entrega el mecanismo y el marco base. Los marcos siguientes los asignas tú: la lámina no los dibuja.</div>
+              <ul class="rt-legend">
+                <li><i style="background:#df4b58"></i>X <i style="background:#45c778"></i>Y <i style="background:#123f87"></i>Z = marco base, el único dado</li>
+                <li>Círculo numerado = articulación, contada desde la base</li>
+                <li>Recta discontinua = eje de giro de esa articulación</li>
+                <li><strong>E</strong> = extremo del brazo</li>
+              </ul>
             </div>
           </div>
           <div id="exerciseFramePanel" hidden>
@@ -1718,6 +1737,12 @@ $$A_i=\begin{bmatrix}c_\theta&-s_\theta c_\alpha&s_\theta s_\alpha&a_i c_\theta\
 <h4>Ejemplo resuelto: un 2R plano</h4>
 <p>Los ejes de giro apuntan hacia +Z, perpendicular al papel. Elige O₀ en la base, O₁ en el codo y O₂ en el extremo; x₁ y x₂ siguen los eslabones. Entonces α₁=α₂=0, d₁=d₂=0, a₁=L₁, a₂=L₂, θ₁=q₁ y θ₂=q₂. El marco terminal se ha elegido con z₂ paralelo a los anteriores.</p>
 <figure class="lesson-plate" data-plate="brazo-2r" data-args='{"l1":3,"l2":2,"q1":30,"q2":45}'><figcaption>Para esta elección, x₁ sigue el primer tramo y x₂ el segundo; los z salen del plano. Los arcos muestran las variables θ de la tabla.</figcaption></figure>
+<h4>Ejemplo resuelto: brazo articulado espacial de tres ejes</h4>
+<p>El caso plano es cómodo porque todos los ejes salen del papel. En cuanto la base gira en acimut y el hombro cabecea, aparece la torsión que el 2R nunca muestra. Toma el brazo clásico: columna vertical de altura H, hombro y codo de longitudes L₂ y L₃ que cabecean sobre ejes paralelos entre sí.</p>
+<ol><li><strong>z₀</strong> es vertical: es el eje de la primera articulación, que gira en acimut.</li><li><strong>z₁</strong> tiene que quedar horizontal para que el hombro cabecee. Pasar de un eje vertical a uno horizontal es un giro de 90° alrededor de x₁: esa es α₁.</li><li>El origen O₁ sube a lo alto de la columna. Ese recorrido va <em>a lo largo de z₀</em>, así que se anota en d₁=H y no en a₁, que vale cero.</li><li><strong>z₂</strong> es paralelo a z₁, porque hombro y codo cabecean en el mismo plano. Entre ejes paralelos la torsión es nula: α₂=0. La normal común entre ambos ejes recorre el eslabón, luego a₂=L₂ y d₂=0.</li><li>El codo repite el razonamiento: α₃=0, d₃=0 y a₃=L₃.</li></ol>
+<div class="table-wrap"><table><thead><tr><th>i</th><th>aᵢ</th><th>αᵢ</th><th>dᵢ</th><th>θᵢ</th></tr></thead><tbody><tr><td>1</td><td>0</td><td>90°</td><td>H</td><td>q₁</td></tr><tr><td>2</td><td>L₂</td><td>0</td><td>0</td><td>q₂</td></tr><tr><td>3</td><td>L₃</td><td>0</td><td>0</td><td>q₃</td></tr></tbody></table></div>
+<p>Conviene fijarse en el reparto: <strong>la altura viaja en d y las longitudes de eslabón en a</strong>. Se confunden con facilidad porque las tres son distancias, pero d se mide sobre zᵢ₋₁ y a sobre xᵢ. Toda la torsión de esta cadena se concentra en α₁, que es donde la terna deja de ser vertical.</p>
+<div class="callout"><strong>Este es el ejercicio de examen habitual.</strong> Se entrega el dibujo del mecanismo con su marco base y nada más: los marcos siguientes y la tabla completa son la respuesta. En Practicar, el tema tiene ejercicios de este tipo con la figura sin marcos asignados.</div>
 <h4>Qué cambia si se invierte un eje</h4>
 <p>Un giro positivo alrededor de +z equivale a uno negativo alrededor de −z. Al invertir un eje hay que revisar el signo de q, el desfase de cero, las torsiones y las transformaciones de los marcos afectados. No basta con cambiar una celda aislada.</p>
 <p>Dos tablas distintas pueden describir la misma geometría. Para compararlas, lleva ambas al mismo marco base, al mismo TCP y a las mismas coordenadas físicas q. Solo entonces sus transformaciones finales deben coincidir.</p>
@@ -4540,9 +4565,13 @@ function cleanMechanismSvg(k,options={}){
  const camera=options.camera||chooseSpatialCamera({...k,positions:points},720,420),project=p=>plane?{u:p.x,v:plane==='xy'?p.y:p.z}:spatialProjection(p,camera);
  const raw=points.map(project),minU=Math.min(...raw.map(p=>p.u)),maxU=Math.max(...raw.map(p=>p.u)),minV=Math.min(...raw.map(p=>p.v)),maxV=Math.max(...raw.map(p=>p.v));
  const W=720,H=470,scale=Math.min(490/Math.max(1,maxU-minU),270/Math.max(1,maxV-minV)),map=p=>{const q=project(p);return{x:110+(q.u-minU)*scale,y:360-(q.v-minV)*scale}},P=points.map(map),parts=[];
- const colors=['#6c7d95','#2867b2','#008579','#a34bb4','#ba650e','#ba650e'],line=(a,b,attr='')=>`<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" ${attr}/>`;
+ /* Modo desnudo: la lámina entrega el mecanismo y el marco base, nada más.
+    Sin colores por parámetro y sin leyenda de símbolos, porque nombrar cada
+    tramo aᵢ o dᵢ es justo la respuesta que el ejercicio pide construir. */
+ const bare=Boolean(options.bare);
+ const colors=bare?Array(6).fill('#5c6a7d'):['#6c7d95','#2867b2','#008579','#a34bb4','#ba650e','#ba650e'],line=(a,b,attr='')=>`<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" ${attr}/>`;
  const label=(x,y,t,attr='')=>`<text x="${x}" y="${y}" fill="var(--text)" font-size="22" font-family="system-ui,sans-serif" ${attr}>${t}</text>`;
- const title=plane?'Proyección '+plane.toUpperCase():scara?'SCARA · brazos horizontales y eje vertical':'Antropomórfico · seis ejes';parts.push(label(24,34,title,'font-weight="700"'));
+ const title=plane?'Proyección '+plane.toUpperCase():bare?'Mecanismo y marco base':scara?'SCARA · brazos horizontales y eje vertical':'Antropomórfico · seis ejes';parts.push(label(24,34,title,'font-weight="700"'));
  const base=P[0];parts.push(`<rect x="${base.x-28}" y="${base.y-4}" width="56" height="18" rx="5" fill="var(--soft)" stroke="var(--muted)" stroke-width="2"/>`);
  for(let i=0;i<P.length-1;i++){const length=Math.hypot(P[i+1].x-P[i].x,P[i+1].y-P[i].y);if(length<.01)continue;const prism=scara&&i===3;parts.push(line(P[i],P[i+1],`data-mechanism-link="${i}" stroke="${colors[i]}" stroke-width="${prism?9:15}" stroke-linecap="round"`));if(prism){parts.push(line(P[i],{x:P[i].x+(P[i+1].x-P[i].x)*.45,y:P[i].y+(P[i+1].y-P[i].y)*.45},'stroke="var(--card)" stroke-width="19"'),line(P[i],P[i+1],`stroke="${colors[i]}" stroke-width="3"`));const midx=(P[i].x+P[i+1].x)/2,midy=(P[i].y+P[i+1].y)/2;parts.push(label(midx+16,midy-12,'P','font-weight="700"'))}}
  /* Recta discontinua por cada articulación de revolución, igual que en el
@@ -4554,19 +4583,41 @@ function cleanMechanismSvg(k,options={}){
  (k.jointAxes||[]).forEach((eje,i)=>{
   if(!eje)return;
   const punto=P[pinPoints[i]];if(!punto)return;
-  const ejeMundo=jointRotationFrame(k,i).axis,q=project(ejeMundo),norm=Math.hypot(q.u-zero.u,q.v-zero.v)||1,dx=(q.u-zero.u)/norm,dy=(q.v-zero.v)/norm,half=20;
-  parts.push(line({x:punto.x+dx*half,y:punto.y-dy*half},{x:punto.x-dx*half,y:punto.y+dy*half},'stroke="var(--muted)" stroke-width="1" stroke-dasharray="5,4"'));
+  const ejeMundo=jointRotationFrame(k,i).axis,q=project(ejeMundo),norm=Math.hypot(q.u-zero.u,q.v-zero.v)||1,dx=(q.u-zero.u)/norm,dy=(q.v-zero.v)/norm,half=bare?34:20;
+  parts.push(line({x:punto.x+dx*half,y:punto.y-dy*half},{x:punto.x-dx*half,y:punto.y+dy*half},`stroke="var(--muted)" stroke-width="${bare?1.7:1}" stroke-dasharray="5,4"`));
  });
  // One marker for coincident DH origins; no stack of unreadable joint labels.
  const groups=[];P.slice(0,-1).forEach((p,i)=>{let g=groups.find(g=>Math.hypot(g.p.x-p.x,g.p.y-p.y)<20);if(g)g.ids.push(i);else groups.push({p,ids:[i]})});
- for(const g of groups){parts.push(`<circle data-mechanism-joint="${g.ids.join('-')}" cx="${g.p.x}" cy="${g.p.y}" r="8" fill="var(--card)" stroke="var(--text)" stroke-width="2"/>`)}
- const tcp=P.at(-1);parts.push(`<circle data-tcp="true" cx="${tcp.x}" cy="${tcp.y}" r="8" fill="var(--card)" stroke="#c43a3a" stroke-width="3"/>`,line(tcp,{x:625,y:75},'stroke="#c43a3a" stroke-width="1.3" stroke-dasharray="4 3"'),label(630,78,'TCP','font-weight="750"'));
- const axisOrigin={x:50,y:395},axisLen=40,origin=project({x:0,y:0,z:0});for(const [i,a] of [[0,'X'],[1,'Y'],[2,'Z']]){if(plane&&((plane==='xy'&&i===2)||(plane==='xz'&&i===1)))continue;const v={x:0,y:0,z:0};v[['x','y','z'][i]]=1;const q=project(v),norm=Math.hypot(q.u-origin.u,q.v-origin.v)||1,end={x:axisOrigin.x+(q.u-origin.u)*axisLen/norm,y:axisOrigin.y-(q.v-origin.v)*axisLen/norm};parts.push(line(axisOrigin,end,`stroke="${['#be3b43','#07866b','#2867b2'][i]}" stroke-width="2"`),label(end.x+4,end.y,a))}
+ for(const g of groups){
+  parts.push(`<circle data-mechanism-joint="${g.ids.join('-')}" cx="${g.p.x}" cy="${g.p.y}" r="${bare?11:8}" fill="var(--card)" stroke="var(--text)" stroke-width="2"/>`);
+  /* Numerar las articulaciones no adelanta nada: el enunciado ya las cuenta
+     desde la base, y sin el número no hay forma de decir a qué fila de la
+     tabla corresponde cada una. */
+  if(bare)parts.push(label(g.p.x,g.p.y+7,String(g.ids[0]+1),'text-anchor="middle" font-size="17" font-weight="700"'));
+ }
+ const tcp=P.at(-1);parts.push(`<circle data-tcp="true" cx="${tcp.x}" cy="${tcp.y}" r="8" fill="var(--card)" stroke="#c43a3a" stroke-width="3"/>`,line(tcp,{x:625,y:75},'stroke="#c43a3a" stroke-width="1.3" stroke-dasharray="4 3"'),label(630,78,bare?'E':'TCP','font-weight="750"'));
+ /* En modo desnudo la terna se ancla a la base del propio robot y se dibuja
+    más grande: no es una miniatura de referencia en una esquina, es el marco
+    {0} del ejercicio y el único dato que se entrega. */
+ const axisOrigin=bare?{x:P[0].x,y:P[0].y}:{x:50,y:395},axisLen=bare?58:40,origin=project({x:0,y:0,z:0});for(const [i,a] of [[0,'X'],[1,'Y'],[2,'Z']]){if(plane&&((plane==='xy'&&i===2)||(plane==='xz'&&i===1)))continue;const v={x:0,y:0,z:0};v[['x','y','z'][i]]=1;const q=project(v),norm=Math.hypot(q.u-origin.u,q.v-origin.v)||1,end={x:axisOrigin.x+(q.u-origin.u)*axisLen/norm,y:axisOrigin.y-(q.v-origin.v)*axisLen/norm};parts.push(line(axisOrigin,end,`stroke="${['#be3b43','#07866b','#2867b2'][i]}" stroke-width="2"`),label(end.x+4,end.y,a))}
  /* La barra vertical móvil mide q3; d0+q3 es la altura desde el suelo.
     Se distinguen en la leyenda y en una nota para evitar atribuir la altura
     total a la longitud del tramo prismático. */
  if(scara)parts.push(label(26,64,'Altura de E: d₀ + q₃'));
- const labels=scara?['d₀','L₁','L₂','q₃']:['d₁','a₂','a₃','d₄','a₅ = 0','d₆'];labels.forEach((name,i)=>{const x=130+i*(scara?135:90);parts.push(`<rect x="${x}" y="410" width="24" height="6" rx="3" fill="${colors[i]}"/>`,label(x,447,name))});
+ if(bare){
+  /* Cotas mecánicas sobre el propio tramo, con nombres neutros. Una cota dice
+     cuánto mide el eslabón; la leyenda de la lámina normal decía además qué
+     parámetro DH le corresponde, que es lo que aquí hay que deducir. */
+  const cotas=options.dimensions||[];
+  for(let i=0;i<P.length-1;i++){
+   const nombre=cotas[i];if(!nombre)continue;
+   const dx=P[i+1].x-P[i].x,dy=P[i+1].y-P[i].y,largo=Math.hypot(dx,dy);
+   if(largo<14)continue;
+   parts.push(label((P[i].x+P[i+1].x)/2+dy/largo*28-12,(P[i].y+P[i+1].y)/2-dx/largo*28,nombre,'font-weight="700"'));
+  }
+ }else{
+  const labels=scara?['d₀','L₁','L₂','q₃']:['d₁','a₂','a₃','d₄','a₅ = 0','d₆'];labels.forEach((name,i)=>{const x=130+i*(scara?135:90);parts.push(`<rect x="${x}" y="410" width="24" height="6" rx="3" fill="${colors[i]}"/>`,label(x,447,name))});
+ }
  return`<svg xmlns="http://www.w3.org/2000/svg" class="clean-mechanism-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="${title}. Esquema fijo. Geometría identificada por colores. El TCP conserva la posición del modelo de cálculo."><title>${title}</title><rect width="720" height="470" fill="var(--card)"/>${parts.join('')}</svg>`;
 }
 
@@ -6283,6 +6334,42 @@ function makeIndustrial6R(diff){
   hints:["Construye cada Aᵢ con la fila correspondiente de la tabla y acumula T₀ⁱ.","La posición del TCP es la cuarta columna de T₀⁶.","Las tres últimas filas forman la muñeca: aportan poco desplazamiento pero no son despreciables."],
   steps:[`Se acumulan las seis matrices Aᵢ de la tabla.`,`p_TCP=[${fmt(tcp.x)}, ${fmt(tcp.y)}, ${fmt(tcp.z)}]ᵀ`,`Coordenada ${ask}=${fmt(tcp[ask])}`]});
 }
+/* ---------- ASIGNACIÓN DE MARCOS DH ----------
+   Un examen escrito entrega el mecanismo dibujado con su marco base y nada
+   más: la tabla se construye leyendo la geometría. Todos los demás ejercicios
+   del capítulo 4 entregan la tabla ya hecha y solo piden multiplicar, así que
+   la destreza que enseña el tema de asignación de marcos no se practicaba en
+   ninguna parte de la aplicación.
+   Una asignación DH no es única: la misma cadena admite tablas distintas si se
+   eligen otros sentidos para xᵢ. Por eso el enunciado cierra la convención
+   antes de pedir nada. Sin cerrarla no habría forma honesta de corregir celda
+   a celda, porque una tabla válida podría marcarse como error. */
+const DH_ASSIGN_CONVENTION='Usa <strong>DH estándar</strong>: el eje de la articulación i es z<sub>i−1</sub>, x<sub>i</sub> se apoya en la normal común de z<sub>i−1</sub> a z<sub>i</sub> y O<sub>i</sub> es su corte con z<sub>i</sub>. El marco base dibujado fija z₀ vertical hacia arriba. Longitudes en metros y ángulos en grados.';
+function makeDhAssignment(diff){
+ const H=pick([2,2.5,3]),L2=pick([2.5,3,3.5]),L3=pick([1.5,2,2.5]);
+ const q=[pick([0,30,45,60,-30]),pick([-30,0,30,45]),pick([-60,-30,0,30])];
+ const filas=[{a:0,alpha:90,d:H,theta:q[0]},{a:L2,alpha:0,d:0,theta:q[1]},{a:L3,alpha:0,d:0,theta:q[2]}];
+ const kinematics={...KinematicsEngine.serialDH(filas),model:'DhAssignment'};
+ const answer=filas.map(f=>[f.a,f.alpha,f.d,f.theta]);
+ const tcp=kinematics.positions.at(-1);
+ return{id:'dh_assignment_3R',kind:'dh-assignment',chapter:4,difficulty:diff,model:'DhAssignment',
+  visual:'dhAssignment',geometryTopic:'4.3',matrixLayout:'dh',
+  title:'Asignar los marcos y completar la tabla DH',
+  type:'matrix',rows:3,cols:4,answer,tolerance:.05,
+  statement:`La lámina entrega <strong>solo el marco base</strong>; los marcos 1, 2 y 3 los asignas tú. El brazo articulado tiene una columna vertical de <strong>H=${fmt(H,2)} m</strong> y dos eslabones de <strong>L₂=${fmt(L2,2)} m</strong> y <strong>L₃=${fmt(L3,2)} m</strong>. Sus tres articulaciones son de revolución: la primera gira en acimut alrededor de la vertical y las otras dos cabecean sobre ejes paralelos entre sí. La postura dibujada corresponde a q₁=${q[0]}°, q₂=${q[1]}° y q₃=${q[2]}°.<br><br>Completa las tres filas de la <strong>tabla DH</strong>, en el orden (aᵢ, αᵢ, dᵢ, θᵢ). ${DH_ASSIGN_CONVENTION}`,
+  chips:[`H=${fmt(H,2)} m`,`L₂=${fmt(L2,2)} m`,`L₃=${fmt(L3,2)} m`,formatAngle(q[0],'q₁'),formatAngle(q[1],'q₂'),formatAngle(q[2],'q₃')],
+  params:{H,L2,L3,q,kinematics,dimensions:['H','L₂','L₃']},
+  convention:'DH estándar, terna dextrógira y vectores columna. El marco base es el único dibujado.',
+  concepts:['asignación de marcos DH','tabla DH','método geométrico'],
+  commonErrors:['colocar la altura de la columna en a₁ en vez de en d₁','asignar torsión a dos ejes paralelos','escribir la variable articular en la columna d de una articulación de revolución'],
+  hints:['z₀ es vertical y z₁ tiene que quedar horizontal para que el hombro cabecee: ahí aparece la única torsión de la cadena.','El hombro y el codo giran sobre ejes paralelos, y entre ejes paralelos la torsión vale cero.','aᵢ se mide sobre xᵢ y dᵢ sobre zᵢ₋₁. La altura de la columna sube a lo largo de z₀, no a lo ancho.'],
+  steps:[
+   `Fila 1. El eslabón sube H=${fmt(H,2)} m a lo largo de z₀, de modo que d₁=${fmt(H,2)} y a₁=0. Para que el hombro pueda cabecear, z₁ queda horizontal: el giro de z₀ a z₁ alrededor de x₁ es de 90°, luego α₁=90°.`,
+   `Fila 2. z₁ y z₂ son paralelos —hombro y codo cabecean en el mismo plano—, así que α₂=0 y d₂=0. La normal común entre ambos ejes es el propio eslabón: a₂=L₂=${fmt(L2,2)}.`,
+   `Fila 3. Mismo razonamiento que la anterior: α₃=0, d₃=0 y a₃=L₃=${fmt(L3,2)}.`,
+   'La columna θ recoge la variable de cada articulación de revolución, θᵢ=qᵢ, con los valores de la postura dibujada.',
+   `Comprobación: con esa tabla el extremo queda en p=[${fmt(tcp.x,3)}, ${fmt(tcp.y,3)}, ${fmt(tcp.z,3)}]ᵀ, que es la postura de la lámina.`]};
+}
 function makeGravity2R(diff){
  const m1=ri(1,6),m2=ri(1,6),l1=ri(1,4),l2=ri(1,4),q1=pick([-90,-60,-30,0,30,60,90]),q2=pick([-90,-60,-30,0,30,60,90]),g=9.8;
  const {tau1,tau2}=gravityTorque2R({m1,m2,l1,l2,q1,q2,g}),ask=pick(["tau1","tau2"]),answer=round(ask==="tau1"?tau1:tau2);
@@ -7063,6 +7150,12 @@ function kinematicsCandidates(diff){
  planar.push(makeGeometric2R);
  planar.forEach(make=>lista.push({family:"2d",make}));
  espacial.forEach(make=>lista.push({family:"3d",make:plausibleSpatial(make)}));
+ /* La asignación de marcos entra en la rotación general del capítulo, no solo
+    al practicar su tema: es el ejercicio de examen más habitual y quedaría
+    escondido si solo se llegara a él por el índice. No pasa por
+    plausibleSpatial porque su postura no se resortea: la tabla que se pide
+    describe justo el mecanismo dibujado. */
+ lista.push({family:"3d",make:makeDhAssignment});
  jacobianos.forEach(make=>lista.push({family:"jacobiano",make}));
  for(let i=0;i<Math.max(1,Math.round(lista.length*.28));i++)lista.push({family:"area",make:makeWorkspaceExercise});
  const conceptuales=Math.max(1,Math.round(lista.length*(CONCEPT_SHARE[diff]??.3)));
@@ -7166,7 +7259,9 @@ function legacyTopicNumericGenerators(key,diff){
   const spatial=diff===1?[makeSpatial2R]:diff===2?[makeSpatial2R,makeSpatial3R,makeScara]:diff===3?[makeSpatial3R,makeScara,makeSpatial2R,makeRrrp,makeIndustrial6R]:[makeIndustrial6R,makeRrrp,makeScara,makeSpatial3R];
   return[makeGeometric2R,make2R,makePlanar3R,...spatial.map(make=>plausibleSpatial(make))];
  }
- if(key==="4.3")return[d=>makeGeometric2R(d,"inverse")];
+ /* El tema enseña a asignar marcos y construir la tabla; practicarlo con un
+    ejercicio de cinemática inversa plana no entrenaba esa destreza. */
+ if(key==="4.3")return[makeDhAssignment,d=>makeGeometric2R(d,"inverse")];
  if(key==="4.2")return diff>=3?[plausibleSpatial(makeDh3R)]:[];
  if(key==="4.5")return diff===1?[makeJacobianVelocity2R]:diff===2?[makeJacobianVelocity2R,makeJacobian2R]:[makeJacobian2R,makeJacobianInverse2R,makeJacobianVelocity2R];
  if(key==="4.11")return[makeWorkspaceExercise];
@@ -7517,7 +7612,7 @@ function firstObservableDifference(exercise,entered,ok){
   if(alterno)return{kind:"bad",title:"Patrón de error identificado",message:`${alterno.message} Esperado ${fmt(exercise.answer,5)} e ingresado ${fmt(entered,5)}.`};
   return{kind:"bad",title:"Salida final incompatible",message:`${scalarDifferenceCause(exercise,entered)}. Esperado ${fmt(exercise.answer,5)} e ingresado ${fmt(entered,5)}.${exercise.pedagogyTrace?.source==="kinematics"?" Si completas las Aᵢ en «Resolver por etapas», RoboTutor podrá localizar el origen matricial.":" Como no se registraron matrices Aᵢ, no es posible atribuir honestamente el error a una transformación concreta."}`};
  }
- for(let r=0;r<exercise.rows;r++)for(let c=0;c<exercise.cols;c++){const expected=exercise.answer[r][c],value=entered[r][c],tol=cellTolerance(exercise,expected);if(Math.abs(value-expected)>tol){const cause=classifyCellCause(expected,value,r,c,entered,exercise.answer,exercise),component=exercise.cols===1?["x","y","z","w"][r]||String(r+1):null,originNote=exercise.pedagogyTrace?.source==="kinematics"?" Completa las etapas Aᵢ para obtener un diagnóstico del origen.":" No se dispone de transformaciones intermedias para atribuir el origen.";return{kind:"bad",title:exercise.cols===1?`Primera diferencia: componente ${component}`:`Primera diferencia: celda (${r+1},${c+1})`,message:`${cause}. Esperado ${fmt(expected,5)} e ingresado ${fmt(value,5)}.${exercise.cols===1?originNote:""}`,row:r,col:c}}}
+ for(let r=0;r<exercise.rows;r++)for(let c=0;c<exercise.cols;c++){const expected=exercise.answer[r][c],value=entered[r][c],tol=cellTolerance(exercise,expected);if(Math.abs(value-expected)>tol){const cause=classifyCellCause(expected,value,r,c,entered,exercise.answer,exercise),component=exercise.cols===1?["x","y","z","w"][r]||String(r+1):null,originNote=exercise.pedagogyTrace?.source==="kinematics"?" Completa las etapas Aᵢ para obtener un diagnóstico del origen.":" No se dispone de transformaciones intermedias para atribuir el origen.";return{kind:"bad",title:exercise.cols===1?`Primera diferencia: componente ${component}`:exercise.matrixLayout==="dh"?`Primera diferencia: ${["a","α","d","θ"][c]||"?"}${r+1}`:`Primera diferencia: celda (${r+1},${c+1})`,message:`${cause}. Esperado ${fmt(expected,5)} e ingresado ${fmt(value,5)}.${exercise.cols===1?originNote:""}`,row:r,col:c}}}
  return{kind:"bad",title:"Diferencia numérica",message:"La respuesta no superó la tolerancia configurada; revisa redondeo y unidades."};
 }
 function traceSequenceLatex(trace){
@@ -7864,6 +7959,7 @@ const SOLUTION_REASONING=Object.freeze({
  "forward_spatial_2R":{idea:"Los dos giros no son del mismo tipo: q₁ es un acimut alrededor de Z que orienta el plano de trabajo, y q₂ es una elevación dentro de ese plano. Conviene resolver primero la distancia horizontal y repartirla después entre X e Y.",comprobacion:"Con q₁ igual a cero el punto debe quedar contenido en el plano XZ, es decir, con la coordenada y nula."},
  "forward_spatial_3R":{idea:"La cadena se separa en dos problemas más simples: las elevaciones determinan la distancia horizontal y la altura, y el acimut solo gira ese perfil alrededor del eje vertical. Esa separación evita arrastrar los tres ángulos a la vez.",comprobacion:"La raíz de x²+y² debe coincidir con la distancia horizontal calculada antes de proyectar."},
  "forward_scara_rrp":{idea:"El SCARA está diseñado precisamente para desacoplar: las dos revolutas resuelven el plano XY como un 2R corriente y la prismática solo mueve la altura. Por eso su cinemática directa nunca mezcla las tres variables.",comprobacion:"Cambia el valor de la prismática: las coordenadas x e y deben quedar exactamente igual."},
+ "dh_assignment_3R":{idea:"La tabla no se lee del dibujo: se construye eligiendo primero los ejes. El eje de cada articulación fija zᵢ₋₁, y el reparto entre aᵢ y dᵢ sale de sobre qué eje se mide cada distancia: dᵢ recorre zᵢ₋₁ y aᵢ recorre xᵢ. La torsión αᵢ solo aparece donde dos ejes consecutivos dejan de ser paralelos.",comprobacion:"Sustituye la tabla en el producto de las Aᵢ y comprueba que el extremo cae donde lo dibuja la lámina. Una tabla con la altura en la columna equivocada suele dar el mismo alcance pero a otra altura."},
  "forward_dh_3R":{idea:"La tabla DH es un contrato: cada fila describe una transformación con cuatro parámetros en un orden fijo. Construir cada matriz por separado y acumularlas en el orden de la cadena es lo que impide perderse cuando hay muchos eslabones.",comprobacion:"La posición del extremo es la cuarta columna de la última acumulada, y su última fila debe seguir siendo [0,0,0,1]."},
  "forward_rrrp":{idea:"La articulación prismática se desplaza sobre un eje que las rotaciones anteriores ya han orientado, así que no puede tratarse como un movimiento en el sistema fijo. Tiene que entrar en la cadena en su posición, después de los giros.",comprobacion:"Con las tres rotaciones a cero, la extensión de la prismática debe sumarse íntegramente sobre el eje X del sistema base."},
  "forward_industrial_6R":{idea:"En un 6R industrial las tres primeras articulaciones colocan la muñeca y las tres últimas la orientan. Ese desacoplo cinemático es lo que permite resolver la cadena por tramos en lugar de atacar las seis variables a la vez.",comprobacion:"La distancia del extremo al origen no puede superar la suma de todas las longitudes de la cadena."},
@@ -8012,6 +8108,14 @@ function renderExercise(){
  activeAnswerInput=null;
  if(exercise.type==="open"){area.innerHTML=openAnswerMarkup(exercise)}
  else if(exercise.type==="symbolic"){area.innerHTML=wsSymbolicInputs(exercise)}
+ else if(exercise.type==="matrix"&&exercise.matrixLayout==="dh"){
+  /* Una tabla DH no es una matriz: sin cabeceras no se sabe qué columna es aᵢ
+     y cuál αᵢ. Las celdas conservan el mismo orden y la misma clase que en el
+     resto, así que la corrección y el diagnóstico no cambian. */
+  area.innerHTML=`<label>Completa la tabla DH:</label>
+   <div class="dh-table-wrap"><table class="dh-table"><thead><tr><th>i</th><th>a<sub>i</sub> (m)</th><th>&#945;<sub>i</sub> (&#176;)</th><th>d<sub>i</sub> (m)</th><th>&#952;<sub>i</sub> (&#176;)</th></tr></thead><tbody>${Array.from({length:exercise.rows},(_,r)=>`<tr><th scope="row">${r+1}</th>${Array.from({length:4},(_,c)=>`<td>${matrixInputMarkup(exercise,r*4+c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
+   <p class="cell-hint">Admite decimales y expresiones como pi/2 o sin(30). Los &#225;ngulos van en grados.</p>`;
+ }
  else if(exercise.type==="matrix"){
   area.innerHTML=`<label>Ingresa ${exercise.cols===1?"el vector":"la matriz"}:</label>
    <div class="matrix-wrap"><span class="bracket left"></span><div class="matrix matrix-${exercise.rows}x${exercise.cols}" style="--cols:${exercise.cols};grid-template-columns:repeat(var(--cols),minmax(0,1fr))">
@@ -8057,7 +8161,11 @@ function getAnswer(){
 function diagnoseCell(expected,entered,row,col,matrix){
  const exercise=appState.currentExercise;
  const error=Math.abs(entered-expected),cause=classifyCellCause(expected,entered,row,col,matrix,exercise.answer,exercise);
- return{error,cause,text:`Celda (${row+1},${col+1}): ${cause}; esperado ${fmt(expected,5)}, ingresado ${fmt(entered,5)}, error ${fmt(error,5)}.`};
+ /* En una tabla DH la coordenada de la celda no dice nada: lo que enseña es
+    el nombre del parámetro equivocado, porque confundir aᵢ con dᵢ es
+    precisamente el error que se está corrigiendo. */
+ const donde=exercise?.matrixLayout==="dh"?`${["a","α","d","θ"][col]||"?"}${row+1}`:`Celda (${row+1},${col+1})`;
+ return{error,cause,text:`${donde}: ${cause}; esperado ${fmt(expected,5)}, ingresado ${fmt(entered,5)}, error ${fmt(error,5)}.`};
 }
 /* Único juez de si una respuesta es correcta. Lo usan la práctica y el examen:
    con dos caminos distintos acabarían corrigiendo de forma distinta. */
@@ -9989,6 +10097,20 @@ function renderVisualPanelForExercise(exercise){
  const stages=document.getElementById("stageWorkbench");if(stages?.parentElement===root.parentElement)root.parentElement.insertBefore(root,stages);
  const panel2R=document.getElementById("exercise2RPanel"),spatialPanel=document.getElementById("exerciseSpatialPanel"),framePanel=document.getElementById("exerciseFramePanel"),projectionStrip=document.getElementById("exerciseProjectionStrip");
  panel2R.hidden=true;spatialPanel.hidden=true;framePanel.hidden=true;
+ /* La asignación de marcos usa panel propio: el espacial muestra al lado la
+    vista de marcos ya resueltos, que es justo la respuesta del ejercicio. */
+ const dhPanel=document.getElementById("exerciseDhPanel");if(dhPanel)dhPanel.hidden=true;
+ if(exercise?.visual==="dhAssignment"&&dhPanel){
+  root.hidden=false;projectionStrip.hidden=true;dhPanel.hidden=false;
+  document.getElementById("exerciseVisualTitle").textContent="Mecanismo · solo marco base";
+  const insignia=document.getElementById("exerciseVisualKind");
+  insignia.textContent="Lámina técnica fija · vista isométrica";insignia.classList.add("fixed-plate-badge");
+  document.getElementById("exerciseVisualCaption").textContent=exercise.convention;
+  document.getElementById("exerciseVisualDescription").textContent="Brazo articulado con su marco base dibujado. Las articulaciones van numeradas desde la base y las cotas llevan nombres mecánicos, no parámetros DH.";
+  const k=exercise.params.kinematics;
+  document.getElementById("exerciseDhPlate").innerHTML=cleanMechanismSvg(k,{bare:true,dimensions:exercise.params.dimensions,camera:chooseSpatialCamera(k,720,420)});
+  return;
+ }
  if(!exercise||(!is2RExercise(exercise)&&!isSpatialExercise(exercise)&&!isWorkspaceExercise(exercise)&&exercise.visual!=="frames3d")){root.hidden=true;return}
  root.hidden=false;projectionStrip.hidden=true;
  if(isWorkspaceExercise(exercise)){
@@ -12801,23 +12923,19 @@ function runSelfTests(){
    /* Se puede leer la lección pero no practicarla. Dos son de lectura por
       naturaleza —la historia y el ejemplo resuelto—; «Sistemas de referencia»
       es una carencia real. La lista se fija para que no crezca en silencio: si
-      alguien escribe un generador que la reduzca, esta prueba lo dirá. */
-   const generar=(capitulo,nivel)=>capitulo===3?makeChapter3(nivel):capitulo===5?makeChapter5(nivel):capitulo===4?makeKinematicsExercise(nivel):makeFoundationExercise(capitulo,nivel);
-   const tocados=new Set();
-   for(const capitulo of chapters){
-    for(const nivel of DIFFICULTY_LEVELS){
-     for(let i=0;i<120;i++){
-      const clave=exerciseTopicKey(generar(capitulo.id,nivel));
-      if(clave)tocados.add(clave);
-     }
-    }
-   }
+      alguien escribe un generador que la reduzca, esta prueba lo dirá.
+      Antes se sorteaban 120 ejercicios por capítulo y nivel y se miraba qué
+      temas salían. Con los temas más finos apareciendo una o dos veces en ese
+      sorteo, bastaba añadir un generador en cualquier capítulo para que uno
+      cayera a cero y la prueba fallara sin que nadie hubiera roto nada. Ahora
+      se pregunta directamente si el tema tiene con qué practicarse, que es lo
+      que de verdad quiere comprobar y no depende del azar. */
    const sinEjercicio=[];
    for(const capitulo of chapters)for(const topic of capitulo.topics){
-    if(!tocados.has(topicMarkKey(topic)))sinEjercicio.push(topicMarkKey(topic));
+    const clave=topicMarkKey(topic);
+    const practicable=DIFFICULTY_LEVELS.some(nivel=>topicChoicePool(clave,nivel).length||topicNumericGenerators(clave,nivel).length);
+    if(!practicable)sinEjercicio.push(clave);
    }
-   /* «1.1 Historia» salió de esta lista al ampliarse el banco conceptual: ya se
-      puede practicar. Quedan dos, y ambos son de lectura por naturaleza. */
    const esperados=["3.1","3.5"];   /* Sistemas de referencia · Ejemplo completo */
    return sinEjercicio.length===esperados.length&&esperados.every(clave=>sinEjercicio.includes(clave));
   }],
@@ -13095,6 +13213,29 @@ function runSelfTests(){
      host.querySelectorAll(".lesson-plate-canvas svg").length===1&&
      Boolean(host.querySelector("#texto-que-debe-sobrevivir"));
    }finally{host.remove()}
+  }],
+  ["La lámina de asignación de marcos no entrega la respuesta",()=>{
+   /* El ejercicio pide construir la tabla: si la figura nombrase los tramos
+      aᵢ o dᵢ, o dibujase los marcos ya asignados, la estaría regalando. Solo
+      puede entregar el marco base, la geometría y las cotas mecánicas. */
+   for(const nivel of DIFFICULTY_LEVELS){
+    const e=makeDhAssignment(nivel);
+    if(e.type!=="matrix"||e.rows!==3||e.cols!==4)return false;
+    if(exerciseTopicKey(e)!=="4.3")return false;
+    /* la tabla verdadera reproduce la cadena dibujada */
+    const filas=e.answer.map(([a,alpha,d,theta])=>({a,alpha,d,theta}));
+    const comprobada=KinematicsEngine.serialDH(filas).positions.at(-1),dibujada=e.params.kinematics.positions.at(-1);
+    for(const eje of ["x","y","z"])if(Math.abs(comprobada[eje]-dibujada[eje])>1e-9)return false;
+    const svg=cleanMechanismSvg(e.params.kinematics,{bare:true,dimensions:e.params.dimensions});
+    const rotulos=[...svg.matchAll(/<text[^>]*>([^<]*)<\/text>/g)].map(m=>m[1].trim());
+    if(/^(a|d|α|θ)[₀-₉0-9]/.test(rotulos.join(" ")))return false;
+    if(!rotulos.includes("X")||!rotulos.includes("Y")||!rotulos.includes("Z"))return false;
+    for(const cota of e.params.dimensions)if(!rotulos.includes(cota))return false;
+    for(let i=1;i<=3;i++)if(!rotulos.includes(String(i)))return false;
+    /* y no debe colarse ninguna terna local ya resuelta */
+    if(/x[₀-₉1-9]|z[₀-₉1-9]/.test(rotulos.join(" ")))return false;
+   }
+   return true;
   }],
   ["El verdadero/falso explica la trampa y no contagia al resto de solo enunciado",()=>{
    /* La práctica oculta pista y solución en los ejercicios de solo enunciado.
@@ -13575,37 +13716,43 @@ function runSelfTests(){
   }],
   ["El procedimiento solo aparece si la acumulación lleva a la respuesta",()=>{
    /* En un jacobiano la respuesta es J(q)·q̇ y no sale del producto de
-      transformaciones: enseñarlo ahí haría creer que sí. */
+      transformaciones: enseñarlo ahí haría creer que sí.
+      Las familias se piden por su nombre en vez de sortear el capítulo. El
+      sorteo exigía que salieran más de quince cadenas entre las muestras, y
+      ese recuento bajaba al añadir cualquier generador nuevo al capítulo,
+      aunque ninguna comprobación real fallara. */
    const iguales=(A,B)=>Array.isArray(A)&&Array.isArray(B)&&A.length===B.length&&
     A.every((f,i)=>Array.isArray(f)&&Array.isArray(B[i])&&f.length===B[i].length&&
      f.every((v,j)=>Math.abs(v-B[i][j])<1e-6));
-   const generar=(capitulo,nivel)=>capitulo===3?makeChapter3(nivel):makeKinematicsExercise(nivel);
+   const cadenas=[makeDh3R,makeSpatial2R,makeSpatial3R,makeScara,makeRrrp,makeIndustrial6R];
+   const jacobianas=[makeJacobian2R,makeJacobianInverse2R,makeJacobianVelocity2R];
    let conBloque=0,jacobianos=0;
-   for(const capitulo of[3,4]){
-    for(const nivel of DIFFICULTY_LEVELS){
-     for(let i=0;i<40;i++){
-      const e=generar(capitulo,nivel);
-      if(e.type!=="matrix")continue;
-      e.difficulty=nivel;e.pedagogyTrace=buildPedagogyTrace(e);
-      const html=solutionProcedureMarkup(e);
-      if(/^jacobian_/.test(e.id||"")){jacobianos++;if(html)return false;continue}
-      if(!html)continue;
-      conBloque++;
-      const tr=e.pedagogyTrace;
-      const porAcumulada=iguales(tr.cumulative[tr.cumulative.length-1],e.answer);
-      const porColumna=iguales(tr.output,e.answer);
-      if(!porAcumulada&&!porColumna)return false;
-      /* y lo que el bloque afirma debe ser lo que ocurre */
-      if(/la acumulada del último paso es la respuesta/.test(html)&&!porAcumulada)return false;
-      if(/cuarta columna/.test(html)&&!porColumna)return false;
-      /* cada acumulada es el producto de la anterior por su factor */
-      for(let k=1;k<tr.individual.length;k++){
-       const producto=tr.cumulative[k-1].map(fila=>tr.individual[k][0].map((_,c)=>
-        fila.reduce((suma,v,idx)=>suma+v*tr.individual[k][idx][c],0)));
-       if(!iguales(producto,tr.cumulative[k]))return false;
-      }
-     }
+   const revisar=e=>{
+    if(e.type!=="matrix")return true;
+    e.pedagogyTrace=buildPedagogyTrace(e);
+    const html=solutionProcedureMarkup(e);
+    if(/^jacobian_/.test(e.id||"")){jacobianos++;return !html}
+    if(!html)return true;
+    conBloque++;
+    const tr=e.pedagogyTrace;
+    const porAcumulada=iguales(tr.cumulative[tr.cumulative.length-1],e.answer);
+    const porColumna=iguales(tr.output,e.answer);
+    if(!porAcumulada&&!porColumna)return false;
+    /* y lo que el bloque afirma debe ser lo que ocurre */
+    if(/la acumulada del último paso es la respuesta/.test(html)&&!porAcumulada)return false;
+    if(/cuarta columna/.test(html)&&!porColumna)return false;
+    /* cada acumulada es el producto de la anterior por su factor */
+    for(let k=1;k<tr.individual.length;k++){
+     const producto=tr.cumulative[k-1].map(fila=>tr.individual[k][0].map((_,c)=>
+      fila.reduce((suma,v,idx)=>suma+v*tr.individual[k][idx][c],0)));
+     if(!iguales(producto,tr.cumulative[k]))return false;
     }
+    return true;
+   };
+   for(const nivel of DIFFICULTY_LEVELS){
+    for(const make of cadenas)for(let i=0;i<3;i++){const e=make(nivel);e.difficulty=nivel;if(!revisar(e))return false}
+    for(const make of jacobianas)for(let i=0;i<3;i++){const e=make(nivel);e.difficulty=nivel;if(!revisar(e))return false}
+    for(let i=0;i<12;i++){const e=makeChapter3(nivel);e.difficulty=nivel;if(!revisar(e))return false}
    }
    return conBloque>15&&jacobianos>5;
   }],

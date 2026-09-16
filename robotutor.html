@@ -676,6 +676,9 @@
     #classificationActivity .cc-plates:has(figure:only-child){max-width:740px;margin-inline:auto}
     @media(max-width:600px){.cc-svg text{font-size:27px}.cc-plates{grid-template-columns:minmax(0,1fr)}}
 
+    .exercise-variants{margin:0}
+    .exercise-variants .reflection-formats{margin:0 0 12px;padding:9px 12px;background:transparent;border-style:dashed;font-size:.95rem;gap:10px}
+    .exercise-variants .reflection-formats>strong,.exercise-variants .reflection-formats>label{font-weight:600;opacity:.85}
     .reflection-formats{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:14px;margin:12px 0;border:1px solid var(--line);border-radius:12px;background:var(--soft)}
     #openAnswer{display:block;width:100%;min-height:170px;resize:vertical;padding:14px;border:1px solid var(--line);border-radius:12px;color:var(--text);background:var(--card);font:inherit;line-height:1.6}#openNotice{font-size:.9rem;line-height:1.6}#openReview{padding:18px;border:1px solid var(--line);border-radius:12px;margin-top:18px;background:var(--soft)}
     .dh-table-wrap{overflow-x:auto;margin:10px 0}
@@ -799,9 +802,6 @@
           <button class="btn primary" id="newExercise">Generar ejercicio</button>
         </div>
 
-        <section id="mechanicalFormats" class="reflection-formats" hidden aria-label="Láminas de cinemática directa"><label for="mechanicalModel">Cinemática directa</label><select id="mechanicalModel"><option value="scara">SCARA · 4 articulaciones</option><option value="cylindrical">Cilíndrico · 4 articulaciones</option><option value="anthropomorphic">Antropomórfico · 6 articulaciones</option></select><button id="newMechanical" class="btn soft" type="button">Nuevo ejercicio</button></section>
-        <section id="planarGeometryFormat" class="reflection-formats" hidden aria-label="Método geométrico planar"><strong>Planar 2R · método geométrico</strong><button id="newPlanarNumeric" class="btn soft" type="button">Con datos numéricos</button><button id="newPlanarSymbolic" class="btn soft" type="button">Deducir ecuaciones</button></section>
-        <section id="reflectionFormats" class="reflection-formats" hidden aria-label="Preguntas de teoría"><strong>Preguntas de teoría</strong><button id="newVF" class="btn soft" type="button">Verdadero / Falso</button><button id="newOpen" class="btn soft" type="button">Pregunta abierta</button></section>
       <section class="family-filter" id="familyFilter" aria-labelledby="familyFilterTitle">
           <div class="family-filter-head">
             <span id="familyFilterTitle">Tipo de ejercicio</span>
@@ -834,6 +834,11 @@
         </div>
         <div class="statement" id="statement"></div>
         <div class="chips" id="chips"></div>
+        <div class="exercise-variants" id="exerciseVariants">
+          <section id="mechanicalFormats" class="reflection-formats" hidden aria-label="Láminas de cinemática directa"><label for="mechanicalModel">Cinemática directa</label><select id="mechanicalModel"><option value="scara">SCARA · 4 articulaciones</option><option value="cylindrical">Cilíndrico · 4 articulaciones</option><option value="anthropomorphic">Antropomórfico · 6 articulaciones</option></select><button id="newMechanical" class="btn soft" type="button">Nuevo ejercicio</button></section>
+          <section id="planarGeometryFormat" class="reflection-formats" hidden aria-label="Método geométrico planar"><strong>Planar 2R · método geométrico</strong><button id="newPlanarNumeric" class="btn soft" type="button">Con datos numéricos</button><button id="newPlanarSymbolic" class="btn soft" type="button">Deducir ecuaciones</button></section>
+          <section id="reflectionFormats" class="reflection-formats" hidden aria-label="Preguntas de teoría"><strong>Preguntas de teoría</strong><button id="newVF" class="btn soft" type="button">Verdadero / Falso</button><button id="newOpen" class="btn soft" type="button">Pregunta abierta</button></section>
+        </div>
         <section class="exercise-theory" id="exerciseTheory" aria-labelledby="exerciseTheoryTitle" hidden>
           <details id="exerciseTheoryDetails">
             <summary>
@@ -4531,7 +4536,8 @@ function makeReflection(chapter,diff,format='vf',entry=pick(reflectionPool(chapt
 }
 function renderReflectionControls(){
  const host=document.getElementById('reflectionFormats');if(!host)return;
- const pool=reflectionPool(appState.currentChapter,appState.practiceTopicKey);host.hidden=examEnCurso()||!pool.length;
+ const pool=reflectionPool(appState.currentChapter,appState.practiceTopicKey);
+ host.hidden=examEnCurso()||!pool.length||exerciseVariantKind(appState.currentExercise)!=='reflection';
 }
 function startReflection(format){
  if(examEnCurso())return;const pool=reflectionPool(appState.currentChapter,appState.practiceTopicKey);if(!pool.length)return;
@@ -4577,6 +4583,16 @@ function makeTextbookExercise(diff,model='scara'){
  const chips=scara?[`l₁=${params.l1} m`,`l₂=${params.l2} m`,`l₃=${params.l3} m`,`q₁=${params.q1}°`,`q₂=${params.q2}°`,`q₃=${params.q3} m`,`q₄=${params.q4}°`]:[`l₁=${params.l1} m`,`l₄=${params.l4} m`,`θ₁=${params.theta1}°`,`d₂=${params.d2} m`,`d₃=${params.d3} m`,`θ₄=${params.theta4}°`];
  const convention=scara?'El origen está en el centro de la base, a nivel del suelo. Z apunta hacia arriba; X coincide con los brazos extendidos cuando q₁=q₂=0. Y completa el sistema dextrógiro. q₁ y q₂ son giros antihorarios vistos desde arriba; q₂ es relativo al primer brazo. q₃ es el descenso desde el segundo brazo. q₄ gira la herramienta alrededor de +Z; su orientación cero coincide con la del segundo brazo.':'El origen está en el centro inferior de la base. Z apunta hacia arriba; X sigue el brazo cuando θ₁=0. Y completa el sistema dextrógiro. θ₁ es antihorario visto desde arriba; d₂ se mide desde la parte superior de la base fija l₁ y d₃ desde la columna hasta la muñeca. θ₄ gira alrededor del eje longitudinal positivo del brazo según la mano derecha. La herramienta sobresale l₄ por ese mismo eje. En cero, el marco terminal es paralelo al marco base.';
  return{id:scara?'forward_book_scara4':'forward_book_cylindrical4',geometryTopic:'4.1',kind:'textbook-direct',model:kinematics.model,chapter:4,difficulty:diff,type:'matrix',rows:pose?4:3,cols:pose?4:1,title:scara?'SCARA · cuatro articulaciones':'Cilíndrico · cuatro articulaciones',statement:`Determina ${pose?'la transformación homogénea del extremo E respecto de la base':'la posición [X; Y; Z] del extremo E, en metros'} para los datos indicados.`,answer:pose?kinematics.pose:kinematics.pose.slice(0,3).map(r=>[r[3]]),tolerance:.003,visual:'spatialRobot',kinematics,params,chips,convention,visualConfig:{highlight:'position'},unit:'degrees',hints:[],steps:[],commonErrors:[],concepts:['cinemática directa','geometría del mecanismo']};
+}
+/* Qué barra de variantes acompaña a un ejercicio, o ninguna. Se aísla aquí,
+   sin tocar el DOM, para que la decisión sea comprobable sin navegador: las
+   tres barras la consultan y una autoprueba la recorre entera. */
+function exerciseVariantKind(exercise){
+ if(!exercise)return null;
+ if(isMechanicalWorksheet(exercise))return 'mechanical';
+ if(exercise.kind==='geometric-2r')return 'planar';
+ if(exercise.kind==='reflection')return 'reflection';
+ return null;
 }
 function isMechanicalWorksheet(e){return Boolean(e?.chapter===4&&e.visual==='spatialRobot'&&e.kinematics&&String(e.id).startsWith('forward_')&&e.model!=='Planar3R')}
 function mechanicalScene(e){
@@ -4681,7 +4697,11 @@ function renderMechanicalWorksheet(e){
  host.innerHTML=`<div class="mechanical-paper">${mechanicalPlateSvg(e,{mobile:window.matchMedia('(max-width:600px)').matches})}</div><div class="mechanical-data"><strong>Datos</strong><div>${e.chips.map(t=>`<span>${traceHtmlEscape(t)}</span>`).join('')}</div></div><p class="mechanical-reference"><strong>Referencia del ejercicio.</strong> ${traceHtmlEscape(mechanicalReference(e))}</p>`;
  const answer=document.getElementById('answerArea');if(answer.parentElement===root.parentElement)root.parentElement.insertBefore(root,answer);
 }
-function renderMechanicalControls(){const host=document.getElementById('mechanicalFormats');if(host)host.hidden=examEnCurso()||appState.currentChapter!==4||Boolean(appState.practiceTopicKey&&appState.practiceTopicKey!=='4.1')}
+/* Las tres barras de formato vivían apiladas encima del ejercicio, visibles
+   todas a la vez. Ahora cada una acompaña al ejercicio que genera y solo se
+   ve cuando ese ejercicio está en pantalla. A los tres tipos se sigue
+   llegando por «Generar ejercicio» y por la práctica de su tema. */
+function renderMechanicalControls(){const host=document.getElementById('mechanicalFormats');if(host)host.hidden=examEnCurso()||exerciseVariantKind(appState.currentExercise)!=='mechanical'}
 function initMechanicalControls(){
  document.getElementById('newMechanical').onclick=()=>{if(examEnCurso())return;const model=document.getElementById('mechanicalModel').value,diff=Number(document.getElementById('difficulty').value);appState.practiceTopicKey='4.1';appState.currentExercise=model==='anthropomorphic'?plausibleSpatial(makeIndustrial6R)(diff):makeTextbookExercise(diff,model);document.getElementById('feedback').className='feedback';renderExercise()};renderMechanicalControls();
 }
@@ -5408,7 +5428,14 @@ function makeChoiceFromQuestion(chapter,diff,q){
  /* La ficha de racional viaja con el ejercicio, igual que en la vía normal:
     choiceFailureReason la lee de aquí y no del mapa por enunciado, así que sin
     ella el alumno recibía «no es correcta» y nada más. */
- if(meta)return{chapter,difficulty:diff,type:"choice",kind:chapter===4?"workspace":"calculation",id:"calculation_choice_"+chapter+"_"+meta.index,calculationTopic:meta.topic,title:"Cálculo aplicado",statement:q[0],options:shuffle(q[2]),answer:q[1],rationale:choiceRationale(q[0]),chips:[],hints:[],steps:[],commonErrors:[],concepts:["cálculo"],...(chapter===4?{visual:"workspace2d",params:{L1:meta.index===25?5:3,L2:2,ask:meta.index===25?"min":"area"}}:{params:{}})};
+ if(meta){
+  /* Las dos preguntas de cálculo del banco del capítulo 4 son de área de
+     trabajo, y ese tema se estudia en el capítulo 3. El ejercicio se presenta
+     en el capítulo de su tema, que es donde vive su familia; si no, quedaba
+     con una familia que su capítulo ya no declara y no salía nunca. */
+  const capituloDelTema=topicByKey(meta.topic)?.capitulo?.id??chapter;
+  return{chapter:capituloDelTema,difficulty:diff,type:"choice",kind:chapter===4?"workspace":"calculation",id:"calculation_choice_"+chapter+"_"+meta.index,calculationTopic:meta.topic,title:"Cálculo aplicado",statement:q[0],options:shuffle(q[2]),answer:q[1],rationale:choiceRationale(q[0]),chips:[],hints:[],steps:[],commonErrors:[],concepts:["cálculo"],...(chapter===4?{visual:"workspace2d",params:{L1:meta.index===25?5:3,L2:2,ask:meta.index===25?"min":"area"}}:{params:{}})};
+ }
  let options=shuffle(q[2]);
  const chapterConcepts={1:["arquitectura robótica","selección y seguridad"],2:["morfología","accionamientos y sensores"],4:["cinemática","DH y singularidades"],5:["dinámica","control y seguridad"]};
  const razonamiento=choiceRationale(q[0]);
@@ -5842,7 +5869,7 @@ function chapter3Kinds(diff){
 function exerciseFamily(exercise){
  if(!exercise)return null;
  if(exercise.kind==="reflection")return "concepto";
- if(exercise.calculationTopic)return exercise.chapter<=2?"calculo":exercise.chapter===4?"area":exercise.calculationTopic==="5.7"?"seguridad":exercise.calculationTopic==="5.6"?"control":"dinamica";
+ if(exercise.calculationTopic)return exercise.kind==="workspace"?"area":exercise.chapter<=2?"calculo":exercise.calculationTopic==="5.7"?"seguridad":exercise.calculationTopic==="5.6"?"control":"dinamica";
  if(exercise.kind==="classification")return "visual";
  if(isNarrativeExercise(exercise)&&exercise.type==="symbolic")return "simbolico";
  const capitulo=Number(exercise.chapter);
@@ -6383,7 +6410,7 @@ function renderPlanarWorksheet(e){
  host.innerHTML=`<div class="ws-drawing">${planarExamSvg(e)}</div>`;
  const answer=document.getElementById('answerArea');if(answer.parentElement===root.parentElement)root.parentElement.insertBefore(root,answer);
 }
-function renderPlanarControls(){const host=document.getElementById('planarGeometryFormat');if(host)host.hidden=examEnCurso()||appState.currentChapter!==4||Boolean(appState.practiceTopicKey&&!['4.1','4.3'].includes(appState.practiceTopicKey))}
+function renderPlanarControls(){const host=document.getElementById('planarGeometryFormat');if(host)host.hidden=examEnCurso()||exerciseVariantKind(appState.currentExercise)!=='planar'}
 function initPlanarControls(){
  for(const [id,symbolic] of [['newPlanarNumeric',false],['newPlanarSymbolic',true]])document.getElementById(id).onclick=()=>{
   if(examEnCurso())return;
@@ -8254,6 +8281,7 @@ function renderExercise(){
   restoreExamAnswer(exercise,ex.respuestas[ex.actual]);
  }else renderedExamQuestions.delete(area);
  renderStageWorkbench(exercise);
+ renderMechanicalControls();renderPlanarControls();renderReflectionControls();
  renderQuickInputs();
  document.getElementById("solutionLevel").textContent=solutionRevealPolicy(exercise.difficulty).label;
  document.getElementById("solutionSteps").innerHTML=solutionReasoningMarkup(exercise)+solutionProcedureMarkup(exercise)+solutionStepsMarkup(exercise)+solutionPitfallsMarkup(exercise);
@@ -13297,6 +13325,27 @@ function runSelfTests(){
      host.querySelectorAll(".lesson-plate-canvas svg").length===1&&
      Boolean(host.querySelector("#texto-que-debe-sobrevivir"));
    }finally{host.remove()}
+  }],
+  ["Cada barra de variantes acompaña solo a su propio ejercicio",()=>{
+   /* Las tres barras de formato estaban apiladas encima del ejercicio y se
+      veían todas a la vez. Ahora cada una viaja con el ejercicio que genera,
+      así que lo que hay que garantizar es que ninguna se cuele en otro tipo. */
+   const casos=[
+    [plausibleSpatial(d=>makeTextbookExercise(d,"scara"))(2),"mechanical"],
+    [plausibleSpatial(d=>makeTextbookExercise(d,"cylindrical"))(2),"mechanical"],
+    [makeGeometric2R(2),"planar"],
+    [makeGeometric2R(2,"inverse"),"planar"],
+    [makeReflection(4,2,"vf"),"reflection"],
+    [makeReflection(4,2,"open"),"reflection"],
+    [makeDhAssignment(2),null],
+    [makeDhAssignment6R(2),null],
+    [makeWorkspaceExercise(2),null],
+    [makeChoice(4,2),null],
+    [makePlanar3R(2),null]
+   ];
+   for(const [e,esperado] of casos)if(exerciseVariantKind(e)!==esperado)return false;
+   /* y sin ejercicio en pantalla no se muestra ninguna */
+   return exerciseVariantKind(null)===null&&exerciseVariantKind(undefined)===null;
   }],
   ["La muñeca esférica de seis ejes se dibuja y se corrige sin ambigüedad",()=>{
    /* Este caso quedó fuera de la primera entrega: sin el sentido de los ejes

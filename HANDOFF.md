@@ -27,7 +27,9 @@ La publicación habitual en https://robotutor-laboratorio-visual.rainy-jay-3988.
 
 # Pendiente de revisión · Codex
 
-Añadido por Claude el 8 de septiembre de 2026, sabiendo que Codex no estará disponible durante cinco días. Esta sección lista lo que se hizo en su ausencia y lo que conviene que revise al volver. Nada de esto se ha fusionado a `main`: la URL en vivo sigue mostrando la v3.32.0.
+Añadido por Claude el 8 de septiembre de 2026, sabiendo que Codex no estaría disponible durante cinco días. Esta sección lista lo que se hizo en su ausencia y lo que conviene que revise al volver.
+
+**Actualizado el 16 de septiembre de 2026: todo lo de abajo ya está fusionado en `main` y publicado.** La versión en vivo es la v3.35.0 en https://said-rosa.github.io/robotutor-laboratorio-visual/ y las autopruebas van en 394/394. Cuando se escribió esta sección nada estaba fusionado; esa frase quedó obsoleta y se corrige aquí para que no engañe.
 
 ## 1 · PR #1 · Tres arreglos aplicados sobre esta misma rama
 
@@ -37,9 +39,9 @@ Commit `f18d12b`. Al revisar el PR aparecieron tres autopruebas que pasaban en `
 - **`choicePool`**: la autoprueba de dificultad comparaba contra un recuento que no excluía las preguntas de cálculo. Se corrigió el recuento esperado, no la función.
 - **Racional del par eficaz**: decía «da unos 24 N·m» cuando la respuesta ya se había corregido a 25.
 
-## 2 · PR #2 · Seguridad normativa (1.8) y los seis pares elementales (2.1)
+## 2 · PR #5 (era el #2) · Seguridad normativa (1.8) y los seis pares elementales (2.1)
 
-Apilado sobre esta rama. **Cambiar su base a `main` cuando #1 se fusione.**
+Se abrió apilado sobre la rama del #1. Al fusionar el #1 con `--delete-branch` desapareció su base, GitHub cerró el #2 automáticamente y no dejó reabrirlo; el mismo trabajo se volvió a presentar como **PR #5**, que es el que quedó fusionado. Error mío de procedimiento, no hay cambios perdidos.
 
 - Tema 1.8: orígenes del riesgo mecánico, tabla de las tres familias de medidas (resguardos, dispositivos de protección incluidos los sensibles a la presión, medios de advertencia) y el método de tres etapas.
 - Tema 2.1: `CC_PAIRS` con los seis pares inferiores; `ccSvg` dibuja la planar y la esférica; la unión planar entra en la tabla.
@@ -66,6 +68,67 @@ Un solo tema: que al fallar, el alumno lea el nombre del método que confundió 
 - Nueve términos nuevos en el glosario, en su posición alfabética.
 
 **Estado: 385/385 autopruebas.** Recorrido completo del formato nuevo por la interfaz.
+
+## 5 · PR #6 · **Tu propio PR, cerrado por mí. Lee esto primero.**
+
+Codex: abriste el **PR #6** («Adaptar notación del parcial y añadir geometría planar 2R y región RP») antes de quedarte sin tokens. **Lo cerré yo, y el trabajo no se perdió.**
+
+Qué pasó: el usuario me pidió traer a GitHub lo que habías publicado en la copia de `chatgpt.site`, creyendo que no lo habías subido. Importé la revisión 3.34.0 desde esa copia y abrí el **PR #7** sin haber comprobado antes que tu #6 ya traía lo mismo. Cuando lo vi, el #7 ya estaba fusionado, así que cerré el #6 como duplicado en vez de intentar fusionar dos veces el mismo cambio.
+
+**Comprueba que la importación no te dejó nada fuera.** Yo copié desde el HTML publicado; si tu rama tenía algo que no llegó a esa publicación, no está en `main`. La rama `codex/geometria-y-notacion` sigue existiendo, sin borrar, justamente para que puedas comparar.
+
+## 6 · PR #7 · Importación de tu revisión 3.34.0
+
+Notación del libro, par planar y parciales geométricos, tal como estaban en la copia publicada. Se añadió una ficha de racional al ejercicio de pertenencia del RP telescópico, que se importó sin ella.
+
+Aquí cometí dos errores que conviene que conozcas porque afectan al procedimiento compartido:
+
+- Un `git stash pop` dejó marcadores de conflicto (`<<<<<<< Updated upstream`) dentro del script principal y los fusioné sin verlos, porque miré `git status` **después** de `git add`. La página en vivo dejó de arrancar con `SyntaxError: Unexpected token '<<'`. Se corrigió en caliente con el commit `a65d55b`.
+- Fusioné con el CI en rojo porque consulté el PR equivocado (`gh pr checks 6` cuando el mío era el #7). El CI había detectado el fallo correctamente.
+
+Ambos casos se habrían evitado leyendo lo que la herramienta devolvía. `scripts/check-source.cjs` los detecta y ahora lo ejecuto en local antes de cada commit.
+
+## 7 · PR #8 · El racional del verdadero/falso también al practicar
+
+El racional que nombra la trampa (el cuantificador absoluto) solo aparecía en el informe del examen. En Practicar el alumno leía «no es correcta» y se quedaba igual. `reflectionExplanation` lo entrega ahora en ambos sitios, acotado estrictamente a `kind==="reflection" && type==="choice"` para no tocar el resto de opciones múltiples.
+
+## 8 · PR #9 · La solución escrita que faltaba en la práctica de temas
+
+Varios ejercicios de práctica por tema abrían un panel de solución vacío. Dos causas distintas:
+
+- `solutionHasContent` no existía: el panel se abría aunque no hubiera nada que mostrar.
+- El área del espacio de trabajo del 2R con las dos rotaciones libres no tenía desarrollo escrito. Es un anillo completo, **A = π(L₁+L₂)² − π(L₁−L₂)² = 4πL₁L₂**. El usuario sospechaba que la aplicación se equivocaba al no admitir la media corona; lo que fallaba no era el resultado sino que nunca se enseñaba de dónde salía.
+
+**Quedan dos familias sin desarrollo escrito**, y son buen candidato para ti: las cadenas narrativas del capítulo 3 y dos variantes simbólicas del espacio de trabajo de tres eslabones.
+
+## 9 · PR #10 · Asignación de marcos DH con la lámina desnuda del examen
+
+El cambio con más criterio pedagógico del lote, y el que más conviene que revises.
+
+**El problema:** todos los ejercicios del capítulo 4 entregaban la tabla DH ya hecha y pedían operar con ella. Pero en el parcial del usuario lo único que dan es **el marco de la base**; asignar los marcos y rellenar la tabla es justamente lo que se evalúa. Esa destreza no se practicaba en ninguna parte. Además el tema 4.3 («Asignación de marcos DH») lanzaba al practicar un ejercicio de cinemática inversa, sin relación con su propio contenido.
+
+**Lo que se hizo:**
+
+- Generador `makeDhAssignment`: brazo articulado de 3 ejes, tabla canónica `[{a:0,α:90,d:H,θ:q₁},{a:L₂,α:0,d:0,θ:q₂},{a:L₃,α:0,d:0,θ:q₃}]`. Respuesta de tipo `matrix` con `matrixLayout:"dh"`, que `renderExercise` pinta como tabla con cabeceras `i · aᵢ(m) · αᵢ(°) · dᵢ(m) · θᵢ(°)`. Las celdas conservan la clase `.cell` y el orden por filas, así que la calificación no se tocó.
+- Modo `bare` en `cleanMechanismSvg`: fuera la leyenda `d₁, a₂, a₃, d₄, a₅=0, d₆` —que **era la respuesta**— y fuera el panel de marcos ya asignados. Quedan el mecanismo, las articulaciones numeradas, la recta del eje de giro de cada una, cotas con nombre mecánico neutro (H, L₂, L₃) y el marco base, dibujado al pie del robot y más grande, porque aquí no es una referencia: es el único dato.
+- `diagnoseCell` nombra el parámetro: «**α2**: esperado 0, ingresado 90» en vez de «Celda (2,2)». Confundir aᵢ con dᵢ es el error que el ejercicio persigue.
+- La convención va fijada en el enunciado (`DH_ASSIGN_CONVENTION`). **Decisión deliberada:** una asignación DH no es única, y sin fijar z₀ y el apoyo de xᵢ el programa marcaría como error tablas perfectamente válidas.
+- `kinematics` se guarda **solo en `params`**, no en el ejercicio, para que `buildPedagogyTrace` devuelva `source:"verified-output"` y el banco de trabajo por etapas no se muestre. Si aparece, delata la respuesta.
+- El tema 4.3 gana un ejemplo resuelto espacial. El único que había era un 2R plano, donde todos los ejes salen del papel y nunca aparece una torsión.
+
+**Dos autopruebas se rompieron al añadir el generador, sin que fallara ninguna comprobación real.** Exigían un mínimo de muestras de un sorteo aleatorio, y un generador más diluye ese sorteo: `conBloque` bajaba de >15 a 10–14. Se midió en cinco desplazamientos de la secuencia para confirmar que las aserciones de fondo siempre pasaban, y se reescribieron de forma determinista (llamando a los generadores por nombre y consultando `topicChoicePool` / `topicNumericGenerators` directamente), el mismo tratamiento que ya se dio a la de SO(3) en el #3.
+
+**Estado: 394/394.** Verificado en la página publicada, sin errores de consola.
+
+### Lo que se dejó fuera a propósito
+
+El brazo de **seis ejes con muñeca esférica**. Las torsiones α₄ y α₅ dependen de detalles del dibujo que un esquema no fija sin ambigüedad, y prefiero resolver eso antes que soltar un ejercicio capaz de marcar como error una tabla correcta. **Si tienes criterio sobre cómo fijar esa muñeca sin sobrecargar la lámina, es el mejor sitio donde ayudar.**
+
+Queda también la variante encadenada que describió el usuario: tabla DH + matriz homogénea + coordenadas del efector final en un mismo ejercicio, usando el banco de trabajo por etapas como paso obligatorio y calificado.
+
+## 10 · Versión
+
+`APP_VERSION` se quedó en 3.34.0 durante los PR #8, #9 y #10. Se sube a **3.35.0** con este cambio, para que la etiqueta del pie identifique de verdad lo que hay publicado.
 
 ## Nota sobre las cuentas de GitHub
 

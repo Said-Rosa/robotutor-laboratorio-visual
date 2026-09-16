@@ -1205,7 +1205,7 @@
       <h2>Glosario esencial de Robótica</h2>
       <div class="search">
         <label for="termSearch">Buscar término</label>
-        <input id="termSearch" type="text" placeholder="Ej.: singularidad, efector final, jacobiano...">
+        <input id="termSearch" type="text" placeholder="Ej.: singularidad, efector final, muñeca esférica...">
       </div>
       <div class="terms" id="terms"></div>
     </div>
@@ -1788,32 +1788,6 @@ $$q_3=\varphi-q_1-q_2$$</div>
 <p>En el SCARA RRP, resuelve el 2R en XY y luego q₃=z−d₀. Para p=(3; 2; 1,5), L₁=3, L₂=2 y d₀=2, una solución es (0°; 90°; −0,5). Comprueba el recorrido prismático, aunque XY sea alcanzable.</p>
 <p>En un 3R de acimut y dos elevaciones, calcula r<sub>h</sub>=√(x²+y²), ζ=z−h y q₁=atan2(y,x). Resuelve el 2R vertical con longitudes L₂,L₃ y objetivo (r<sub>h</sub>,ζ). Para buscar todas las ramas, considera también q₁+π y la proyección −r<sub>h</sub>, según límites. Sobre el eje Z, q₁ requiere un análisis especial porque el acimut no queda fijado por la posición.</p>
 <div class="callout"><strong>Validación final.</strong> Sustituye cada candidato en la directa, comprueba la tarea pedida y filtra por límites. Alcanzar un punto no garantiza una orientación deseada ni un camino libre de colisiones.</div>
-  `},
-  {title:"4.5 Jacobiano, desacoplo y singularidades",html:String.raw`
-<h3>Derivar la cinemática para obtener velocidades</h3>
-<p>Si p=f(q), la regla de la cadena da ṗ=J<sub>v</sub>(q)q̇. Cada columna contiene las derivadas respecto de una articulación y representa su contribución al movimiento del extremo. La relación de velocidades es instantánea y exacta para el modelo; Δp≈JΔq es una aproximación para desplazamientos pequeños.</p>
-<h4>Jacobiano de posición del 2R</h4>
-<p>Deriva x e y respecto de q₁ y q₂, <strong>medidos en radianes</strong>. Con s₁₂=sin(q₁+q₂) y c₁₂=cos(q₁+q₂):</p>
-<div class="formula">$$J_v=\begin{bmatrix}-L_1s_1-L_2s_{12}&-L_2s_{12}\\L_1c_1+L_2c_{12}&L_2c_{12}\end{bmatrix}$$
-$$\begin{bmatrix}\dot x\\\dot y\end{bmatrix}=J_v\begin{bmatrix}\dot q_1\\\dot q_2\end{bmatrix},\qquad \dot\varphi=\dot q_1+\dot q_2$$</div>
-<p>Si se quiere la tarea (x,y,φ), añade [1,1] como tercera fila. Eso crea un jacobiano 3×2, distinto del de posición. Si las velocidades se dan en grados/s, conviértelas a rad/s antes de usar J; o incluye explícitamente π/180 en las columnas angulares.</p>
-<h4>Ejemplo numérico: directa e inversa de velocidades</h4>
-<p>L₁=3 m, L₂=2 m, q₁=0°, q₂=90°:</p>
-<div class="formula">$$J_v=\begin{bmatrix}-2&-2\\3&0\end{bmatrix},\qquad \dot q=\begin{bmatrix}0.1\\0\end{bmatrix}\ \mathrm{rad/s}$$
-$$\dot p=\begin{bmatrix}-0.2\\0.3\end{bmatrix}\ \mathrm{m/s}$$</div>
-<p>A la inversa, pedir v=(−0,2; 0,3) m/s permite resolver 3q̇₁=0,3 y −2q̇₁−2q̇₂=−0,2, obteniendo q̇₁=0,1 y q̇₂=0. No es necesario invertir simbólicamente toda la matriz para resolver el sistema.</p>
-<h4>Singularidad y determinante</h4>
-<div class="formula">$$\det J_v=L_1L_2\sin q_2$$</div>
-<p>Con longitudes positivas, el jacobiano de posición pierde rango cuando q₂=kπ. Los eslabones quedan colineales; las velocidades posibles del TCP se reducen a una dirección. El determinante indica singularidad para esta matriz cuadrada, pero su valor aislado no determina una velocidad articular ni es comparable sin considerar unidades y escala.</p>
-<figure class="lesson-plate" data-plate="brazo-2r" data-args='{"l1":4,"l2":3,"q1":25,"q2":2}'><figcaption>Una postura casi extendida. La dificultad depende de la dirección cartesiana solicitada, no solo del valor de det J.</figcaption></figure>
-<h4>Ejemplo correcto cerca de la singularidad</h4>
-<p>Para L₁=L₂=1 m, q₁=0 y v=(0,1; 0) m/s, resolver Jq̇=v con q₂≠0 da:</p>
-<div class="formula">$$\dot q_1=0.1\frac{\cos q_2}{\sin q_2},\qquad \dot q_2=-0.1\frac{1+\cos q_2}{\sin q_2}$$</div>
-<p>Con q₂=2° se requieren aproximadamente (2,864; −5,729) rad/s; con q₂=0,2°, (28,648; −57,296) rad/s. En q₂=0 esa velocidad hacia +X es imposible instantáneamente. Una velocidad tangencial puede seguir siendo alcanzable con velocidades finitas. La singularidad es relativa a la tarea y no significa que todos los movimientos estén bloqueados.</p>
-<h4>Desacoplo de una muñeca esférica</h4>
-<p>Si los tres últimos ejes se cortan en un centro de muñeca y se conoce el desplazamiento t desde ese centro al TCP en el marco final, calcula p<sub>w</sub>=p<sub>d</sub>−R<sub>d</sub>t. Las primeras articulaciones deben situar p<sub>w</sub>; después se resuelve R₃⁶=(R₀³)ᵀR<sub>d</sub> para la muñeca.</p>
-<p>Esto separa posición y orientación bajo esa geometría, pero aún hay ramas, topes y singularidades. No implica que todos los robots sin muñeca esférica carezcan de solución analítica. Tampoco implica que los giros de muñeca no desplacen el TCP: pueden hacerlo cuando la herramienta tiene offset.</p>
-<p class="source">Rango y tareas de distinta dimensión: <a href="https://modernrobotics.northwestern.edu/nu-gm-book-resource/5-3-singularities/" target="_blank" rel="noopener noreferrer">Lynch y Park · singularidades</a>.</p>
   `}
  ]},
  {
@@ -2100,7 +2074,7 @@ const theoryExpansion={
    </table>
    <h4>Presupuesto de error</h4>
    <div class="formula">$$e_{\text{TCP}} \approx J(q)\,e_q + e_{\text{flexión}} + e_{\text{base}} + e_{\text{herramienta}} + e_{\text{medición}}$$</div>
-   <p>El primer término es el que sorprende: <strong>el jacobiano también amplifica errores</strong>, no solo velocidades. Un error articular constante se traduce en un error cartesiano que depende de la postura, y crece justo donde el brazo está extendido.</p>
+   <p>El primer término es el que sorprende: <strong>la postura del brazo también amplifica los errores</strong>, no solo las velocidades. Un error articular constante se traduce en un error cartesiano que depende de la postura, y crece justo donde el brazo está extendido.</p>
    <h4>Ejemplo numérico</h4>
    <p>Un error de 0,01° en el hombro de un brazo de 1,2 m de alcance produce en el extremo:</p>
    <div class="formula">$$e = 1{,}2 \cdot 0{,}01^\circ \cdot \frac{\pi}{180} = 0{,}21\ \text{mm}$$</div>
@@ -2364,121 +2338,8 @@ $$r_{xyz} = R\,r_{uvw} + p = \begin{bmatrix} 0 \\ -2 \\ 4 \end{bmatrix} + \begin
    <h4>Cuando ambas lecturas coinciden</h4>
    <p>Existe un caso particular en el que el orden no importa: si todos los giros comparten el mismo eje, las matrices conmutan y ambas interpretaciones dan idéntico resultado. Es una coincidencia algebraica, no una excepción a la regla; en cuanto los ejes difieran, la distinción vuelve a ser decisiva.</p>
    <div class="callout"><strong>Estrategia de examen:</strong> resuelve la cadena y verifica el resultado aplicando la matriz al origen [0,0,0,1]ᵀ. La cuarta columna que obtengas debe situar el origen del sistema móvil donde la figura lo dibuja. Si no coincide, casi siempre hay un paso clasificado al revés.</p>
-   <p><span class="source-tag">Fundamentos de robótica · composición de transformaciones</span></p>`}
-  ],
- 4:[
-  {title:"4.6 Cadena cinemática y producto de transformaciones",html:String.raw`
-<h3>De las articulaciones a la pose del TCP</h3>
-<p>La <strong>cinemática</strong> describe posiciones, orientaciones y velocidades sin calcular las fuerzas que las producen. En este capítulo se modelan cadenas seriales de eslabones rígidos con articulaciones revolutas (R) o prismáticas (P). Una R aporta un ángulo; una P, una distancia. El vector q reúne esas variables y sus límites definen las configuraciones admisibles.</p>
-<div class="callout"><strong>Convenciones del capítulo.</strong> Vectores columna, marcos dextrógiros y giros positivos según la mano derecha. En el plano XY, q₁ se mide desde +X y q₂ desde la prolongación del primer eslabón. Las longitudes usan una misma unidad. Los ejemplos identifican los grados con °; al derivar respecto de ángulos se usan radianes.</div>
-<h4>Posición, orientación y pose</h4>
-<p>El TCP es el punto de referencia de la herramienta. Su posición es un vector p; su orientación es una matriz R. La pose reúne ambos. El símbolo <sup>0</sup>T<sub>n</sub> transforma coordenadas del marco n al marco 0:</p>
-<div class="formula">$$ {}^{0}T_n=\begin{bmatrix}{}^{0}R_n&{}^{0}p_n\\0&1\end{bmatrix},\qquad {}^{0}\bar p={}^{0}T_n\,{}^{n}\bar p$$</div>
-<p>La barra indica coordenadas homogéneas: a un punto se le añade un 1. R debe cumplir RᵀR=I y det R=+1. La última fila de T es [0,0,0,1]. No se suman ángulos de ejes distintos para obtener una orientación espacial.</p>
-<h4>Cómo se encadenan los marcos</h4>
-<div class="formula">$$ {}^{0}T_n=A_1A_2\cdots A_n,\qquad A_i={}^{i-1}T_i(q_i)$$</div>
-<p>Los índices contiguos permiten seguir el cambio de coordenadas. Al evaluar el producto sobre un punto, el factor de la derecha actúa primero. Para construirlo progresivamente se empieza con T=I y se acumula T←T·Aᵢ. Cambiar el orden cambia el mecanismo descrito.</p>
-<h4>Ejemplo resuelto: dos articulaciones planas</h4>
-<p>Con L₁=3, L₂=2 y q₁=q₂=90°, cada eslabón se representa como Rz(qᵢ)Tx(Lᵢ):</p>
-<div class="formula">$$A_1=\begin{bmatrix}0&-1&0&0\\1&0&0&3\\0&0&1&0\\0&0&0&1\end{bmatrix},\quad A_2=\begin{bmatrix}0&-1&0&0\\1&0&0&2\\0&0&1&0\\0&0&0&1\end{bmatrix}$$
-$$A_1A_2=\begin{bmatrix}-1&0&0&-2\\0&-1&0&3\\0&0&1&0\\0&0&0&1\end{bmatrix}$$</div>
-<p>El codo está en (0,3), el TCP en (−2,3) y su orientación planar es 180°. La traslación del segundo tramo se expresa en el marco ya girado; por eso no se añade directamente a X.</p>
-<figure class="lesson-plate" data-plate="brazo-2r" data-args='{"l1":3,"l2":2,"q1":90,"q2":90}'><figcaption>El segundo giro se mide respecto del primer tramo. Las posiciones permiten comprobar la cuarta columna del producto.</figcaption></figure>
-<h4>Base y herramienta también forman parte del modelo</h4>
-<div class="formula">$$ {}^{W}T_{TCP}={}^{W}T_0\,A_1\cdots A_n\,{}^{n}T_{TCP}$$</div>
-<p>W es el marco del mundo. Si la herramienta tiene desplazamiento local t, su punto queda en p<sub>TCP</sub>=p<sub>n</sub>+R<sub>n</sub>t. Por ejemplo, una herramienta de 1 unidad sobre X local, con R=Rz(90°) y p=(2,3,0), sitúa el TCP en (2,4,0). Ignorar este término confunde la brida con el extremo útil.</p>
-<h4>Comprobación antes de continuar</h4>
-<ul><li>Identifica el marco de cada vector y el eje de cada articulación.</li><li>Comprueba una postura de referencia y otra no trivial.</li><li>Una articulación posterior no mueve los cuerpos anteriores. Las distancias dentro de cada cuerpo rígido son constantes; una separación prismática sí varía.</li><li>La unicidad de la directa se asume aquí para una cadena serial y una configuración admisible; no es una afirmación universal sobre mecanismos cerrados.</li></ul>
-<p class="source">Ampliación: <a href="https://modernrobotics.northwestern.edu/nu-gm-book-resource/forward-kinematics-example/" target="_blank" rel="noopener noreferrer">Lynch y Park · ejemplo de cinemática directa</a>. Los ejemplos numéricos de esta lección se desarrollan para los modelos de RoboTutor.</p>
-  `},
-  {title:"4.7 Denavit–Hartenberg: algoritmo auditable",html:String.raw`
-<h3>Construir y auditar una tabla completa</h3>
-<p>Este procedimiento combina dibujo, tabla, matrices y verificación. Sirve para resolver un ejercicio desde cero y para localizar el paso que falla en una solución ajena.</p>
-<ol><li><strong>Contrato del modelo.</strong> Escribe unidades, tipo de articulaciones, marcos base y terminal, variante DH, sentidos de q y límites.</li><li><strong>Asignación geométrica.</strong> Marca zᵢ₋₁ como eje de la articulación i y construye las normales comunes.</li><li><strong>Tabla simbólica.</strong> Conserva L, h, q y los desfases como símbolos antes de sustituir.</li><li><strong>Transformaciones individuales.</strong> Calcula cada Aᵢ, separando su rotación y traslación.</li><li><strong>Acumulación.</strong> Obtén T₀¹, T₀², … y finalmente T₀ⁿ·T<sub>herramienta</sub>.</li><li><strong>Validación.</strong> Contrasta las posiciones físicas, la orientación y la dependencia de cada articulación.</li></ol>
-<h4>Ejemplo completo: SCARA RRP didáctico</h4>
-<p>Elegimos z₀, z₁ y z₂ hacia +Z y la prismática positiva hacia arriba. El desplazamiento vertical se agrupa en d₃=d₀+q₃. Con esta elección:</p>
-<div class="table-wrap"><table><thead><tr><th>i</th><th>Tipo</th><th>aᵢ</th><th>αᵢ</th><th>dᵢ</th><th>θᵢ</th></tr></thead><tbody><tr><td>1</td><td>R</td><td>L₁</td><td>0</td><td>0</td><td>q₁</td></tr><tr><td>2</td><td>R</td><td>L₂</td><td>0</td><td>0</td><td>q₂</td></tr><tr><td>3</td><td>P</td><td>0</td><td>0</td><td>d₀+q₃</td><td>0</td></tr></tbody></table></div>
-<div class="formula">$$A_1=R_z(q_1)T_x(L_1),\quad A_2=R_z(q_2)T_x(L_2),\quad A_3=T_z(d_0+q_3)$$
-$$T=\begin{bmatrix}c_{12}&-s_{12}&0&L_1c_1+L_2c_{12}\\s_{12}&c_{12}&0&L_1s_1+L_2s_{12}\\0&0&1&d_0+q_3\\0&0&0&1\end{bmatrix}$$</div>
-<p>Con L₁=3, L₂=2, d₀=2, q₁=0°, q₂=90° y q₃=−0,5:</p>
-<div class="formula">$$T=\begin{bmatrix}0&-1&0&3\\1&0&0&2\\0&0&1&1.5\\0&0&0&1\end{bmatrix}$$</div>
-<p>La cuarta columna entrega p=(3; 2; 1,5), y la rotación es Rz(90°). Si q₃ aumenta 0,2, solo z aumenta 0,2. Si aumenta q₂, cambia el plano XY y la orientación, pero no z. Estas variaciones separadas comprueban qué representa cada fila.</p>
-<h4>Auditoría con criterios concretos</h4>
-<div class="table-wrap"><table><thead><tr><th>Prueba</th><th>Qué comprobar</th></tr></thead><tbody><tr><td>Forma de A y T</td><td>Última fila homogénea correcta; RᵀR≈I y det R≈+1.</td></tr><tr><td>Referencia</td><td>Con q=0, la pose coincide con la referencia declarada, incluidos los desfases.</td></tr><tr><td>Cuerpos rígidos</td><td>Distancias entre puntos fijados al mismo eslabón constantes. No exigir constancia a la separación de una prismática.</td></tr><tr><td>Dependencia</td><td>Mover qⱼ no altera los cuerpos anteriores a la articulación j.</td></tr><tr><td>Geometría independiente</td><td>Compara con proyecciones o medidas conocidas. La suma y resta de longitudes solo dan radios exactos bajo las hipótesis apropiadas.</td></tr></tbody></table></div>
-<p><strong>Diagnóstico.</strong> Si la postura cero falla, revisa antes de todo la base, los desfases y la herramienta. Si solo falla al mover una articulación, revisa su eje, signo y fila. Una torsión de 90° donde correspondía 0° es una posible causa, no la única.</p>
-<div class="callout"><strong>Resultado esperado.</strong> Una tabla reproducible, sus Aᵢ, el producto final y al menos una comprobación geométrica con una postura no trivial. Una figura isométrica ayuda a interpretar, pero no sustituye la definición exacta de los marcos.</div>
-  `},
-  {title:"4.8 Cinemática inversa: ramas, límites y robustez",html:String.raw`
-<h3>Seleccionar una solución que cumpla la tarea</h3>
-<p>Una fórmula de inversa entrega candidatos. La solución aceptada debe respetar el modelo, los límites y las tolerancias. En un 2R los candidatos son <strong>pares</strong> de ángulos; en un SCARA RRP se añade una distancia, no un tercer ángulo.</p>
-<h4>Orden correcto de las comprobaciones</h4>
-<ol><li>Valida datos finitos y longitudes positivas.</li><li>Calcula c₂. Si |c₂|&gt;1+ε, rechaza el objetivo. ε es una tolerancia numérica adimensional, no un margen físico de alcance.</li><li>Solo si el exceso es compatible con redondeo, recorta c₂ a [−1,1] y calcula s₂=±√max(0,1−c₂²).</li><li>Trata explícitamente los casos degenerados; elimina ramas duplicadas.</li><li>Filtra por límites y calcula la directa de cada candidato.</li><li>Acepta únicamente residuos de posición y, cuando corresponda, orientación dentro de sus tolerancias separadas.</li></ol>
-<p>No apliques max(0,1−c₂²) a cualquier objetivo: ocultaría puntos realmente inalcanzables. Los topes deben revisarse sobre las coordenadas articulares físicas, incluyendo vueltas, offsets y sentido positivo.</p>
-<h4>Ejemplo: una rama queda descartada</h4>
-<p>Para L₁=3, L₂=2 y objetivo (4,1), las ramas son aproximadamente (−13,1787°,70,5288°) y (41,2512°,−70,5288°). Si q₂ solo admite [0°,150°], se descarta la segunda. Si q₁ además debe pertenecer a [0°,90°], la primera también se descarta: estar dentro de la corona sin límites no basta.</p>
-<h4>Continuidad y vueltas completas</h4>
-<p>Entre candidatos válidos puede minimizarse una distancia ponderada a q actual. Para una articulación de giro continuo, 179° y −179° pueden estar a 2°; para un eje con topes o cables, ese recorrido corto puede no existir. Aplica la diferencia angular envuelta solo a las articulaciones para las que sea físicamente admisible.</p>
-<div class="formula">$$q^*=\arg\min_{q\in\mathcal S_{valida}}\|W\,\Delta q\|$$</div>
-<p>Los pesos W hacen comparables articulaciones con distintos recorridos o unidades. La cercanía del destino no demuestra que el trayecto sea válido: hay que comprobarlo entre posturas y considerar colisiones, límites y singularidades.</p>
-<h4>Inversa numérica de posición: un procedimiento completo</h4>
-<p>Cuando no se dispone de forma cerrada, elige una semilla q₀ y calcula e=p<sub>objetivo</sub>−f(q). Con el jacobiano de posición J, una corrección amortiguada es:</p>
-<div class="formula">$$\Delta q=J^T(JJ^T+\lambda^2I)^{-1}e,\qquad q_{k+1}=q_k+\eta\Delta q$$</div>
-<p>λ&gt;0 reduce la amplificación cerca de singularidades; 0&lt;η≤1 controla el paso. Después de cada corrección se vuelve a calcular f y J. Limita el paso, comprueba topes y reduce η si aumenta el residuo. Detén la búsqueda al alcanzar la tolerancia, exceder las iteraciones o estancarse. Un fallo desde una semilla no demuestra que no exista solución; prueba otras semillas si necesitas buscar otras ramas.</p>
-<h4>Ejemplo de una iteración sin amortiguación</h4>
-<p>L₁=2, L₂=1, q₀=(0,π/2) rad da p₀=(2,1). Para objetivo (1,9; 1,1), e=(−0,1; 0,1) y:</p>
-<div class="formula">$$J(q_0)=\begin{bmatrix}-1&-1\\2&0\end{bmatrix},\quad \Delta q=J^{-1}e=\begin{bmatrix}0.05\\0.05\end{bmatrix}\ \mathrm{rad}$$</div>
-<p>La directa en q₁=(0,05; π/2+0,05) produce aproximadamente (1,8977; 1,0950). El error baja de 0,1414 a 0,0055 unidades, pero aún requiere otra iteración si la tolerancia es 0,001. J solo aproxima el desplazamiento para pasos pequeños.</p>
-<h4>Si también se exige orientación</h4>
-<p>No restes matrices de rotación como si sus nueve entradas fueran nueve ángulos independientes. Usa un error de orientación consistente con el jacobiano, por ejemplo un vector de rotación obtenido del logaritmo de la rotación relativa. Define el marco de ese error y escala por separado longitudes y ángulos. Los métodos iterativos tienen convergencia local; la semilla y la tarea importan.</p>
-<p class="source">Fundamento de la iteración: <a href="https://modernrobotics.northwestern.edu/nu-gm-book-resource/6-2-numerical-inverse-kinematics-part-1-of-2/" target="_blank" rel="noopener noreferrer">Lynch y Park · cinemática inversa numérica</a>.</p>
-  `},
-  {title:"4.9 Jacobiano, espacio de trabajo y singularidades",html:String.raw`
-<h3>Construcción geométrica del jacobiano espacial</h3>
-<p>Sea pₑ la posición del TCP. Para DH estándar, zᵢ₋₁ es el eje unitario de la articulación i y oᵢ₋₁ un punto de ese eje. <strong>Todos los vectores de una columna deben estar expresados en el mismo marco</strong>, aquí el marco base.</p>
-<div class="formula">$$\text{R:}\quad J_{vi}=z_{i-1}\times(p_e-o_{i-1}),\qquad J_{\omega i}=z_{i-1}$$
-$$\text{P:}\quad J_{vi}=z_{i-1},\qquad J_{\omega i}=0$$
-$$\begin{bmatrix}\dot p_e\\\omega\end{bmatrix}=\begin{bmatrix}J_v\\J_\omega\end{bmatrix}\dot q$$</div>
-<p>Para la revoluta, el producto vectorial describe una velocidad tangente al giro. Para la prismática, el TCP se traslada sobre el eje sin añadir velocidad angular. Esta lección ordena la velocidad como [ṗ;ω]; otras referencias usan [ω;v] y coordenadas de twist diferentes. No se intercambian jacobianos sin transformar también la representación de velocidad.</p>
-<h4>Ejemplo de una columna</h4>
-<p>Para una R de eje z=(0,0,1), origen o=(0,0,0) y TCP pₑ=(3,2,0): z×(pₑ−o)=(−2,3,0). A 0,1 rad/s aporta v=(−0,2; 0,3; 0) y ω=(0; 0; 0,1) rad/s. Una P con ese eje y velocidad 0,05 m/s aporta v=(0; 0; 0,05) m/s y ω=0.</p>
-<h4>SCARA RRP: matriz de posición 3×3</h4>
-<div class="formula">$$J_v=\begin{bmatrix}-L_1s_1-L_2s_{12}&-L_2s_{12}&0\\L_1c_1+L_2c_{12}&L_2c_{12}&0\\0&0&1\end{bmatrix}$$</div>
-<p>La última columna corresponde a q₃ en metros; las dos primeras, a ángulos en radianes. La singularidad de posición aparece al alinearse los tramos XY. La capacidad de moverse verticalmente permanece.</p>
-<h4>Rango, redundancia y espacio nulo</h4>
-<p>Una postura es singular si el rango cae por debajo del máximo alcanzable por ese mecanismo para la tarea elegida. Un 3R planar puede ser redundante para (x,y), pero no para (x,y,φ). Tener menos articulaciones que componentes de una tarea no convierte automáticamente todas las posturas en singulares.</p>
-<div class="formula">$$\dot q=J^+v+(I-J^+J)z$$</div>
-<p>J⁺ es la pseudoinversa. Si v pertenece a la imagen de J, el primer término produce la velocidad pedida; el segundo añade movimiento articular que no modifica esa tarea instantáneamente. Si v está fuera de la imagen, la pseudoinversa entrega una aproximación de mínimos cuadrados. Ese movimiento nulo instantáneo no garantiza conservar exactamente una pose durante pasos finitos grandes.</p>
-<h4>Medir el acondicionamiento</h4>
-<p>Los valores singulares describen qué direcciones se producen con facilidad. Para una tarea de m componentes con rango completo de filas, σ mín&gt;0; el cociente κ=σ máx/σ mín mide el acondicionamiento. La medida √det(JJᵀ) se anula cuando se pierde ese rango. Si m&gt;n, JJᵀ ya es singular por dimensiones: no sirve usar su determinante para declarar singularidad en todas las posturas.</p>
-<p>Antes de comparar medidas que mezclan traslaciones y rotaciones, declara una escala de longitud o pesos. Cambiar metros por milímetros modifica los números de un jacobiano sin cambiar físicamente el robot.</p>
-<h4>Frontera alcanzable y singularidad son conceptos distintos</h4>
-<p>En el 2R con ambos giros libres, los radios extremos aparecen con q₂=0 o π y son singulares para la tarea XY. Si q₂ está limitado a [30°,120°], los extremos del área se producen en topes con sin q₂≠0: una frontera causada por límites puede ser regular. También pueden existir singularidades internas, como la de una muñeca, dentro de una región de posiciones alcanzables.</p>
-<h4>Posición libre, orientación fija y espacio diestro</h4>
-<ul><li><strong>Alcanzable de posición:</strong> existe al menos una orientación y una configuración admisible que sitúan el TCP en el punto.</li><li><strong>Orientación fija:</strong> se pide además una orientación concreta; puede reducir la región.</li><li><strong>Diestro:</strong> en cada punto se puede alcanzar toda orientación de un conjunto especificado, por ejemplo todas las orientaciones planas. Es un subconjunto de la región de posición, que puede ser vacío o coincidir con ella según el robot y el conjunto exigido.</li></ul>
-<p>Para aproximar un área numéricamente, muestrea las articulaciones, calcula el TCP y une las posiciones sin contar repetidas. Una nube de puntos ilustra el alcance, pero no demuestra que se hayan encontrado todos los huecos o fronteras; debe contrastarse con geometría y refinamiento de muestreo.</p>
-<p class="source">Referencias: <a href="https://modernrobotics.northwestern.edu/nu-gm-book-resource/5-4-manipulability/" target="_blank" rel="noopener noreferrer">Lynch y Park · manipulabilidad</a> y <a href="https://modernrobotics.northwestern.edu/nu-gm-book-resource/2-5-task-space-and-workspace/" target="_blank" rel="noopener noreferrer">espacio de tarea y espacio alcanzable</a>.</p>
-  `},
-   {title:"4.10 DH estándar y modificado: convenciones que no deben mezclarse",html:String.raw`
-<h3>DH estándar y modificado describen marcos diferentes</h3>
-<p>Las dos variantes son válidas. Lo que cambia es dónde se sitúan los marcos, qué índices llevan los parámetros y el orden del producto. Los ejercicios con tabla DH de RoboTutor usan la variante <strong>estándar</strong>, salvo indicación explícita.</p>
-<div class="formula">$$A_i^{std}=R_z(\theta_i)T_z(d_i)T_x(a_i)R_x(\alpha_i)$$
-$$A_i^{mod}=R_x(\alpha_{i-1})T_x(a_{i-1})R_z(\theta_i)T_z(d_i)$$</div>
-<p>La segunda expresión corresponde a la convención modificada de Craig. En ella, el par geométrico a,α se asocia al eslabón anterior; no se obtiene una tabla modificada cambiando únicamente el nombre del índice de una tabla estándar.</p>
-<h4>Forma cerrada del producto modificado</h4>
-<div class="formula">$$A_i^{mod}=\begin{bmatrix}c_\theta&-s_\theta&0&a_{i-1}\\s_\theta c_\alpha&c_\theta c_\alpha&-s_\alpha&-d_i s_\alpha\\s_\theta s_\alpha&c_\theta s_\alpha&c_\alpha&d_i c_\alpha\\0&0&0&1\end{bmatrix}$$</div>
-<p>Aquí α=αᵢ₋₁ y θ=θᵢ. Observa que la traslación es (a,−d sinα,d cosα), mientras en estándar es (a cosθ,a sinθ,d). La diferencia es consecuencia del orden y los marcos.</p>
-<h4>Ejemplo de por qué una fila no se puede intercambiar</h4>
-<p>Si se insertan los mismos números a=2, α=90°, d=1, θ=90° en ambas fórmulas, la cuarta columna resulta (0,2,1) en estándar y (2,−1,0) en modificado. Esto no enfrenta dos soluciones del mismo modelo: compara dos interpretaciones distintas de una fila sin convertir sus marcos.</p>
-<h4>El mismo 2R representado de las dos maneras</h4>
-<p>En estándar, usa las filas (a₁=L₁,α₁=0,d₁=0,θ₁=q₁) y (a₂=L₂,α₂=0,d₂=0,θ₂=q₂). En una elección modificada, usa (a₀=0,α₀=0,d₁=0,θ₁=q₁), (a₁=L₁,α₁=0,d₂=0,θ₂=q₂) y añade la herramienta terminal Tx(L₂):</p>
-<div class="formula">$$T^{std}=R_z(q_1)T_x(L_1)R_z(q_2)T_x(L_2)$$
-$$T^{mod}=\underbrace{R_z(q_1)}_{A_1^{mod}}\underbrace{T_x(L_1)R_z(q_2)}_{A_2^{mod}}T_x(L_2)=T^{std}$$</div>
-<p>La igualdad es simbólica y vale para todo q. Con L₁=3, L₂=2 y q₁=q₂=90°, ambas sitúan el TCP en (−2,3) con orientación 180°. Sin la herramienta final, la segunda cadena terminaría en el codo.</p>
-<h4>Cómo comparar modelos sin mezclar convenciones</h4>
-<ol><li>Identifica base, herramienta y ejes positivos de cada modelo.</li><li>Relaciona las variables articulares físicas, incluidos signos y desfases.</li><li>Reconstruye cada cadena con su propia fórmula.</li><li>Transforma ambos resultados a una base y un TCP comunes.</li><li>Comprueba posiciones y orientaciones en varias posturas; usa una identidad simbólica si se requiere demostrar equivalencia general.</li></ol>
-<p class="source">Referencia de implementación de ambas variantes: <a href="https://petercorke.github.io/robotics-toolbox-python/_modules/roboticstoolbox/robot/DHLink.html" target="_blank" rel="noopener noreferrer">Peter Corke · DHLink, transformación A</a>.</p>
-  `},
-  {title:"4.11 Área y volumen de trabajo: derivación geométrica",html:String.raw`
+   <p><span class="source-tag">Fundamentos de robótica · composición de transformaciones</span></p>`},
+  {title:"3.13 Área y volumen de trabajo: derivación geométrica",html:String.raw`
 <h3>Una postura, una región y una superficie son cosas distintas</h3>
 <p>Una postura fija da un punto E. El <strong>espacio de trabajo</strong> es el conjunto W de puntos alcanzados al recorrer todas las variables permitidas. Su <strong>superficie A</strong> es un número en unidades². Un contorno puede delimitar una región con área, pero una circunferencia recorrida por un único punto tiene área nula.</p>
 <div class="formula">$$W=\{f(q):q\in Q\},\qquad A=\iint_W dX\,dY$$</div>
@@ -2538,6 +2399,86 @@ $$A=\frac{\Delta q_1[{}^\circ]}{360^\circ}\,4\pi L_1L_2$$</div><p>Para L₁=4, L
 <h4>Cómo presentar la respuesta</h4>
 <ul><li><strong>Sin números:</strong> declara hipótesis, radios, desigualdad de la región y superficie simbólica si se solicita.</li><li><strong>Con números:</strong> sustituye al final, conserva una forma exacta cuando sea posible y añade unidades.</li><li><strong>Con ángulos fijos:</strong> se obtiene una postura; si solo queda una variable libre, podría recorrerse una curva en lugar de una región con superficie.</li><li><strong>Fronteras:</strong> diferencia singularidades del mecanismo, topes y obstáculos. Un radio extremo por tope articular no es necesariamente singular.</li></ul>
 <p class="source">Definiciones de alcance y espacio diestro: <a href="https://modernrobotics.northwestern.edu/nu-gm-book-resource/2-5-task-space-and-workspace/" target="_blank" rel="noopener noreferrer">Lynch y Park · espacio de tarea y espacio de trabajo</a>. Las fórmulas y ejemplos anteriores se deducen aquí para cada mecanismo y sus hipótesis.</p>
+  `}
+  ],
+ 4:[
+  {title:"4.5 Cadena cinemática y producto de transformaciones",html:String.raw`
+<h3>De las articulaciones a la pose del TCP</h3>
+<p>La <strong>cinemática</strong> describe posiciones, orientaciones y velocidades sin calcular las fuerzas que las producen. En este capítulo se modelan cadenas seriales de eslabones rígidos con articulaciones revolutas (R) o prismáticas (P). Una R aporta un ángulo; una P, una distancia. El vector q reúne esas variables y sus límites definen las configuraciones admisibles.</p>
+<div class="callout"><strong>Convenciones del capítulo.</strong> Vectores columna, marcos dextrógiros y giros positivos según la mano derecha. En el plano XY, q₁ se mide desde +X y q₂ desde la prolongación del primer eslabón. Las longitudes usan una misma unidad. Los ejemplos identifican los grados con °; al derivar respecto de ángulos se usan radianes.</div>
+<h4>Posición, orientación y pose</h4>
+<p>El TCP es el punto de referencia de la herramienta. Su posición es un vector p; su orientación es una matriz R. La pose reúne ambos. El símbolo <sup>0</sup>T<sub>n</sub> transforma coordenadas del marco n al marco 0:</p>
+<div class="formula">$$ {}^{0}T_n=\begin{bmatrix}{}^{0}R_n&{}^{0}p_n\\0&1\end{bmatrix},\qquad {}^{0}\bar p={}^{0}T_n\,{}^{n}\bar p$$</div>
+<p>La barra indica coordenadas homogéneas: a un punto se le añade un 1. R debe cumplir RᵀR=I y det R=+1. La última fila de T es [0,0,0,1]. No se suman ángulos de ejes distintos para obtener una orientación espacial.</p>
+<h4>Cómo se encadenan los marcos</h4>
+<div class="formula">$$ {}^{0}T_n=A_1A_2\cdots A_n,\qquad A_i={}^{i-1}T_i(q_i)$$</div>
+<p>Los índices contiguos permiten seguir el cambio de coordenadas. Al evaluar el producto sobre un punto, el factor de la derecha actúa primero. Para construirlo progresivamente se empieza con T=I y se acumula T←T·Aᵢ. Cambiar el orden cambia el mecanismo descrito.</p>
+<h4>Ejemplo resuelto: dos articulaciones planas</h4>
+<p>Con L₁=3, L₂=2 y q₁=q₂=90°, cada eslabón se representa como Rz(qᵢ)Tx(Lᵢ):</p>
+<div class="formula">$$A_1=\begin{bmatrix}0&-1&0&0\\1&0&0&3\\0&0&1&0\\0&0&0&1\end{bmatrix},\quad A_2=\begin{bmatrix}0&-1&0&0\\1&0&0&2\\0&0&1&0\\0&0&0&1\end{bmatrix}$$
+$$A_1A_2=\begin{bmatrix}-1&0&0&-2\\0&-1&0&3\\0&0&1&0\\0&0&0&1\end{bmatrix}$$</div>
+<p>El codo está en (0,3), el TCP en (−2,3) y su orientación planar es 180°. La traslación del segundo tramo se expresa en el marco ya girado; por eso no se añade directamente a X.</p>
+<figure class="lesson-plate" data-plate="brazo-2r" data-args='{"l1":3,"l2":2,"q1":90,"q2":90}'><figcaption>El segundo giro se mide respecto del primer tramo. Las posiciones permiten comprobar la cuarta columna del producto.</figcaption></figure>
+<h4>Base y herramienta también forman parte del modelo</h4>
+<div class="formula">$$ {}^{W}T_{TCP}={}^{W}T_0\,A_1\cdots A_n\,{}^{n}T_{TCP}$$</div>
+<p>W es el marco del mundo. Si la herramienta tiene desplazamiento local t, su punto queda en p<sub>TCP</sub>=p<sub>n</sub>+R<sub>n</sub>t. Por ejemplo, una herramienta de 1 unidad sobre X local, con R=Rz(90°) y p=(2,3,0), sitúa el TCP en (2,4,0). Ignorar este término confunde la brida con el extremo útil.</p>
+<h4>Comprobación antes de continuar</h4>
+<ul><li>Identifica el marco de cada vector y el eje de cada articulación.</li><li>Comprueba una postura de referencia y otra no trivial.</li><li>Una articulación posterior no mueve los cuerpos anteriores. Las distancias dentro de cada cuerpo rígido son constantes; una separación prismática sí varía.</li><li>La unicidad de la directa se asume aquí para una cadena serial y una configuración admisible; no es una afirmación universal sobre mecanismos cerrados.</li></ul>
+<p class="source">Ampliación: <a href="https://modernrobotics.northwestern.edu/nu-gm-book-resource/forward-kinematics-example/" target="_blank" rel="noopener noreferrer">Lynch y Park · ejemplo de cinemática directa</a>. Los ejemplos numéricos de esta lección se desarrollan para los modelos de RoboTutor.</p>
+  `},
+  {title:"4.6 Denavit–Hartenberg: algoritmo auditable",html:String.raw`
+<h3>Construir y auditar una tabla completa</h3>
+<p>Este procedimiento combina dibujo, tabla, matrices y verificación. Sirve para resolver un ejercicio desde cero y para localizar el paso que falla en una solución ajena.</p>
+<ol><li><strong>Contrato del modelo.</strong> Escribe unidades, tipo de articulaciones, marcos base y terminal, variante DH, sentidos de q y límites.</li><li><strong>Asignación geométrica.</strong> Marca zᵢ₋₁ como eje de la articulación i y construye las normales comunes.</li><li><strong>Tabla simbólica.</strong> Conserva L, h, q y los desfases como símbolos antes de sustituir.</li><li><strong>Transformaciones individuales.</strong> Calcula cada Aᵢ, separando su rotación y traslación.</li><li><strong>Acumulación.</strong> Obtén T₀¹, T₀², … y finalmente T₀ⁿ·T<sub>herramienta</sub>.</li><li><strong>Validación.</strong> Contrasta las posiciones físicas, la orientación y la dependencia de cada articulación.</li></ol>
+<h4>Ejemplo completo: SCARA RRP didáctico</h4>
+<p>Elegimos z₀, z₁ y z₂ hacia +Z y la prismática positiva hacia arriba. El desplazamiento vertical se agrupa en d₃=d₀+q₃. Con esta elección:</p>
+<div class="table-wrap"><table><thead><tr><th>i</th><th>Tipo</th><th>aᵢ</th><th>αᵢ</th><th>dᵢ</th><th>θᵢ</th></tr></thead><tbody><tr><td>1</td><td>R</td><td>L₁</td><td>0</td><td>0</td><td>q₁</td></tr><tr><td>2</td><td>R</td><td>L₂</td><td>0</td><td>0</td><td>q₂</td></tr><tr><td>3</td><td>P</td><td>0</td><td>0</td><td>d₀+q₃</td><td>0</td></tr></tbody></table></div>
+<div class="formula">$$A_1=R_z(q_1)T_x(L_1),\quad A_2=R_z(q_2)T_x(L_2),\quad A_3=T_z(d_0+q_3)$$
+$$T=\begin{bmatrix}c_{12}&-s_{12}&0&L_1c_1+L_2c_{12}\\s_{12}&c_{12}&0&L_1s_1+L_2s_{12}\\0&0&1&d_0+q_3\\0&0&0&1\end{bmatrix}$$</div>
+<p>Con L₁=3, L₂=2, d₀=2, q₁=0°, q₂=90° y q₃=−0,5:</p>
+<div class="formula">$$T=\begin{bmatrix}0&-1&0&3\\1&0&0&2\\0&0&1&1.5\\0&0&0&1\end{bmatrix}$$</div>
+<p>La cuarta columna entrega p=(3; 2; 1,5), y la rotación es Rz(90°). Si q₃ aumenta 0,2, solo z aumenta 0,2. Si aumenta q₂, cambia el plano XY y la orientación, pero no z. Estas variaciones separadas comprueban qué representa cada fila.</p>
+<h4>Auditoría con criterios concretos</h4>
+<div class="table-wrap"><table><thead><tr><th>Prueba</th><th>Qué comprobar</th></tr></thead><tbody><tr><td>Forma de A y T</td><td>Última fila homogénea correcta; RᵀR≈I y det R≈+1.</td></tr><tr><td>Referencia</td><td>Con q=0, la pose coincide con la referencia declarada, incluidos los desfases.</td></tr><tr><td>Cuerpos rígidos</td><td>Distancias entre puntos fijados al mismo eslabón constantes. No exigir constancia a la separación de una prismática.</td></tr><tr><td>Dependencia</td><td>Mover qⱼ no altera los cuerpos anteriores a la articulación j.</td></tr><tr><td>Geometría independiente</td><td>Compara con proyecciones o medidas conocidas. La suma y resta de longitudes solo dan radios exactos bajo las hipótesis apropiadas.</td></tr></tbody></table></div>
+<p><strong>Diagnóstico.</strong> Si la postura cero falla, revisa antes de todo la base, los desfases y la herramienta. Si solo falla al mover una articulación, revisa su eje, signo y fila. Una torsión de 90° donde correspondía 0° es una posible causa, no la única.</p>
+<div class="callout"><strong>Resultado esperado.</strong> Una tabla reproducible, sus Aᵢ, el producto final y al menos una comprobación geométrica con una postura no trivial. Una figura isométrica ayuda a interpretar, pero no sustituye la definición exacta de los marcos.</div>
+  `},
+  {title:"4.7 Cinemática inversa: ramas, límites y robustez",html:String.raw`
+<h3>Seleccionar una solución que cumpla la tarea</h3>
+<p>Una fórmula de inversa entrega candidatos. La solución aceptada debe respetar el modelo, los límites y las tolerancias. En un 2R los candidatos son <strong>pares</strong> de ángulos; en un SCARA RRP se añade una distancia, no un tercer ángulo.</p>
+<h4>Orden correcto de las comprobaciones</h4>
+<ol><li>Valida datos finitos y longitudes positivas.</li><li>Calcula c₂. Si |c₂|&gt;1+ε, rechaza el objetivo. ε es una tolerancia numérica adimensional, no un margen físico de alcance.</li><li>Solo si el exceso es compatible con redondeo, recorta c₂ a [−1,1] y calcula s₂=±√max(0,1−c₂²).</li><li>Trata explícitamente los casos degenerados; elimina ramas duplicadas.</li><li>Filtra por límites y calcula la directa de cada candidato.</li><li>Acepta únicamente residuos de posición y, cuando corresponda, orientación dentro de sus tolerancias separadas.</li></ol>
+<p>No apliques max(0,1−c₂²) a cualquier objetivo: ocultaría puntos realmente inalcanzables. Los topes deben revisarse sobre las coordenadas articulares físicas, incluyendo vueltas, offsets y sentido positivo.</p>
+<h4>Ejemplo: una rama queda descartada</h4>
+<p>Para L₁=3, L₂=2 y objetivo (4,1), las ramas son aproximadamente (−13,1787°,70,5288°) y (41,2512°,−70,5288°). Si q₂ solo admite [0°,150°], se descarta la segunda. Si q₁ además debe pertenecer a [0°,90°], la primera también se descarta: estar dentro de la corona sin límites no basta.</p>
+<h4>Continuidad y vueltas completas</h4>
+<p>Entre candidatos válidos puede minimizarse una distancia ponderada a q actual. Para una articulación de giro continuo, 179° y −179° pueden estar a 2°; para un eje con topes o cables, ese recorrido corto puede no existir. Aplica la diferencia angular envuelta solo a las articulaciones para las que sea físicamente admisible.</p>
+<div class="formula">$$q^*=\arg\min_{q\in\mathcal S_{valida}}\|W\,\Delta q\|$$</div>
+<p>Los pesos W hacen comparables articulaciones con distintos recorridos o unidades. La cercanía del destino no demuestra que el trayecto sea válido: hay que comprobarlo entre posturas y considerar colisiones, límites y singularidades.</p>
+<h4>Cuando no hay forma cerrada</h4>
+<p>No todos los manipuladores admiten solución analítica. Si la geometría no se deja despejar —una muñeca que no es esférica, por ejemplo—, la inversa se resuelve <strong>numéricamente</strong>: se parte de una postura semilla y se corrige por pasos hasta que el error cae por debajo de una tolerancia. Esos métodos quedan fuera del alcance de este curso, pero conviene saber tres cosas de ellos.</p>
+<ul><li>La solución que encuentran depende de la semilla: dos semillas distintas pueden converger a ramas distintas.</li><li>Convergen localmente. Que el objetivo esté dentro del área de trabajo no garantiza que un punto de partida cualquiera llegue a él.</li><li>Cerca de una postura singular la corrección se vuelve inestable y hay que frenarla explícitamente, por las razones que se explican en el tema de cinemática inversa.</li></ul>
+<p>La comprobación sigue siendo la misma que en el caso analítico: sustituye la solución en la cinemática directa y verifica que el extremo cae donde se pedía.</p>
+  `},
+   {title:"4.8 DH estándar y modificado: convenciones que no deben mezclarse",html:String.raw`
+<h3>DH estándar y modificado describen marcos diferentes</h3>
+<p>Las dos variantes son válidas. Lo que cambia es dónde se sitúan los marcos, qué índices llevan los parámetros y el orden del producto. Los ejercicios con tabla DH de RoboTutor usan la variante <strong>estándar</strong>, salvo indicación explícita.</p>
+<div class="formula">$$A_i^{std}=R_z(\theta_i)T_z(d_i)T_x(a_i)R_x(\alpha_i)$$
+$$A_i^{mod}=R_x(\alpha_{i-1})T_x(a_{i-1})R_z(\theta_i)T_z(d_i)$$</div>
+<p>La segunda expresión corresponde a la convención modificada de Craig. En ella, el par geométrico a,α se asocia al eslabón anterior; no se obtiene una tabla modificada cambiando únicamente el nombre del índice de una tabla estándar.</p>
+<h4>Forma cerrada del producto modificado</h4>
+<div class="formula">$$A_i^{mod}=\begin{bmatrix}c_\theta&-s_\theta&0&a_{i-1}\\s_\theta c_\alpha&c_\theta c_\alpha&-s_\alpha&-d_i s_\alpha\\s_\theta s_\alpha&c_\theta s_\alpha&c_\alpha&d_i c_\alpha\\0&0&0&1\end{bmatrix}$$</div>
+<p>Aquí α=αᵢ₋₁ y θ=θᵢ. Observa que la traslación es (a,−d sinα,d cosα), mientras en estándar es (a cosθ,a sinθ,d). La diferencia es consecuencia del orden y los marcos.</p>
+<h4>Ejemplo de por qué una fila no se puede intercambiar</h4>
+<p>Si se insertan los mismos números a=2, α=90°, d=1, θ=90° en ambas fórmulas, la cuarta columna resulta (0,2,1) en estándar y (2,−1,0) en modificado. Esto no enfrenta dos soluciones del mismo modelo: compara dos interpretaciones distintas de una fila sin convertir sus marcos.</p>
+<h4>El mismo 2R representado de las dos maneras</h4>
+<p>En estándar, usa las filas (a₁=L₁,α₁=0,d₁=0,θ₁=q₁) y (a₂=L₂,α₂=0,d₂=0,θ₂=q₂). En una elección modificada, usa (a₀=0,α₀=0,d₁=0,θ₁=q₁), (a₁=L₁,α₁=0,d₂=0,θ₂=q₂) y añade la herramienta terminal Tx(L₂):</p>
+<div class="formula">$$T^{std}=R_z(q_1)T_x(L_1)R_z(q_2)T_x(L_2)$$
+$$T^{mod}=\underbrace{R_z(q_1)}_{A_1^{mod}}\underbrace{T_x(L_1)R_z(q_2)}_{A_2^{mod}}T_x(L_2)=T^{std}$$</div>
+<p>La igualdad es simbólica y vale para todo q. Con L₁=3, L₂=2 y q₁=q₂=90°, ambas sitúan el TCP en (−2,3) con orientación 180°. Sin la herramienta final, la segunda cadena terminaría en el codo.</p>
+<h4>Cómo comparar modelos sin mezclar convenciones</h4>
+<ol><li>Identifica base, herramienta y ejes positivos de cada modelo.</li><li>Relaciona las variables articulares físicas, incluidos signos y desfases.</li><li>Reconstruye cada cadena con su propia fórmula.</li><li>Transforma ambos resultados a una base y un TCP comunes.</li><li>Comprueba posiciones y orientaciones en varias posturas; usa una identidad simbólica si se requiere demostrar equivalencia general.</li></ol>
+<p class="source">Referencia de implementación de ambas variantes: <a href="https://petercorke.github.io/robotics-toolbox-python/_modules/roboticstoolbox/robot/DHLink.html" target="_blank" rel="noopener noreferrer">Peter Corke · DHLink, transformación A</a>.</p>
   `}
  ],
  5:[
@@ -2654,7 +2595,7 @@ const examGeometryTheory={
  $$X^2+Y^2=L_1^2+L_2^2+2L_1L_2\cos q_2$$</div>
  <p>La primera pareja resuelve la posición de una configuración; la última relación permite comprobar la distancia al origen. Si L₁=3, L₂=2, q₁=0° y q₂=90°, entonces E=(3,2) y X²+Y²=13. Para hallar L₂ a partir de un punto conocido, la distancia de J a E da L₂, no la distancia de O a E.</p>
  <p>En Practicar puedes elegir datos numéricos o deducir las ecuaciones. Las variantes numéricas piden coordenadas, una longitud desconocida o los ángulos de una rama de la cinemática inversa.</p>`,
- '4.11':String.raw`<h4>RP telescópico: giro y distancia variable</h4>
+ '3.13':String.raw`<h4>RP telescópico: giro y distancia variable</h4>
  <p>Este mecanismo tiene un giro q₁ y una prismática q₂ que desliza en la dirección del tubo. No tiene un codo que cambie la dirección entre los dos tramos. Debes leer desde dónde se mide q₂.</p>
  <div class="table-wrap"><table><thead><tr><th>Definición de q₂</th><th>Radio desde O</th><th>Coordenadas de E</th></tr></thead><tbody>
  <tr><td>Distancia total de O a E</td><td>r=q₂</td><td>X=q₂ cos q₁; Y=q₂ sin q₁</td></tr>
@@ -2681,6 +2622,27 @@ $$R=R_z(q_1+q_2+q_4)$$</div>
 $$R=R_z(\theta_1)R_x(\theta_4)$$</div>
 <p>La posición y la transformación completa son preguntas distintas. En la segunda también hay que calcular R. La notación θ₁,θ₄ corresponde a las variables articulares de esta lámina; α/X,φ/Y,θ/Z sigue siendo la notación de las rotaciones elementales del capítulo 3.</p>`;
 for(const chapter of chapters)for(const topic of chapter.topics)if(topic.title.startsWith('4.1 '))topic.html+=mechanicalTheory;
+/* El jacobiano salió del temario, pero las singularidades y el desacoplo de
+   muñeca no son suyos: se explican igual desde la inversa, que es donde el
+   alumno se los encuentra. Esta teoría viajaba en el tema 4.5 y se reubica
+   aquí, reescrita sin derivadas ni rango. */
+const inverseSingularityTheory=String.raw`<h4>Singularidades, vistas desde la cinemática inversa</h4>
+<p>Una postura es <strong>singular</strong> cuando el extremo pierde la capacidad de moverse instantáneamente en alguna dirección. No hace falta derivar nada para reconocerla: en cinemática inversa se delata por sus síntomas, y todos se ven en el dibujo.</p>
+<ul>
+<li><strong>Dos ramas que se funden en una.</strong> En el 2R, codo arriba y codo abajo son soluciones distintas porque s₂ admite los dos signos. Cuando q₂=0° el brazo queda extendido y cuando q₂=180° queda plegado sobre sí mismo: en ambos casos sin q₂=0, los dos signos coinciden y solo queda <em>una</em> solución. Ese colapso de ramas es la singularidad.</li>
+<li><strong>El borde del alcance.</strong> Con el brazo extendido el extremo está en el radio máximo L₁+L₂. Ese punto se alcanza de una única manera, y un milímetro más allá no tiene solución. La frontera exterior de la región alcanzable es singular por esta razón.</li>
+<li><strong>Infinitas soluciones en la muñeca.</strong> Si los ejes 4 y 6 quedan colineales, q₄ y q₆ giran alrededor de la misma recta: cualquier pareja con la misma suma produce la misma orientación. Hay infinitas soluciones y, a cambio, se ha perdido un grado de libertad instantáneo de orientación.</li>
+<li><strong>Giros enormes para desplazamientos pequeños.</strong> Cerca de una de estas posturas, mover el extremo un poco exige cambiar mucho las articulaciones. Un algoritmo de inversa que empieza a devolver ángulos disparatados suele estar acercándose a una singularidad, no fallando.</li>
+</ul>
+<div class="callout"><strong>Frontera y singularidad no son lo mismo.</strong> La frontera exterior del 2R es singular porque el brazo está extendido. Pero si q₂ está limitado a [30°,120°], los extremos del área los fija el tope articular con sin q₂≠0: esa frontera es perfectamente regular. Un límite mecánico también cierra la región, y no por ello crea una singularidad.</div>
+<h4>Desacoplo de la muñeca esférica</h4>
+<p>Cuando los tres últimos ejes se cortan en un punto común —el <strong>centro de muñeca</strong>—, la inversa se parte en dos problemas pequeños en lugar de uno grande. Si t es el desplazamiento del centro de muñeca al TCP expresado en el marco final, y (p<sub>d</sub>, R<sub>d</sub>) es la pose pedida:</p>
+<div class="formula">$$p_w=p_d-R_d\,t$$</div>
+<p>Las tres primeras articulaciones solo tienen que situar p<sub>w</sub>, que es un problema de posición de tres incógnitas. Con ellas resueltas se conoce R₀³, y la orientación que le queda a la muñeca sale de R₃⁶=(R₀³)ᵀR<sub>d</sub>. Posición primero, orientación después.</p>
+<p>Dos avisos que suelen costar puntos. El desacoplo <strong>no</strong> implica que un robot sin muñeca esférica carezca de solución: implica que en general hay que resolverla numéricamente en lugar de con fórmulas cerradas. Y <strong>tampoco</strong> implica que girar la muñeca no mueva el TCP: lo mueve en cuanto la herramienta tiene un offset, porque entonces el TCP no está en el centro de muñeca.</p>
+<div class="callout"><strong>Antes de buscar la fórmula cerrada, comprueba la hipótesis.</strong> Si un robot que se supone de muñeca esférica no admite solución analítica, lo primero que hay que verificar es si sus tres últimos ejes se cortan de verdad en un punto. Basta un pequeño offset de diseño para que el desacoplo deje de ser válido.</div>`;
+for(const chapter of chapters)for(const topic of chapter.topics)if(topic.title.startsWith('4.4 '))topic.html+=inverseSingularityTheory;
+
 const glossary = [
 ["Actuador","Dispositivo que convierte energía eléctrica, neumática o hidráulica en movimiento o fuerza."],
 ["Articulación cilíndrica","Unión que permite girar y desplazarse a lo largo del mismo eje, con ambos movimientos independientes: dos grados de libertad."],
@@ -2709,7 +2671,6 @@ const glossary = [
 ["Exactitud","Cercanía entre el valor solicitado y el valor realmente alcanzado."],
 ["Gimbal lock","Singularidad de una parametrización angular donde dos ejes de la secuencia se alinean; no implica necesariamente una pérdida física de movilidad."],
 ["Grado de libertad","Coordenada independiente necesaria para describir una configuración."],
-["Jacobiano","Matriz que relaciona velocidades articulares y velocidad del efector final."],
 ["Marco de referencia","Origen y conjunto de ejes usados para expresar coordenadas."],
 ["Matriz homogénea","Matriz 4×4 que combina rotación y traslación de un cuerpo rígido."],
 ["Medios de advertencia","Señales, balizas y avisadores que informan de un peligro. Son medidas complementarias: no impiden el acceso ni detienen el movimiento, así que nunca sustituyen a un resguardo."],
@@ -2729,7 +2690,7 @@ const glossary = [
 ["Rotoprismática","Nombre que algunos textos dan a la unión que combina giro y desplazamiento. No distingue por sí solo la cilíndrica de la helicoidal: hay que mirar si las coordenadas son independientes."],
 ["SCARA","Robot con dos articulaciones rotacionales paralelas, habitual en ensamblaje plano."],
 ["SE(3)","Conjunto matemático de transformaciones rígidas tridimensionales."],
-["Singularidad","Configuración donde el jacobiano pierde rango."],
+["Singularidad","Configuración en la que el extremo pierde la capacidad de moverse instantáneamente en alguna dirección. En cinemática inversa se reconoce porque dos ramas de solución se funden en una, o porque aparecen infinitas soluciones equivalentes."],
 ["SO(3)","Conjunto de matrices de rotación tridimensionales con RᵀR=I y det(R)=1."],
 ["TCP","Punto central de herramienta utilizado para programar la pose del efector."],
 ["Trazabilidad metrológica","Relación documentada entre una medición y referencias mediante una cadena de calibraciones."],
@@ -2825,20 +2786,18 @@ const TOPIC_ORDER=Object.freeze({
   "3.11",  /* coordenadas de un punto: ya se dispone de T y de su inversa */
   "3.8",   /* representaciones de orientación y sus singularidades */
   "3.10",  /* eje–ángulo y cuaterniones: alternativa a lo anterior */
-  "3.5"    /* ejemplo completo: cierra con todas las herramientas ya vistas */
+  "3.5",   /* ejemplo completo: cierra con todas las herramientas ya vistas */
+  "3.13"   /* área y volumen de trabajo: la consecuencia geométrica */
  ]),
  4:Object.freeze([
-  "4.6",   /* cadena de transformaciones: el puente desde el capítulo 3 */
+  "4.5",   /* cadena de transformaciones: el puente desde el capítulo 3 */
   "4.1",   /* cinemática directa */
   "4.2",   /* Denavit–Hartenberg */
   "4.3",   /* asignación de marcos DH */
-  "4.7",   /* algoritmo auditable de asignación */
-  "4.10",  /* estándar frente a modificado: cierra el bloque DH */
+  "4.6",   /* algoritmo auditable de asignación */
+  "4.8",  /* estándar frente a modificado: cierra el bloque DH */
   "4.4",   /* cinemática inversa */
-  "4.8",   /* ramas, límites y robustez */
-  "4.5",   /* jacobiano, desacoplo y singularidades */
-  "4.9",   /* jacobiano y espacio de trabajo */
-  "4.11"   /* área y volumen: la consecuencia geométrica */
+  "4.7"    /* ramas, límites y robustez, con singularidades y muñeca */
  ])
 });
 /* Número de orden que encabeza el título de un tema, por ejemplo «3.4». */
@@ -3514,13 +3473,12 @@ const EXERCISE_FAMILIES=Object.freeze({
   Object.freeze({id:"parcial",label:"Tipo parcial",hint:"Enunciados de 3 matrices (fácil/medio), 4 (difícil) o 5 (extremo): pose y puntos"}),
   Object.freeze({id:"coordenadas",label:"Coordenadas",hint:"Paso entre cartesianas, cilíndricas y esféricas"}),
   Object.freeze({id:"cuaternion",label:"Cuaterniones",hint:"Construcción, composición y lectura del ángulo girado"}),
+  Object.freeze({id:"area",label:"Área de trabajo",hint:"Corona alcanzable, superficie, volumen y pertenencia"}),
   Object.freeze({id:"concepto",label:"Conceptual",hint:"Euler, cuaterniones y singularidades de representación"})
  ]),
  4:Object.freeze([
-  Object.freeze({id:"2d",label:"2D planar",hint:"Brazos 2R y 3R en el plano, y jacobiano"}),
+  Object.freeze({id:"2d",label:"2D planar",hint:"Brazos 2R y 3R en el plano"}),
   Object.freeze({id:"3d",label:"3D espacial",hint:"SCARA, cadenas DH, RRRP y robot industrial 6R"}),
-  Object.freeze({id:"area",label:"Área de trabajo",hint:"Corona alcanzable, superficie, volumen y pertenencia"}),
-  Object.freeze({id:"jacobiano",label:"Jacobiano",hint:"Velocidades directas e inversas, determinante y singularidad"}),
   Object.freeze({id:"concepto",label:"Conceptual",hint:"DH, singularidades y cinemática inversa"})
  ]),
  5:Object.freeze([
@@ -3686,29 +3644,26 @@ const TOPIC_BY_EXERCISE=Object.freeze({
  forward_industrial_6R:"4.1",
  forward_rrrp:"4.1",
  forward_dh_3R:"4.2",              /* Denavit–Hartenberg */
- jacobian_velocity_2R:"4.5",       /* Jacobiano, desacoplo y singularidades */
- jacobian_inverse_2R:"4.5",
- jacobian_2R_determinant:"4.5",
- workspace_radii_2R:"4.11",        /* Área y volumen de trabajo */
- workspace_radii_3R:"4.11",
- workspace_three_area:"4.11",workspace_three_radii:"4.11",workspace_three_membership:"4.11",workspace_three_missing:"4.11",workspace_three_locked:"4.11",workspace_three_limited:"4.11",
- workspace_symbolic_three_dominant1:"4.11",workspace_symbolic_three_dominant2:"4.11",workspace_symbolic_three_dominant3:"4.11",workspace_symbolic_three_disk:"4.11",workspace_symbolic_three_locked:"4.11",
- workspace_area_2R:"4.11",
- workspace_limited_2R:"4.11",
- workspace_volume_scara:"4.11",
- workspace_membership:"4.11",
- workspace_equation:"4.11",
- workspace_telescopic_rrp:"4.11",
- workspace_symbolic_full:"4.11",
- workspace_symbolic_limited:"4.11",
- workspace_symbolic_telescopic:"4.11",
- workspace_identify:"4.11",
- workspace_sector_area_2R:"4.11",
- workspace_sector_span_2R:"4.11",
- workspace_sector_effect:"4.11",
- workspace_tool_offset_2R:"4.11",
- workspace_tool_angled_2R:"4.11",
- workspace_link_point_2R:"4.11",
+ workspace_radii_2R:"3.13",        /* Área y volumen de trabajo */
+ workspace_radii_3R:"3.13",
+ workspace_three_area:"3.13",workspace_three_radii:"3.13",workspace_three_membership:"3.13",workspace_three_missing:"3.13",workspace_three_locked:"3.13",workspace_three_limited:"3.13",
+ workspace_symbolic_three_dominant1:"3.13",workspace_symbolic_three_dominant2:"3.13",workspace_symbolic_three_dominant3:"3.13",workspace_symbolic_three_disk:"3.13",workspace_symbolic_three_locked:"3.13",
+ workspace_area_2R:"3.13",
+ workspace_limited_2R:"3.13",
+ workspace_volume_scara:"3.13",
+ workspace_membership:"3.13",
+ workspace_equation:"3.13",
+ workspace_telescopic_rrp:"3.13",
+ workspace_symbolic_full:"3.13",
+ workspace_symbolic_limited:"3.13",
+ workspace_symbolic_telescopic:"3.13",
+ workspace_identify:"3.13",
+ workspace_sector_area_2R:"3.13",
+ workspace_sector_span_2R:"3.13",
+ workspace_sector_effect:"3.13",
+ workspace_tool_offset_2R:"3.13",
+ workspace_tool_angled_2R:"3.13",
+ workspace_link_point_2R:"3.13",
  /* Capítulo 5 · «encuentra el error» vive en el capítulo 5 pero lo que audita es
     una cinemática directa 2R, así que su tema es el del capítulo 4. */
  find_error:"4.1",
@@ -3744,13 +3699,19 @@ const TOPIC_BY_CONCEPT=Object.freeze({
   "2.7","2.2","2.4","2.7","2.7","2.8","2.7","2.7","2.1","2.9",
   "2.6","2.8","2.4","2.9","2.2","2.6","2.5","2.7","2.9","2.7",
   "2.2","2.7","2.1","2.1","2.2","2.3","2.4","2.5","2.6","2.7","2.8","2.9","2.9","2.6","2.3","2.4","2.5","2.7","2.8","2.7","2.2","2.9","2.6","2.8","2.4","2.2","2.1","2.9","2.6","2.2","2.7","2.8","2.3","2.4","2.1"]),
- 4:Object.freeze(["4.4","4.5","4.2","4.8","4.1","4.6","4.2","4.8","4.5","4.5",
-  "4.9","4.7","4.10","4.3","4.9","4.6","4.1","4.2","4.2","4.1",
-  "4.5","4.9","4.2","4.5","4.11","4.11","4.4","4.1","4.11","4.9",
-  "4.5","4.3","4.8","4.9","4.10","4.11","4.9","4.9","4.7","4.9",
-  "4.8","4.7","4.11","4.5","4.11","4.9","4.9","4.10","4.5","4.7",
-  "4.9","4.8","4.8",
-  "4.1","4.3","4.2","4.11","4.11","4.7","4.3","4.9","4.3","4.11","4.11","4.11","4.7","4.3","4.9","4.4","4.11","4.10","4.5","4.9","4.8","4.11","4.8","4.10","4.5","4.10","4.11","4.2","4.2","4.5","4.9"]),
+ /* Una clave vacía marca una pregunta retirada del temario: el jacobiano
+     salió del programa y sus preguntas dejan de sortearse. No se borran del
+     banco para que banco e índice sigan alineados por posición, y para poder
+     devolverlas si el temario cambia. */
+ 4:Object.freeze(["4.4","","4.2","4.7","4.1","4.5","4.2","4.7","4.4","",
+  "","4.6","4.8","4.3","","4.5","4.1","4.2","4.2","4.1",
+  "","4.4","4.2","4.4","3.13","3.13","4.4","4.1","3.13","",
+  "4.7","4.3","4.7","","4.8","3.13","","4.7","4.6","4.7",
+  "4.7","4.6","3.13","4.7","3.13","","","4.8","4.7","4.6",
+  "4.7","4.7","4.7","4.1","4.3","4.2","3.13","3.13","4.6","4.3",
+  "4.4","4.3","3.13","3.13","3.13","4.6","4.3","","4.4","3.13",
+  "","4.3","4.7","","3.13","4.7","4.8","4.6","","3.13",
+  "4.2","4.2","4.6",""]),
  5:Object.freeze(["5.1","5.2","5.3","5.3","5.3","5.4","5.4","5.5","5.2","5.6",
   "5.6","5.6","5.7","5.2","5.5","5.5","5.5","5.6","5.6","5.6",
   "5.7","5.7","5.5","5.5","5.6","5.6","5.6","5.3","5.7","5.5",
@@ -4311,7 +4272,20 @@ const CHOICE_LEVELS=Object.freeze({
    los niveles inferiores antes que devolver el banco completo, para que la dificultad
    nunca sea decorativa. */
 function choicePool(chapter,diff){
- const original=CHOICE_BANKS[chapter]||[],bank=original.filter(q=>!calculationMeta(chapter,q)),levels=CHOICE_LEVELS[chapter];
+ const original=CHOICE_BANKS[chapter]||[];
+ /* Dos motivos para que una pregunta escrita en este banco no se sortee aquí:
+    que su tema saliera del programa —el índice la marca con clave vacía en vez
+    de borrarla, para no desalinear banco e índice— o que su tema se mudara a
+    otro capítulo, como el área de trabajo. En el segundo caso la pregunta no se
+    pierde: la práctica de su tema la sigue encontrando. */
+ const ajena=q=>{
+  const clave=TOPIC_BY_CONCEPT[chapter]?.[original.indexOf(q)];
+  if(clave===undefined)return false;
+  if(!clave)return true;
+  const ref=topicByKey(clave);
+  return Boolean(ref)&&ref.capitulo.id!==Number(chapter);
+ };
+ const bank=original.filter(q=>!calculationMeta(chapter,q)&&!ajena(q)),levels=CHOICE_LEVELS[chapter];
  if(!levels||levels.length!==original.length)return bank;
  const exact=bank.filter(q=>levels[original.indexOf(q)]===diff);
  if(exact.length)return exact;
@@ -4523,8 +4497,8 @@ const REFLECTION_BANK=[
  {key:'rotation',topic:'3.2',yes:'Una matriz de rotación tridimensional propia tiene columnas ortonormales y determinante positivo igual a uno.',no:'Toda matriz ortogonal de tamaño tres por tres representa una rotación propia, aunque su determinante sea negativo.',trap:'toda matriz ortogonal',question:'Explica por qué comprobar únicamente la ortogonalidad no basta para validar una matriz de rotación propia.',criteria:['Incluye la condición de determinante +1.','Distingue una reflexión de una rotación propia.']},
  {key:'frames',topic:'3.3',yes:'Componer movimientos exige conocer si cada eje está referido al sistema fijo o al sistema móvil.',no:'El orden de multiplicación de transformaciones no depende de si sus ejes son fijos o móviles.',trap:'no depende',question:'Un enunciado describe dos giros sin indicar si los ejes son fijos o móviles. Explica qué ambigüedad aparece.',criteria:['Identifica la referencia de los ejes como dato necesario.','Relaciona ese dato con el orden o lado de composición, sin asumir que las rotaciones conmutan.']},
  {key:'point',topic:'3.11',yes:'Dos ternas de coordenadas distintas pueden representar el mismo punto físico en marcos diferentes.',no:'Si cambian las coordenadas de un punto al cambiar de marco, el punto necesariamente se ha movido físicamente.',trap:'necesariamente',question:'Explica cómo puede cambiar la terna de coordenadas de un punto inmóvil cuando se cambia el marco de referencia.',criteria:['Distingue el punto físico de su representación.','Relaciona el cambio de coordenadas con la posición y orientación de los marcos.']},
- {key:'workspace',topic:'4.11',yes:'Los límites articulares pueden reducir la región alcanzable aunque las longitudes de los eslabones permanezcan iguales.',no:'El espacio de trabajo depende únicamente de las longitudes y nunca de los límites articulares.',trap:'únicamente … y nunca',question:'Dos brazos tienen las mismas longitudes, pero distintos límites articulares. Explica por qué pueden tener regiones alcanzables diferentes.',criteria:['Considera el conjunto de configuraciones permitidas.','Distingue alcance máximo de región completa, incluidos huecos o sectores no alcanzables.']},
- {key:'singularity',topic:'4.5',yes:'Una singularidad de la tarea corresponde a una pérdida de rango de su jacobiano.',no:'Calcular el determinante es un criterio aplicable a cualquier jacobiano, incluso si no es cuadrado.',trap:'cualquier jacobiano',question:'Explica cómo estudiarías una singularidad cuando el jacobiano de la tarea no es cuadrado.',criteria:['Utiliza rango o valores singulares como criterio.','Explica por qué no corresponde calcular el determinante de una matriz no cuadrada.']},
+ {key:'workspace',topic:'3.13',yes:'Los límites articulares pueden reducir la región alcanzable aunque las longitudes de los eslabones permanezcan iguales.',no:'El espacio de trabajo depende únicamente de las longitudes y nunca de los límites articulares.',trap:'únicamente … y nunca',question:'Dos brazos tienen las mismas longitudes, pero distintos límites articulares. Explica por qué pueden tener regiones alcanzables diferentes.',criteria:['Considera el conjunto de configuraciones permitidas.','Distingue alcance máximo de región completa, incluidos huecos o sectores no alcanzables.']},
+ {key:'singularity',topic:'4.4',yes:'En una configuración singular el extremo pierde la capacidad de moverse instantáneamente en alguna dirección.',no:'Toda frontera del área de trabajo es una configuración singular.',trap:'Toda',question:'Explica cómo reconocerías una singularidad de un brazo 2R mirando solo su postura y sus soluciones de cinemática inversa.',criteria:['Señala que las ramas codo arriba y codo abajo se funden en una sola solución.','Distingue una frontera causada por el alcance del brazo de otra causada por un tope articular.']},
  {key:'inverse',topic:'4.3',yes:'Verificar una solución mediante cinemática directa no sustituye la comprobación de límites y colisiones.',no:'Si una solución de cinemática inversa reproduce la posición pedida, siempre es ejecutable por el robot real.',trap:'siempre',question:'Una solución inversa reproduce la posición deseada. Explica qué comprobarías antes de considerarla ejecutable.',criteria:['Comprueba límites articulares y obstáculos o colisiones.','Considera orientación requerida, singularidades o continuidad del movimiento.']},
  {key:'gravity',topic:'5.5',yes:'Mantener velocidad articular nula no implica que el par necesario para sostener el robot sea nulo.',no:'Un robot inmóvil nunca necesita par en sus articulaciones.',trap:'nunca',question:'Explica por qué un brazo inmóvil puede necesitar par para sostener una carga.',criteria:['Relaciona el par con el momento de las fuerzas gravitatorias.','Distingue equilibrio estático de ausencia de fuerzas o pares.']},
  {key:'pid',topic:'5.6',yes:'La saturación del actuador puede impedir alcanzar la respuesta prevista por un modelo lineal del control.',no:'Aumentar indefinidamente las ganancias de un PID garantiza una respuesta cada vez mejor.',trap:'indefinidamente … garantiza',question:'Un aumento de ganancias provoca oscilaciones y saturación. Explica por qué la mejora del control no puede basarse solo en aumentar ganancias.',criteria:['Considera límites del actuador y dinámica no ideal.','Relaciona ganancias con estabilidad, ruido u oscilaciones; propone verificar la respuesta del sistema.']},
@@ -4576,7 +4550,7 @@ function initReflection(){
 }
 
 const CALC_CHOICE_INDEX={1:[24,47,61,62,76],2:[23,24,61,62,63,77,78],4:[25,62],5:[12,44,45,47]};
-function calculationMeta(ch,q){const index=(CHOICE_BANKS[ch]||[]).indexOf(q);if(!(CALC_CHOICE_INDEX[ch]||[]).includes(index))return null;return{chapter:ch,index,topic:ch===1?'1.9':ch===2?([24,63].includes(index)?'2.6':'2.9'):ch===4?'4.11':[12,44].includes(index)?'5.7':index===45?'5.6':'5.5'};}
+function calculationMeta(ch,q){const index=(CHOICE_BANKS[ch]||[]).indexOf(q);if(!(CALC_CHOICE_INDEX[ch]||[]).includes(index))return null;return{chapter:ch,index,topic:ch===1?'1.9':ch===2?([24,63].includes(index)?'2.6':'2.9'):ch===4?'3.13':[12,44].includes(index)?'5.7':index===45?'5.6':'5.5'};}
 function calculationChoices(ch,diff){return(CHOICE_BANKS[ch]||[]).filter((q,i)=>calculationMeta(ch,q)&&CHOICE_LEVELS[ch]?.[i]===Number(diff))}
 function foundationCalculation(ch,diff){const choices=calculationChoices(ch,diff),generators=NUMERIC_GENERATORS[ch];return choices.length&&Math.random()<.35?makeChoiceFromQuestion(ch,diff,pick(choices)):pick(generators)(diff)}
 
@@ -5383,7 +5357,7 @@ const CHOICE_RATIONALE=Object.freeze({
  "En un brazo planar 2R con eslabones de longitud distinta y giro libre en ambas articulaciones, ¿qué forma tiene la región alcanzable?":{clave:"El alcance varía entre |L₁ − L₂| y L₁ + L₂ en cualquier dirección, de modo que la región es una corona centrada en la base.",fallos:{"Un círculo completo, sin hueco.":"El círculo sin hueco solo aparece cuando los eslabones son iguales y el radio mínimo se anula.","Un sector angular.":"El sector aparece cuando alguna articulación tiene el recorrido limitado, no con giro libre.","Una elipse.":"La región es de revolución alrededor de la base, porque el alcance no depende del ángulo del hombro."}},
  "¿Qué relaciona el problema de cinemática inversa?":{clave:"La cinemática inversa parte de la pose que se quiere alcanzar y busca qué valores articulares la producen, justo al revés que la directa.",fallos:{"Las velocidades articulares con la velocidad del extremo.":"Esa relación la establece el jacobiano, que trabaja con velocidades y no con posiciones.","Los pares articulares con las aceleraciones resultantes.":"Esa es la dinámica del manipulador, que introduce masas, inercias y fuerzas.","La posición del extremo con el instante en que se ocupa.":"Esa es la planificación de trayectorias, que decide cuándo se pasa por cada punto."}},
  "En la convención DH estándar, ¿alrededor de qué eje se mide el parámetro θᵢ?":{clave:"θᵢ es el giro alrededor de zᵢ₋₁ que lleva xᵢ₋₁ hasta xᵢ, y es la variable de las articulaciones de revolución.",fallos:{"Alrededor de xᵢ.":"Alrededor de xᵢ se mide α, el ángulo entre los ejes z consecutivos.","A lo largo de zᵢ₋₁.":"A lo largo de zᵢ₋₁ se mide d, que es un desplazamiento y no un giro.","Alrededor de yᵢ₋₁.":"La convención DH no emplea el eje y para ningún parámetro: queda determinado por los otros dos."}},
- "¿Qué caracteriza a una configuración singular de un manipulador?":{clave:"En una singularidad el jacobiano pierde rango: hay direcciones de la tarea que ninguna combinación de velocidades articulares consigue producir.",fallos:{"El extremo se encuentra fuera del área de trabajo.":"Fuera del área de trabajo no existe solución alguna; la singularidad ocurre en puntos que sí son alcanzables.","El robot alcanza su velocidad máxima de operación.":"Es justo lo contrario: cerca de la singularidad se pierde movilidad en alguna dirección.","Alguna articulación ha llegado a su límite de recorrido.":"El límite articular es una restricción mecánica; la singularidad es una propiedad geométrica del jacobiano."}},
+ "¿Qué caracteriza a una configuración singular de un manipulador?":{clave:"En una singularidad hay direcciones que ninguna combinación de movimientos articulares consigue producir en ese instante. En un 2R ocurre con el brazo extendido o plegado: las dos ramas de la inversa se funden y el extremo ya no puede alejarse más.",fallos:{"El extremo se encuentra fuera del área de trabajo.":"Fuera del área de trabajo no existe solución alguna; la singularidad ocurre en puntos que sí son alcanzables.","El robot alcanza su velocidad máxima de operación.":"Es justo lo contrario: cerca de la singularidad se pierde movilidad en alguna dirección.","Alguna articulación ha llegado a su límite de recorrido.":"El límite articular es una restricción mecánica; la singularidad es una propiedad geométrica del jacobiano."}},
  "¿Cuántas filas tiene la tabla DH de un manipulador serie de seis articulaciones?":{clave:"Cada fila describe la transformación entre dos marcos consecutivos y hay una por articulación: seis filas, con cuatro parámetros cada una.",fallos:{"Cuatro: una por cada parámetro de la convención.":"Cuatro es el número de parámetros de cada fila, a, α, d y θ, no el número de filas.","Doce: dos por articulación.":"Cada articulación aporta una sola transformación; duplicar filas describiría un robot distinto.","Depende de si la muñeca es esférica.":"La muñeca esférica simplifica la cinemática inversa, pero no altera cuántas articulaciones hay."}},
  "Un brazo planar 2R tiene L₁=3 y L₂=2. Ambos giros son completos; no hay obstáculos ni grosor de eslabones. ¿Cuál es la superficie de su región alcanzable?":{clave:"Basta sustituir: 4π·3·2 = 24π. La expresión procede de π(L₁+L₂)² − π(L₁−L₂)², donde los cuadrados se cancelan y queda el cuádruple del producto.",fallos:{"12π.":"12π resultaría de usar 2π·L₁·L₂; el factor correcto es 4, porque proviene de una diferencia de cuadrados.","36π.":"36π es π(L₁+L₂)², el círculo exterior completo, sin descontar el hueco interior.","5π.":"5π no corresponde a ninguna de las áreas en juego: parece sumar las longitudes en lugar de multiplicarlas."}},
  "En un 2R planar el hombro queda limitado a un recorrido de 90° en lugar de girar libremente. ¿Qué le ocurre a la región alcanzable?":{clave:"El hombro solo orienta el brazo: los radios mínimo y máximo dependen de las longitudes y del codo, así que la corona se recorta en ángulo sin cambiar de grosor.",fallos:{"No cambia, porque los radios no dependen del hombro.":"Los radios efectivamente no dependen del hombro, pero el área sí: solo se barre la porción angular permitida.","Desaparece el hueco interior.":"El hueco interior lo fija el codo mediante |L₁ − L₂|, y limitar el hombro no lo modifica.","Se reduce exactamente a la mitad.":"La reducción es proporcional al recorrido permitido, y 90° de 360° es una cuarta parte, no la mitad."}},
@@ -5399,7 +5373,7 @@ const CHOICE_RATIONALE=Object.freeze({
  "Dos configuraciones distintas de un mismo 2R producen idéntico TCP y determinantes del jacobiano de igual magnitud. ¿Es posible?":{clave:"Las dos soluciones de un 2R comparten posición y difieren en el signo de q₂; como el determinante vale L₁·L₂·sen(q₂), cambia de signo conservando el módulo.",fallos:{"No: el determinante identifica la configuración de forma unívoca.":"El determinante es un número y muchas configuraciones pueden compartirlo; aquí ocurre por simetría de las dos ramas.","Solo si el manipulador es redundante.":"Un 2R no es redundante para posición en el plano y aun así tiene dos ramas: la redundancia no hace falta.","Solo si ambas configuraciones son singulares.":"En singularidad el determinante valdría cero en las dos; aquí es distinto de cero y solo cambia de signo."}},
  "El codo de un 2R pasa de estar limitado a ±90° a poder girar ±180°. ¿Qué cambia en la región alcanzable?":{clave:"El alcance radial vale √(L₁² + L₂² + 2L₁L₂·cos q₂): permitir q₂ próximo a 180° baja el radio hasta |L₁ − L₂|, mientras que el máximo ya se lograba con q₂ = 0.",fallos:{"El radio máximo aumenta.":"El radio máximo es L₁ + L₂ y se alcanza con el brazo extendido, que ya estaba permitido antes.","El área se duplica exactamente.":"El aumento depende de las longitudes concretas: no hay razón para que resulte exactamente el doble.","No cambia nada, porque el codo no interviene en el alcance.":"El codo es justamente quien decide el alcance radial; el hombro solo decide la dirección."}},
  "Una solución de cinemática inversa se sustituye en la directa y el error del TCP resulta de 1e-12 m. ¿Qué NO queda garantizado por esa comprobación?":{clave:"Sustituir en la directa valida la coherencia matemática de la solución, pero no sabe nada de las restricciones mecánicas: una rama puede ser exacta y a la vez imposible de ejecutar.",fallos:{"Que la pose objetivo sea alcanzable.":"Si la sustitución reproduce la pose pedida, esa pose es alcanzable por definición.","Que la aritmética de la solución sea correcta.":"Un error de 1e-12 es precisamente la evidencia de que la aritmética está bien hecha.","Que exista al menos una solución para esa pose.":"Se ha encontrado una y se ha verificado: su existencia queda demostrada."}},
- "Cerca de una singularidad de muñeca se propone limitar la velocidad cartesiana para evitar velocidades articulares excesivas. ¿Basta esa medida?":{clave:"La pérdida de rango elimina direcciones enteras del movimiento instantáneo posible; reducir la velocidad hace más lento el fallo, pero no devuelve la movilidad perdida.",fallos:{"Sí: la velocidad articular es proporcional a la cartesiana, así que limitarla resuelve el problema.":"El factor lo fija el jacobiano inverso, que se degrada sin cota al perder rango: la proporción no es constante.","Sí, siempre que además se aumente la frecuencia del lazo de control.":"Un lazo más rápido reacciona antes, pero no crea una dirección de movimiento que geométricamente no existe.","No, pero basta con recalibrar los parámetros de la tabla DH.":"La singularidad es una propiedad de la geometría del robot, no un error de los parámetros del modelo."}},
+ "Cerca de una singularidad de muñeca se propone limitar la velocidad cartesiana para evitar velocidades articulares excesivas. ¿Basta esa medida?":{clave:"En la singularidad desaparecen direcciones enteras del movimiento instantáneo posible; reducir la velocidad hace más lento el fallo, pero no devuelve la movilidad perdida.",fallos:{"Sí: la velocidad articular es proporcional a la cartesiana, así que limitarla resuelve el problema.":"La proporción entre velocidad cartesiana y articular no es constante: depende de la postura y se dispara al acercarse a la singularidad.","Sí, siempre que además se aumente la frecuencia del lazo de control.":"Un lazo más rápido reacciona antes, pero no crea una dirección de movimiento que geométricamente no existe.","No, pero basta con recalibrar los parámetros de la tabla DH.":"La singularidad es una propiedad de la geometría del robot, no un error de los parámetros del modelo."}},
  "Tras calibrar los parámetros DH minimizando el error del TCP en una zona, el error baja mucho allí y empeora fuera de ella. ¿Qué está ocurriendo?":{clave:"Si se ajustan parámetros geométricos contra medidas que contienen flexión, holgura o deriva térmica, el ajuste compensa localmente esos efectos y deja de valer fuera del dominio medido.",fallos:{"El robot presenta una singularidad fuera de la zona medida.":"Una singularidad afecta a la movilidad instantánea y no produce un error de posición que empeore de forma progresiva.","El modelo necesita más grados de libertad.":"Los grados de libertad son del robot físico y no se añaden calibrando: el problema está en los datos, no en la estructura.","La tabla está escrita en la convención equivocada.":"Una convención equivocada daría error en toda la zona por igual, no un ajuste bueno dentro y malo fuera."}},
  "Un manipulador redundante recorre con la pseudoinversa del jacobiano una trayectoria cerrada en la tarea, y al volver al punto inicial las articulaciones no coinciden con las de partida. ¿Qué ha ocurrido?":{clave:"La pseudoinversa resuelve velocidades instante a instante sin memoria de la configuración de partida: el resultado depende del camino recorrido, así que un ciclo cerrado puede terminar en otra postura.",fallos:{"Error numérico acumulado, que se corrige reduciendo el paso de integración.":"No es acumulación de redondeo: el efecto persiste por fino que sea el paso, porque es una propiedad del método.","Una singularidad no detectada a lo largo del trayecto.":"Cerca de una singularidad aparecerían velocidades articulares enormes, no un retorno limpio a otra configuración.","Los límites articulares se han activado durante el recorrido.":"Si se hubieran activado, la trayectoria del extremo se habría desviado, y aquí se ha seguido correctamente."}},
  "Un 2R planar debe seguir un segmento rectilíneo que en algún punto pasa a distancia del origen menor que |L₁ − L₂|. ¿Qué análisis corresponde?":{clave:"Por debajo del radio mínimo no existe combinación articular alguna que lleve el extremo hasta allí: no es un problema de velocidad ni de rama, sino de alcance.",fallos:{"Basta reducir la velocidad al cruzar esa zona.":"La velocidad no cambia qué puntos son alcanzables: el tramo seguiría estando fuera de la región.","Es alcanzable si se cambia de rama a mitad del recorrido.":"Las dos ramas comparten exactamente la misma región alcanzable; pasar de una a otra no añade puntos.","Solo hay problema si además el segmento toca el borde exterior.":"El borde exterior plantea un problema distinto, el de la singularidad de brazo extendido, independiente del hueco."}},
@@ -5835,10 +5809,10 @@ function makePointFixedToMoving(diff){
 /* Los cuatro niveles cubren las cinco familias, para que filtrar por una de
    ellas siga ofreciendo ejercicios en cualquier dificultad. */
 const CHAPTER3_KINDS=Object.freeze({
- 1:Object.freeze(["symbolicFixed","symbolicMobile","symbolicMixed","symbolicPoint","symbolicInverse","narrativeFixed","narrativeMobile","narrativeMixed","narrativePoint","narrativeInverse","rot","hom","pointTranslation","applyPoint","chainFixed","orientationConcept","cylToCart","quatAxis"]),
- 2:Object.freeze(["symbolicFixed","symbolicMobile","symbolicMixed","symbolicPoint","symbolicInverse","narrativeFixed","narrativeMobile","narrativeMixed","narrativePoint","narrativeInverse","rot","compose","hom","point","validate","validateSe3","orientationConcept","pointTranslation","applyPoint","pointRotated","chainFixed","cylToCart","cartToCyl","quatAxis","quatAngle"]),
- 3:Object.freeze(["symbolicFixed","symbolicMobile","symbolicMixed","symbolicPoint","symbolicInverse","narrativeFixed","narrativeMobile","narrativeMixed","narrativePoint","narrativeInverse","compose","hom","point","inverse","validate","validateSe3","orientationConcept","pointRotated","applyPoint","chainFixed","chainMixed","pointInverse","sphToCart","cartToSph","cartToCyl","quatCompose","quatAngle"]),
- 4:Object.freeze(["symbolicFixed","symbolicMobile","symbolicMixed","symbolicPoint","symbolicInverse","narrativeFixed","narrativeMobile","narrativeMixed","narrativePoint","narrativeInverse","inverse","point","validate","validateSe3","orientationConcept","chainFixed","chainMixed","chainMixed","pointInverse","pointRotated","cartToSph","sphToCart","quatCompose","quatAngle"])
+ 1:Object.freeze(["symbolicFixed","symbolicMobile","symbolicMixed","symbolicPoint","symbolicInverse","narrativeFixed","narrativeMobile","narrativeMixed","narrativePoint","narrativeInverse","rot","hom","pointTranslation","applyPoint","chainFixed","orientationConcept","cylToCart","quatAxis","workspace"]),
+ 2:Object.freeze(["symbolicFixed","symbolicMobile","symbolicMixed","symbolicPoint","symbolicInverse","narrativeFixed","narrativeMobile","narrativeMixed","narrativePoint","narrativeInverse","rot","compose","hom","point","validate","validateSe3","orientationConcept","pointTranslation","applyPoint","pointRotated","chainFixed","cylToCart","cartToCyl","quatAxis","quatAngle","workspace"]),
+ 3:Object.freeze(["symbolicFixed","symbolicMobile","symbolicMixed","symbolicPoint","symbolicInverse","narrativeFixed","narrativeMobile","narrativeMixed","narrativePoint","narrativeInverse","compose","hom","point","inverse","validate","validateSe3","orientationConcept","pointRotated","applyPoint","chainFixed","chainMixed","pointInverse","sphToCart","cartToSph","cartToCyl","quatCompose","quatAngle","workspace"]),
+ 4:Object.freeze(["symbolicFixed","symbolicMobile","symbolicMixed","symbolicPoint","symbolicInverse","narrativeFixed","narrativeMobile","narrativeMixed","narrativePoint","narrativeInverse","inverse","point","validate","validateSe3","orientationConcept","chainFixed","chainMixed","chainMixed","pointInverse","pointRotated","cartToSph","sphToCart","quatCompose","quatAngle","workspace"])
 });
 /* Familia a la que pertenece cada tipo de ejercicio del capítulo 3. */
 const CHAPTER3_FAMILY=Object.freeze({
@@ -5849,6 +5823,7 @@ const CHAPTER3_FAMILY=Object.freeze({
  symbolicFixed:"simbolico",symbolicMobile:"simbolico",symbolicMixed:"simbolico",symbolicPoint:"simbolico",symbolicInverse:"simbolico",
  narrative:"parcial",narrativeFixed:"parcial",narrativeMobile:"parcial",narrativeMixed:"parcial",narrativePoint:"parcial",narrativeInverse:"parcial",
  orientationConcept:"concepto",
+ workspace:"area",
  quatAxis:"cuaternion",quatCompose:"cuaternion",quatAngle:"cuaternion",
  cylToCart:"coordenadas",cartToCyl:"coordenadas",sphToCart:"coordenadas",cartToSph:"coordenadas"
 });
@@ -5873,7 +5848,6 @@ function exerciseFamily(exercise){
  const capitulo=Number(exercise.chapter);
  if(capitulo===3)return CHAPTER3_FAMILY[exercise.kind]||CHAPTER3_FAMILY_BY_ID[exercise.id]||"concepto";
  if(capitulo===4){
-  if(exercise.kind==="jacobiano"||/^jacobian_/.test(exercise.id||""))return "jacobiano";
   if(exercise.kind==="workspace")return "area";
   if(exercise.type==="choice")return "concepto";
   return ["Planar2R","Planar3R"].includes(exercise.model)?"2d":"3d";
@@ -6091,6 +6065,9 @@ function so3Defecto(R){
 function makeChapter3(diff){return makeChapter3Kind(diff,pick(chapter3Kinds(diff)))}
 function makeChapter3Kind(diff,kind){
  const axis=pick(axes),a=pick(diff===1?[30,45,60,90]:angles);
+ /* El área de trabajo se estudia ahora en el capítulo 3, así que su
+    generador entra en el sorteo de este capítulo como un tipo más. */
+ if(kind==="workspace")return makeWorkspaceExercise(diff);
  if(kind==="quatAxis")return makeQuaternionFromAxisAngle(diff);
  if(kind==="quatCompose")return makeQuaternionCompose(diff);
  if(kind==="quatAngle")return makeQuaternionAngle(diff);
@@ -6294,7 +6271,7 @@ function makeWorkspaceRP(diff,variant=pick(['area','radii','point','membership',
  const symbolic=['region','offset'].includes(variant),offset=variant==='offset'||(!symbolic&&diff>=2&&Math.random()<.5),L=offset?ri(1,3):0;
  const qmin=pick([0,1,2]),qmax=qmin+ri(2,5),[amin,amax]=pick([[0,360],[0,90],[-60,60],[30,150],[120,240]]),q1=(amin+amax)/2,q2=(qmin+qmax)/2,rmin=L+qmin,rmax=L+qmax;
  const A=rad(amax-amin)*(rmax*rmax-rmin*rmin)/2;
- const base={id:'workspace_rp_'+variant,chapter:4,difficulty:diff,kind:'workspace',visual:'workspace2d',geometryTopic:'4.11',title:'Área de trabajo · RP telescópico',params:{rp:true,offset,L,qmin,qmax,amin,amax,q1,q2,variant,symbolic},chips:[],hints:[],steps:[],commonErrors:[],concepts:['área de trabajo','método geométrico','rotación y extensión'],tolerance:.003};
+ const base={id:'workspace_rp_'+variant,chapter:4,difficulty:diff,kind:'workspace',visual:'workspace2d',geometryTopic:'3.13',title:'Área de trabajo · RP telescópico',params:{rp:true,offset,L,qmin,qmax,amin,amax,q1,q2,variant,symbolic},chips:[],hints:[],steps:[],commonErrors:[],concepts:['área de trabajo','método geométrico','rotación y extensión'],tolerance:.003};
  const definition=offset?'q₂ es la extensión medida desde el final de una longitud fija L, no desde O.':'q₂ es la distancia radial total desde O hasta E, no solo la parte que sobresale del tubo.';
  const assumptions=`El brazo RP de la figura gira en O y desliza en la dirección del tubo. q₁ se mide desde +X, positivo antihorario. ${definition} El giro y la extensión son independientes. Considera un mecanismo ideal, sin obstáculos ni colisiones. `;
  if(symbolic){
@@ -6444,13 +6421,6 @@ function makePlanar3R(diff){
  const l1=ri(2,5),l2=ri(2,5),l3=ri(1,4),q1=pick([-60,-30,0,30,45,60,90]),q2=pick([-60,-30,0,30,45,60]),q3=pick([-45,-30,0,30,45]),kinematics=KinematicsEngine.planar3R({l1,l2,l3,q1,q2,q3}),tcp=kinematics.positions.at(-1),ask=pick(["x","y"]),answer=round(tcp[ask]);
  return{id:"forward_planar_3R",kind:"planar-3r",model:"Planar3R",chapter:4,type:"number",visual:"spatialRobot",title:"Cinemática directa planar 3R",statement:`Calcula la coordenada <strong>${ask}</strong> del TCP. Los tres ángulos son relativos al eslabón anterior.`,answer,tolerance:.01,chips:[`L₁=${l1}`,`L₂=${l2}`,`L₃=${l3}`,formatAngle(q1,"q₁"),formatAngle(q2,"q₂"),formatAngle(q3,"q₃")],kinematics,params:{l1,l2,l3,q1,q2,q3},unit:angleMode(),convention:"Robot planar 3R: cada qᵢ es relativo y todos los ejes articulares son paralelos a +Z.",numericAlternatives:[{value:round(ask==="x"?l1*Math.cos(rad(q1))+l2*Math.cos(rad(q2))+l3*Math.cos(rad(q3)):l1*Math.sin(rad(q1))+l2*Math.sin(rad(q2))+l3*Math.sin(rad(q3))),message:"Cada eslabón se proyectó con su ángulo relativo. Las orientaciones absolutas son q₁, q₁+q₂ y q₁+q₂+q₃."},{value:round(ask==="x"?l1*Math.cos(rad(q1))+l2*Math.cos(rad(q1+q2)):l1*Math.sin(rad(q1))+l2*Math.sin(rad(q1+q2))),message:"Falta la contribución del tercer eslabón."}],concepts:["cinemática directa planar","ángulos relativos","suma vectorial"],commonErrors:["usar q₂ o q₃ como ángulos absolutos","omitir la contribución de un eslabón"],visualConfig:{defaultView:"2d",highlight:ask},hints:["Las orientaciones absolutas son q₁, q₁+q₂ y q₁+q₂+q₃.","Suma la proyección de cada eslabón sobre el eje solicitado.","Conserva el signo de cada seno o coseno."],steps:[`x=L₁cosq₁+L₂cos(q₁+q₂)+L₃cos(q₁+q₂+q₃)=${fmt(tcp.x)}`,`y=L₁sinq₁+L₂sin(q₁+q₂)+L₃sin(q₁+q₂+q₃)=${fmt(tcp.y)}`,`${ask}=${fmt(answer)}`]};
 }
-function makeJacobian2R(diff){
- const L1=ri(2,6),L2=ri(2,6),t1=pick([-60,-30,0,30,45,60,90]),t2=pick([-90,-60,-30,0,30,45,60,90]),solved=solveRobot2R(L1,L2,t1,t2),det=round(L1*L2*Math.sin(rad(t2)));
- return{id:"jacobian_2R_determinant",kind:"planar-2r",model:"Planar2R",chapter:4,type:"number",visual:"robot2r",title:"Jacobiano del brazo planar 2R",statement:"Calcula el determinante del jacobiano de posición. Indica el valor numérico; un resultado cero identifica una singularidad planar.",answer:det,tolerance:.01,chips:[`L₁=${L1}`,`L₂=${L2}`,formatAngle(t1,"q₁"),formatAngle(t2,"q₂")],params:{L1,L2,t1,t2,x:solved.effector.x,y:solved.effector.y,phi:solved.phiDegRaw,ask:"detJ"},solved,kinematics:solved.kinematics,unit:angleMode(),convention:"Para el 2R planar, det(J)=L₁L₂sin(q₂).",numericAlternatives:[{value:round(L1*L2*Math.sin(rad(t1))),message:"Evaluaste el seno de q₁. El determinante del 2R depende solo del codo: det(J)=L₁L₂sin q₂."},{value:round(L1*L2*Math.cos(rad(t2))),message:"Usaste el coseno en lugar del seno de q₂."},{value:round(L1*L2),message:"Falta el factor sin q₂, que es justamente el que anula el determinante en las singularidades."}],concepts:["jacobiano","singularidad","sensibilidad"],commonErrors:["usar q₁ en lugar de q₂","olvidar convertir el ángulo antes de evaluar el seno"],visualConfig:{defaultView:"2d",highlight:"none"},hints:["Escribe el jacobiano de x e y respecto de q₁ y q₂.","Su determinante se simplifica a L₁L₂sin(q₂).","Comprueba si los eslabones están alineados."],steps:["J=[[-L₁s₁-L₂s₁₂, -L₂s₁₂],[L₁c₁+L₂c₁₂, L₂c₁₂]].",`det(J)=L₁L₂sin(q₂)=${L1}·${L2}·sin(${t2}°).`,`det(J)=${fmt(det)}${Math.abs(det)<EPS?" → configuración singular":""}`]};
-}
-/* Elige la incógnita entre las candidatas cuyo valor no sea prácticamente nulo.
-   Si la pose degenera y todas se anulan, se acepta la que salga: el enunciado
-   sigue siendo correcto, solo pierde interés. */
 function pickInformativeAsk(kinematics,candidates,minimo=.05){
  const tcp=kinematics.positions.at(-1),valor={x:tcp.x,y:tcp.y,z:tcp.z,rho:Math.hypot(tcp.x,tcp.y)};
  const utiles=candidates.filter(clave=>clave==="position"||Math.abs(valor[clave]??0)>=minimo);
@@ -7360,12 +7330,6 @@ function kinematicsCandidates(diff){
   :diff===2?[make2R,makePlanar3R]
   :diff===3?[makePlanar3R,make2R]
   :[makePlanar3R,make2R];
- /* El jacobiano deja de ser un ejercicio suelto entre los planares y pasa a ser
-    familia propia, con los dos sentidos del problema diferencial. */
- const jacobianos=diff<=1?[makeJacobianVelocity2R]
-  :diff===2?[makeJacobianVelocity2R,makeJacobian2R]
-  :diff===3?[makeJacobian2R,makeJacobianInverse2R,makeJacobianVelocity2R]
-  :[makeJacobianInverse2R,makeJacobian2R,makeJacobianInverse2R];
  const espacial=diff===1?[makeSpatial2R]
   :diff===2?[makeSpatial2R,makeSpatial3R,makeScara]
   :diff===3?[makeSpatial3R,makeScara,makeSpatial2R,makeDh3R,makeRrrp,makeIndustrial6R]
@@ -7382,79 +7346,9 @@ function kinematicsCandidates(diff){
     describe justo el mecanismo dibujado. */
  lista.push({family:"3d",make:makeDhAssignment});
  if(diff>=2)lista.push({family:"3d",make:makeDhAssignment6R});
- jacobianos.forEach(make=>lista.push({family:"jacobiano",make}));
- for(let i=0;i<Math.max(1,Math.round(lista.length*.28));i++)lista.push({family:"area",make:makeWorkspaceExercise});
  const conceptuales=Math.max(1,Math.round(lista.length*(CONCEPT_SHARE[diff]??.3)));
  for(let i=0;i<conceptuales;i++)lista.push({family:"concepto",make:d=>makeChoice(4,d)});
  return lista;
-}
-/* ---------- JACOBIANO DEL BRAZO PLANAR 2R ----------
-   J = [[-L₁s₁ − L₂s₁₂, −L₂s₁₂], [L₁c₁ + L₂c₁₂, L₂c₁₂]], con det(J) = L₁L₂sen q₂.
-   Las velocidades articulares se manejan en rad/s para que la relación con la
-   velocidad cartesiana sea directa, sin factores de conversión ocultos. */
-function jacobian2R(L1,L2,q1Deg,q2Deg){
- const s1=Math.sin(rad(q1Deg)),c1=Math.cos(rad(q1Deg));
- const s12=Math.sin(rad(q1Deg+q2Deg)),c12=Math.cos(rad(q1Deg+q2Deg));
- return[[-L1*s1-L2*s12,-L2*s12],[L1*c1+L2*c12,L2*c12]];
-}
-function jacobianApply(J,qd){return[round(J[0][0]*qd[0]+J[0][1]*qd[1]),round(J[1][0]*qd[0]+J[1][1]*qd[1])]}
-function jacobianSolve(J,v){
- const det=J[0][0]*J[1][1]-J[0][1]*J[1][0];
- return[round((J[1][1]*v[0]-J[0][1]*v[1])/det),round((-J[1][0]*v[0]+J[0][0]*v[1])/det)];
-}
-/* Codo alejado de 0° y de 180°: fuera de esas posturas el jacobiano es
-   invertible y el ejercicio tiene solución bien condicionada. */
-function jacobianPose(diff){
- const L1=ri(2,5),L2=ri(2,5);
- const q1=pick(diff<=1?[0,30,45,90]:[-60,-30,0,30,45,60,90,120]);
- const q2=pick(diff<=1?[45,90,-45]:[30,45,60,90,120,-30,-45,-60,-90]);
- return{L1,L2,q1,q2};
-}
-function makeJacobianVelocity2R(diff){
- const{L1,L2,q1,q2}=jacobianPose(diff);
- const qd=[pick([.5,1,-1,1.5,-.5]),pick([.5,1,-1,-1.5,2])];
- const J=jacobian2R(L1,L2,q1,q2),v=jacobianApply(J,qd);
- const soloPrimera=jacobianApply(J,[qd[0],0]);
- return{id:"jacobian_velocity_2R",kind:"jacobiano",model:"Planar2R",chapter:4,type:"matrix",visual:"robot2r",
-  title:"Velocidad del extremo a partir de las articulares",
-  statement:`Un brazo planar 2R con <strong>L₁ = ${L1}</strong> y <strong>L₂ = ${L2}</strong> está en la postura <strong>q₁ = ${q1}°</strong>, <strong>q₂ = ${q2}°</strong>. Las articulaciones giran a <strong>q̇₁ = ${qd[0]} rad/s</strong> y <strong>q̇₂ = ${qd[1]} rad/s</strong>. Calcula la velocidad del extremo <strong>(ẋ, ẏ)</strong>.`,
-  rows:2,cols:1,answer:[[v[0]],[v[1]]],tolerance:.01,
-  chips:[`L₁ = ${L1}`,`L₂ = ${L2}`,`q₁ = ${q1}°, q₂ = ${q2}°`,`q̇ = (${qd[0]}, ${qd[1]}) rad/s`],
-  params:{L1,L2,t1:q1,t2:q2,q1,q2,qd,x:round(solveRobot2R(L1,L2,q1,q2).effector.x),y:round(solveRobot2R(L1,L2,q1,q2).effector.y),phi:round(solveRobot2R(L1,L2,q1,q2).phiDegRaw),ask:"velocidad"},unit:"degrees",
-  solved:solveRobot2R(L1,L2,q1,q2),
-  convention:"J relaciona velocidades articulares en rad/s con la velocidad cartesiana del extremo.",
-  diagnosticAlternatives:[{matrix:[[soloPrimera[0]],[soloPrimera[1]]],message:"Solo se tuvo en cuenta la primera articulación. La velocidad del extremo es la suma de las contribuciones de todas las articulaciones que se mueven."}],
-  concepts:["jacobiano","cinemática diferencial","composición de velocidades"],
-  commonErrors:["sumar solo la contribución de una articulación","usar grados por segundo donde el jacobiano espera radianes por segundo"],
-  visualConfig:{defaultView:"2d",highlight:"none"},
-  hints:["Cada columna del jacobiano es la contribución de una articulación girando a velocidad unidad.","ẋ e ẏ salen de multiplicar J por el vector de velocidades articulares.","Las velocidades deben estar en radianes por segundo, no en grados."],
-  steps:[`J = [[−L₁s₁−L₂s₁₂, −L₂s₁₂], [L₁c₁+L₂c₁₂, L₂c₁₂]]`,
-   `Sustituyendo la postura: J = \n${mtxt(J.map(f=>f.map(x=>round(x))))}`,
-   `v = J·q̇ =\n${mtxt([[v[0]],[v[1]]])}`]};
-}
-function makeJacobianInverse2R(diff){
- const{L1,L2,q1,q2}=jacobianPose(diff);
- const J=jacobian2R(L1,L2,q1,q2);
- const v=[pick([1,2,-1,-2,1.5]),pick([1,2,-1,-2,.5])];
- const qd=jacobianSolve(J,v);
- const conTraspuesta=[round(J[0][0]*v[0]+J[1][0]*v[1]),round(J[0][1]*v[0]+J[1][1]*v[1])];
- const det=round(L1*L2*Math.sin(rad(q2)));
- return{id:"jacobian_inverse_2R",kind:"jacobiano",model:"Planar2R",chapter:4,type:"matrix",visual:"robot2r",
-  title:"Velocidades articulares que producen una velocidad dada",
-  statement:`Un brazo planar 2R con <strong>L₁ = ${L1}</strong> y <strong>L₂ = ${L2}</strong> está en la postura <strong>q₁ = ${q1}°</strong>, <strong>q₂ = ${q2}°</strong>. Se desea que el extremo se mueva con velocidad <strong>(ẋ, ẏ) = (${v[0]}, ${v[1]})</strong>. Calcula las <strong>velocidades articulares (q̇₁, q̇₂)</strong>, en rad/s.`,
-  rows:2,cols:1,answer:[[qd[0]],[qd[1]]],tolerance:.01,
-  chips:[`L₁ = ${L1}`,`L₂ = ${L2}`,`q₁ = ${q1}°, q₂ = ${q2}°`,`v = (${v[0]}, ${v[1]})`,`det(J) = ${fmt(det,3)}`],
-  params:{L1,L2,t1:q1,t2:q2,q1,q2,v,x:round(solveRobot2R(L1,L2,q1,q2).effector.x),y:round(solveRobot2R(L1,L2,q1,q2).effector.y),phi:round(solveRobot2R(L1,L2,q1,q2).phiDegRaw),ask:"articulares"},unit:"degrees",
-  solved:solveRobot2R(L1,L2,q1,q2),
-  convention:"q̇ = J⁻¹v. El sistema tiene solución única mientras det(J) = L₁L₂sen q₂ no se anule.",
-  diagnosticAlternatives:[{matrix:[[conTraspuesta[0]],[conTraspuesta[1]]],message:"El resultado corresponde a multiplicar por la transpuesta de J en lugar de por su inversa. Jᵀ solo coincide con J⁻¹ en matrices ortogonales, y el jacobiano no lo es."}],
-  concepts:["jacobiano inverso","cinemática diferencial","singularidad"],
-  commonErrors:["usar la transpuesta del jacobiano en lugar de su inversa","olvidar dividir por el determinante al invertir"],
-  visualConfig:{defaultView:"2d",highlight:"none"},
-  hints:["Se trata de resolver el sistema lineal J·q̇ = v, no de multiplicar por J.","Para una matriz 2×2, la inversa intercambia la diagonal principal, cambia el signo de la secundaria y divide por el determinante.",`Aquí det(J) = L₁L₂sen q₂ = ${fmt(det,3)}, distinto de cero, así que la solución es única.`],
-  steps:[`J = \n${mtxt(J.map(f=>f.map(x=>round(x))))}`,
-   `det(J) = L₁L₂sen q₂ = ${fmt(det,3)}`,
-   `q̇ = J⁻¹v =\n${mtxt([[qd[0]],[qd[1]]])}`]};
 }
 function makeKinematicsExercise(diff){
  return pickByFamily(4,kinematicsCandidates(diff))(diff);
@@ -7464,9 +7358,19 @@ function makeKinematicsExercise(diff){
    guardadas se aplican solo a la práctica libre; nunca desvían una lección.
    Cada generador se selecciona directamente, sin búsquedas aleatorias. */
 function topicChoicePool(key,diff){
- const ref=topicByKey(key);if(!ref)return[];
- const chapter=ref.capitulo.id;
- return(CHOICE_BANKS[chapter]||[]).filter((q,i)=>!calculationMeta(chapter,q)&&TOPIC_BY_CONCEPT[chapter]?.[i]===key&&CHOICE_LEVELS[chapter]?.[i]===Number(diff));
+ if(!topicByKey(key))return[];
+ /* Un tema puede recibir preguntas escritas en el banco de otro capítulo: el
+    área de trabajo se estudia ahora en el capítulo 3, pero sus preguntas se
+    redactaron dentro del banco del 4. Se busca la clave en todos los bancos en
+    vez de mirar solo el del capítulo al que pertenece el tema. */
+ const pool=[];
+ for(const capitulo of Object.keys(CHOICE_BANKS)){
+  const n=Number(capitulo);
+  (CHOICE_BANKS[capitulo]||[]).forEach((q,i)=>{
+   if(!calculationMeta(n,q)&&TOPIC_BY_CONCEPT[capitulo]?.[i]===key&&CHOICE_LEVELS[capitulo]?.[i]===Number(diff))pool.push(q);
+  });
+ }
+ return pool;
 }
 function topicChapter3Kinds(key,diff){
  const byKey={"3.2":["rot"],"3.3":["compose"],"3.4":["hom"],"3.6":["cylToCart","cartToCyl","sphToCart","cartToSph"],"3.7":["validate"],"3.8":["orientationConcept"],"3.9":["inverse","validateSe3"],"3.10":["quatAxis","quatCompose","quatAngle"],"3.11":["point","pointTranslation","applyPoint","pointRotated","pointInverse","narrativePoint","narrativeInverse","symbolicPoint","symbolicInverse"],"3.12":["chainFixed","chainMixed","narrativeFixed","narrativeMobile","narrativeMixed","symbolicFixed","symbolicMobile","symbolicMixed"]};
@@ -7489,8 +7393,7 @@ function legacyTopicNumericGenerators(key,diff){
     ejercicio de cinemática inversa plana no entrenaba esa destreza. */
  if(key==="4.3")return diff===1?[makeDhAssignment,d=>makeGeometric2R(d,"inverse")]:[makeDhAssignment,makeDhAssignment6R,d=>makeGeometric2R(d,"inverse")];
  if(key==="4.2")return diff>=3?[plausibleSpatial(makeDh3R)]:[];
- if(key==="4.5")return diff===1?[makeJacobianVelocity2R]:diff===2?[makeJacobianVelocity2R,makeJacobian2R]:[makeJacobian2R,makeJacobianInverse2R,makeJacobianVelocity2R];
- if(key==="4.11")return[makeWorkspaceExercise];
+ if(key==="3.13")return[makeWorkspaceExercise];
  if(key.startsWith("3."))return topicChapter3Kinds(key,diff).map(kind=>d=>makeChapter3Kind(d,kind));
  return all[key]||[];
 }
@@ -7509,7 +7412,7 @@ function topicPracticeAvailability(key,difficulty=Number(document.getElementById
 }
 function makeTopicExercise(key,diff){
  const ref=topicByKey(key);if(!ref||!DIFFICULTY_LEVELS.includes(Number(diff)))return null;
- if(key==="4.11"&&!familyFilterSuspended&&!examEnCurso())return wsGenerate(diff);
+ if(key==="3.13"&&!familyFilterSuspended&&!examEnCurso())return wsGenerate(diff);
  const pool=topicChoicePool(key,diff),generators=topicNumericGenerators(key,diff);
  let exercise=null;
  if(pool.length&&(!generators.length||wantsConceptual(diff)))exercise=makeChoiceFromQuestion(ref.capitulo.id,diff,pick(pool));
@@ -7914,13 +7817,6 @@ function exerciseTheorySpec(exercise){
   ${theoryEquation("J s^2+(b+k_d)s+k_p = J\\left(s^2+2\\zeta\\omega_n s+\\omega_n^2\\right)\\ \\Rightarrow\\ k_p=J\\omega_n^2,\\ k_d=2\\zeta\\omega_n J-b","Asignación de polos: se igualan coeficientes término a término")}
   <div class="theory-grid"><div class="theory-principle"><strong>ζ</strong><span>Decide el sobreimpulso, con independencia de la frecuencia.</span></div><div class="theory-principle"><strong>ωₙ</strong><span>Escala la rapidez de toda la respuesta.</span></div><div class="theory-principle"><strong>b ya está</strong><span>La planta aporta amortiguamiento propio: el control solo añade la diferencia.</span></div><div class="theory-principle"><strong>Límite práctico</strong><span>Subir ωₙ exige más par y amplifica el ruido de medida.</span></div></div>
   <div class="callout warn"><strong>Alcance:</strong> estas expresiones valen para un segundo orden dominante sin retardo. Con retardo de transporte, saturación o resonancias estructurales, la predicción deja de cumplirse y hay que verificar sobre la planta real.</div>`);
- if(exercise?.kind==="jacobiano"||/^jacobian_/.test(exercise?.id||""))return theorySpec("Fundamento teórico · jacobiano y cinemática diferencial","De velocidades articulares a velocidad del extremo",`
-  <h4>Una relación lineal que depende de la postura</h4>
-  <p>El jacobiano no es una constante del robot: se recalcula en cada configuración. Relaciona de forma lineal las velocidades articulares con la del extremo, y su pérdida de rango es la definición de singularidad.</p>
-  ${theoryEquation("\\mathbf v=\\mathbf J(q)\\,\\dot q,\\qquad \\dot q=\\mathbf J(q)^{-1}\\mathbf v","v = J(q)·q̇      y      q̇ = J(q)⁻¹·v")}
-  ${theoryEquation("\\mathbf J=\\begin{bmatrix}-l_1s_1-l_2s_{12}&-l_2s_{12}\\\\ l_1c_1+l_2c_{12}&l_2c_{12}\\end{bmatrix},\\quad \\det \\mathbf J=l_1l_2\\sin q_2","det(J) = l₁·l₂·sen q₂ para el brazo planar 2R")}
-  <div class="theory-grid"><div class="theory-principle"><strong>Problema directo</strong><span>Multiplicar: dadas las velocidades articulares, sale la del extremo.</span></div><div class="theory-principle"><strong>Problema inverso</strong><span>Resolver un sistema: dada la velocidad deseada, salen las articulares.</span></div><div class="theory-principle"><strong>Singularidad</strong><span>Con q₂ = 0° o 180° el determinante se anula y la inversa no existe.</span></div><div class="theory-principle"><strong>Jᵀ no es J⁻¹</strong><span>La transpuesta aparece en estática, para relacionar fuerzas y pares, no para invertir velocidades.</span></div></div>
-  <p><strong>Cerca de la singularidad</strong> el determinante es pequeño y la inversa amplifica: se piden velocidades articulares enormes para un movimiento cartesiano modesto. Ahí se recurre a la pseudoinversa amortiguada.</p>`);
  const familiaCuaternion=["quaternion_from_axis_angle","quaternion_compose","quaternion_angle"];
  if(familiaCuaternion.includes(exercise?.id))return theorySpec("Fundamento teórico · cuaterniones unitarios","Cuatro números para una orientación",`
   <h4>Por qué aparece el medio ángulo</h4>
@@ -8029,7 +7925,7 @@ function exerciseTheorySpec(exercise){
   <p>q₂ se mide desde la prolongación del primer eslabón. Por ello la orientación absoluta del segundo eslabón es q₁+q₂.</p>
   ${theoryEquation("\\begin{aligned}x&=L_1\\cos q_1+L_2\\cos(q_1+q_2)\\\\y&=L_1\\sin q_1+L_2\\sin(q_1+q_2)\\\\\\phi&=q_1+q_2\\end{aligned}","x=L₁cosq₁+L₂cos(q₁+q₂); y=L₁sinq₁+L₂sin(q₁+q₂); φ=q₁+q₂")}
   ${theoryEquation("\\mathbf J_p=\\begin{bmatrix}-L_1s_1-L_2s_{12}&-L_2s_{12}\\\\L_1c_1+L_2c_{12}&L_2c_{12}\\end{bmatrix},\\quad \\det\\mathbf J_p=L_1L_2\\sin q_2","Jp y det(Jp)=L₁L₂sin(q₂)")}
-  <p>Cuando q₂=0 o π, los eslabones son colineales y el jacobiano de posición pierde rango. La lámina del ejercicio conserva esta geometría sin mover la cámara.</p>`);
+  <p>Cuando q₂=0 o π, los eslabones son colineales: el brazo queda extendido o plegado, las dos ramas de la inversa se funden en una y el extremo no puede alejarse más en la dirección radial. La lámina del ejercicio conserva esta geometría sin mover la cámara.</p>`);
  if(exercise?.model==="Planar3R")return theorySpec("Fundamento teórico · cadena planar 3R","Suma de orientaciones relativas",`
   <h4>Proyección de cada eslabón</h4>
   ${theoryEquation("\\begin{aligned}x&=L_1c_1+L_2c_{12}+L_3c_{123}\\\\y&=L_1s_1+L_2s_{12}+L_3s_{123}\\\\\\phi&=q_1+q_2+q_3\\end{aligned}","x=L₁c₁+L₂c₁₂+L₃c₁₂₃; y=L₁s₁+L₂s₁₂+L₃s₁₂₃; φ=q₁+q₂+q₃")}
@@ -8145,8 +8041,6 @@ const SOLUTION_REASONING=Object.freeze({
  "second_order_specs":{idea:"El amortiguamiento y la frecuencia natural se reparten el trabajo: el primero decide cuánto oscila la respuesta y el segundo, junto con él, cuánto tarda. Por eso el sobreimpulso no depende de la frecuencia y el tiempo de asentamiento depende del producto de ambos.",comprobacion:"Cambia mentalmente la frecuencia natural sin tocar el amortiguamiento: el sobreimpulso debe quedar exactamente igual."},
  "pid_gain_design":{idea:"Diseñar por asignación de polos es igualar coeficientes: se escribe el polinomio característico del lazo cerrado y se compara con la forma canónica de segundo orden. La planta ya aporta su propio amortiguamiento, así que el control solo tiene que añadir lo que falta.",comprobacion:"Sustituye las ganancias obtenidas en el polinomio y comprueba que el término independiente dividido por la inercia devuelve el cuadrado de la frecuencia natural."},
 
- "jacobian_velocity_2R":{idea:"El jacobiano es la relación lineal entre lo que se mueve por dentro y lo que se mueve por fuera. Cada columna dice qué velocidad del extremo produce una articulación girando sola, y la velocidad total es la suma de todas esas contribuciones.",comprobacion:"Anula mentalmente una de las dos velocidades articulares: la velocidad resultante debe reducirse a la columna correspondiente del jacobiano."},
- "jacobian_inverse_2R":{idea:"El problema inverso no se resuelve multiplicando otra vez, sino despejando: hay que resolver el sistema lineal que plantea el jacobiano. La solución es única mientras el determinante no se anule, y es justamente eso lo que se pierde en una singularidad.",comprobacion:"Multiplica el jacobiano por las velocidades articulares obtenidas: debe devolver la velocidad cartesiana pedida."},
 
  "quaternion_from_axis_angle":{idea:"Un cuaternión unitario codifica una rotación con cuatro números y una restricción de norma. El medio ángulo no es un capricho: hace que la composición por producto reproduzca exactamente la composición de rotaciones, y es lo que evita las singularidades de las ternas de ángulos.",comprobacion:"La suma de los cuatro cuadrados debe valer exactamente 1; si no, el cuaternión no representa una rotación."},
  "quaternion_compose":{idea:"Componer orientaciones con cuaterniones es multiplicarlos, y el producto no es conmutativo por la misma razón que no lo es el de matrices: cada giro actúa sobre lo que dejó el anterior. La parte vectorial arrastra un producto vectorial que es justamente el término que rompe la conmutatividad.",comprobacion:"El resultado debe seguir teniendo norma 1, y calcular el producto en el orden contrario debe dar un cuaternión distinto."},
@@ -8181,7 +8075,6 @@ const SOLUTION_REASONING=Object.freeze({
  "chain_mixed_frame":{idea:"La regla es la misma de siempre, pero se decide paso a paso: lo referido a ejes fijos se premultiplica y lo referido a ejes ya movidos se postmultiplica. Numerar los pasos y anotar junto a cada uno si es fijo o móvil antes de operar evita casi todos los errores.",comprobacion:"Cambia mentalmente un paso de fijo a móvil: el resultado debe cambiar. Si no cambiara, esa transformación conmutaría con las demás."},
  "forward_kinematics_2R":{idea:"Cada eslabón aporta su proyección sobre los ejes, y lo que decide esa proyección es la orientación absoluta de cada uno: el primero apunta a q₁ y el segundo a q₁+q₂, porque q₂ se mide respecto del eslabón anterior y no del suelo.",comprobacion:"La distancia del extremo al origen debe quedar entre |l₁−l₂| y l₁+l₂."},
  "forward_planar_3R":{idea:"Es el mismo razonamiento encadenado una vez más: las orientaciones absolutas son q₁, q₁+q₂ y q₁+q₂+q₃, y cada eslabón proyecta con la suya. Como todos los ejes articulares son paralelos, el problema sigue siendo plano.",comprobacion:"La distancia del extremo al origen no puede superar la suma de los tres eslabones."},
- "jacobian_2R_determinant":{idea:"El jacobiano relaciona las velocidades articulares con la del extremo, y su determinante mide cuánta superficie cartesiana se obtiene por unidad de movimiento articular. En el 2R se simplifica a L₁L₂sin q₂, de modo que solo el codo decide la singularidad.",comprobacion:"Si el determinante sale cero, el brazo debe estar completamente extendido o completamente plegado."},
  "forward_spatial_2R":{idea:"Los dos giros no son del mismo tipo: q₁ es un acimut alrededor de Z que orienta el plano de trabajo, y q₂ es una elevación dentro de ese plano. Conviene resolver primero la distancia horizontal y repartirla después entre X e Y.",comprobacion:"Con q₁ igual a cero el punto debe quedar contenido en el plano XZ, es decir, con la coordenada y nula."},
  "forward_spatial_3R":{idea:"La cadena se separa en dos problemas más simples: las elevaciones determinan la distancia horizontal y la altura, y el acimut solo gira ese perfil alrededor del eje vertical. Esa separación evita arrastrar los tres ángulos a la vez.",comprobacion:"La raíz de x²+y² debe coincidir con la distancia horizontal calculada antes de proyectar."},
  "forward_scara_rrp":{idea:"El SCARA está diseñado precisamente para desacoplar: las dos revolutas resuelven el plano XY como un 2R corriente y la prismática solo mueve la altura. Por eso su cinemática directa nunca mezcla las tres variables.",comprobacion:"Cambia el valor de la prismática: las coordenadas x e y deben quedar exactamente igual."},
@@ -9324,7 +9217,7 @@ function robot2RSvgMarkup(spec){
  }
  const dimension=(d,text)=>`${d.leader?`<path class="rt-leader" d="M ${fmt(d.lineStart.x,2)} ${fmt(d.lineStart.y,2)} L ${fmt(d.lineEnd.x,2)} ${fmt(d.lineEnd.y,2)}"/>`:""}<text class="rt-label" data-dimension="${text.slice(0,2)}" x="${fmt(d.x,2)}" y="${fmt(d.y,2)}" text-anchor="middle" dominant-baseline="middle">${xmlText(text)}</text>`;
  const collapse=spec.states.collapsed?`<circle class="rt-effector-collapse" cx="${fmt(base.x,2)}" cy="${fmt(base.y,2)}" r="18"/><path class="rt-leader" d="M ${fmt(base.x-8,2)} ${fmt(base.y-8,2)} L ${fmt(base.x-45,2)} ${fmt(base.y-42,2)}"/><text class="rt-label" x="${fmt(base.x-50,2)}" y="${fmt(base.y-48,2)}" text-anchor="end">P coincide con O</text>`:`<circle class="rt-effector" cx="${fmt(effector.x,2)}" cy="${fmt(effector.y,2)}" r="7"/>`;
- const nombreIncognita={distance:"la distancia radial",phi:"la orientación φ del extremo",detJ:"el determinante del jacobiano",x:"la coordenada x",y:"la coordenada y"}[spec.target.unknown]||`la magnitud ${spec.target.unknown}`;
+ const nombreIncognita={distance:"la distancia radial",phi:"la orientación φ del extremo",x:"la coordenada x",y:"la coordenada y"}[spec.target.unknown]||`la magnitud ${spec.target.unknown}`;
  const title=`Robot planar 2R para calcular ${nombreIncognita}`;
  const desc=`Ilustración técnica del robot 2R con l1 ${fmt(spec.params.l1,2)}, l2 ${fmt(spec.params.l2,2)}, q1 ${fmt(spec.params.q1Deg,1)} grados y q2 relativo ${fmt(spec.params.q2Deg,1)} grados. La incógnita está marcada sin mostrar el resultado numérico.`;
  return`<svg viewBox="0 0 ${layout.width} ${layout.height}" style="aspect-ratio:${layout.width}/${layout.height};max-width:${layout.width}px;margin:0 auto" role="img" aria-labelledby="${slug}-title ${slug}-desc" data-visual-kind="robot2r-technical">
@@ -10954,7 +10847,14 @@ function runSelfTests(){
    const allowed=new Set(choicePool(Number(chapter),level).map(question=>question[0]));
    /* El banco de cálculo se enruta aparte (foundationCalculation), así que el
       recuento conceptual por nivel debe excluirlo igual que hace choicePool. */
-   const esperado=CHOICE_BANKS[chapter].filter((q,i)=>CHOICE_LEVELS[chapter][i]===level&&!calculationMeta(Number(chapter),q)).length;
+   const esperado=CHOICE_BANKS[chapter].filter((q,i)=>{
+    if(CHOICE_LEVELS[chapter][i]!==level||calculationMeta(Number(chapter),q))return false;
+    const clave=TOPIC_BY_CONCEPT[chapter]?.[i];
+    if(clave===undefined)return true;
+    if(!clave)return false;
+    const ref=topicByKey(clave);
+    return !ref||ref.capitulo.id===Number(chapter);
+   }).length;
    if(allowed.size!==esperado)return false;
    for(let attempt=0;attempt<40;attempt++){if(!allowed.has(makeChoice(Number(chapter),level).statement))return false}
    return true;
@@ -11030,7 +10930,8 @@ function runSelfTests(){
     [/Transformaciones homogéneas$/i,/composición e inversa/i],
     [/Transformaciones homogéneas/i,/Coordenadas de un punto/i],
     [/Coordenadas de un punto/i,/cuaterniones/i],
-    [/cuaterniones/i,/Ejemplo completo/i]
+    [/cuaterniones/i,/Ejemplo completo/i],
+    [/Ejemplo completo/i,/Área y volumen/i]   /* el área cierra el capítulo */
    ];
    if(!cadena3.every(([a,b])=>antes(3,a,b)))return false;
    const cadena4=[
@@ -11040,10 +10941,7 @@ function runSelfTests(){
     [/Asignación de marcos/i,/algoritmo auditable/i],
     [/algoritmo auditable/i,/estándar y modificado/i],
     [/estándar y modificado/i,/Cinemática inversa$/i],
-    [/Cinemática inversa/i,/ramas, límites/i],
-    [/ramas, límites/i,/desacoplo/i],
-    [/desacoplo/i,/espacio de trabajo y singularidades/i],
-    [/espacio de trabajo y singularidades/i,/Área y volumen/i]
+    [/Cinemática inversa/i,/ramas, límites/i]
    ];
    return cadena4.every(([a,b])=>antes(4,a,b));
   }],
@@ -11056,7 +10954,7 @@ function runSelfTests(){
    }
    /* y ningún tema se ha perdido ni duplicado al recolocarlos */
    const claves=chapterById(3).topics.map(topic=>topic.claveOriginal);
-   return claves.length===12&&new Set(claves).size===12;
+   return claves.length===13&&new Set(claves).size===13;
   }],
   ["Validador SO(3) distingue reflexión",()=>isSO3Matrix(rot("z",37))&&!isSO3Matrix([[1,0,0],[0,1,0],[0,0,-1]])],
   ["Validador SE(3) exige bloque y fila válidos",()=>{const T=hom(rot("x",30),[1,2,3]),bad=T.map(row=>row.slice());bad[3][2]=.1;return isSE3Matrix(T)&&!isSE3Matrix(bad)}],
@@ -11263,7 +11161,7 @@ function runSelfTests(){
   ["El título accesible nombra la incógnita real",()=>{
    const nombres=[];
    for(let i=0;i<160;i++){
-    const e=pick([make2R,makeJacobian2R])(2),svg=robot2RSvgMarkup(buildRobot2RDiagramSpec(e));
+    const e=make2R(2),svg=robot2RSvgMarkup(buildRobot2RDiagramSpec(e));
     const titulo=(svg.match(/<title[^>]*>([^<]*)<\/title>/)||[])[1]||"";
     nombres.push(titulo);
     if(/coordenada (detJ|phi|distance)/.test(titulo))return false;
@@ -11489,21 +11387,23 @@ function runSelfTests(){
    }
    return true;
   }],
-  ["El capítulo 4 reparte ejercicios de área de trabajo",()=>{
+  ["El capítulo 3 reparte ejercicios de área de trabajo",()=>{
+   /* El área de trabajo pasó al capítulo 3 con su teoría: su generador tiene
+      que entrar en el sorteo de ese capítulo, no quedarse solo en su tema. */
    let vistos=0;
-   for(let i=0;i<400;i++){if(makeKinematicsExercise(pick(DIFFICULTY_LEVELS)).kind==="workspace")vistos++}
-   return vistos>=30;
+   for(let i=0;i<400;i++){if(makeChapter3(pick(DIFFICULTY_LEVELS)).kind==="workspace")vistos++}
+   return vistos>=15;
   }],
   ["Cada capítulo ofrece teoría suficiente",()=>{
-   const minimos={1:9,2:9,3:12,4:11,5:7};
+   const minimos={1:9,2:9,3:13,4:8,5:7};
    return chapters.every(chapter=>chapter.topics.length>=(minimos[chapter.id]||4));
   }],
   ["La teoría nueva respalda cada familia de cálculo",()=>{
    const titulos=chapters.flatMap(chapter=>chapter.topics.map(topic=>topic.title)).join(" | ");
-   return ["1.9","2.9","4.11","5.5","5.6","5.7"].every(clave=>titulos.includes(clave));
+   return ["1.9","2.9","3.13","5.5","5.6","5.7"].every(clave=>titulos.includes(clave));
   }],
   ["Los temas nuevos incluyen ejemplos numéricos resueltos",()=>{
-   const claves=["1.9","2.9","4.11","5.5","5.6","5.7"];
+   const claves=["1.9","2.9","3.13","5.5","5.6","5.7"];
    for(const clave of claves){
     const tema=chapters.flatMap(chapter=>chapter.topics).find(topic=>topic.title.startsWith(clave));
     if(!tema)return false;
@@ -11675,10 +11575,10 @@ function runSelfTests(){
   }],
   ["La selección de familias sobrevive a exportar e importar",()=>{
    const copia=JSON.parse(JSON.stringify(progress));
-   copia.preferences.families={...copia.preferences.families,4:["area"]};
+   copia.preferences.families={...copia.preferences.families,3:["area"]};
    const limpio=validateProgressData(copia);
-   return limpio.preferences.families[4].join(",")==="area"&&
-    limpio.preferences.families[3].length===familyIds(3).length;
+   return limpio.preferences.families[3].join(",")==="area"&&
+    limpio.preferences.families[4].length===familyIds(4).length;
   }],
   ["Las autopruebas ignoran el filtro del alumno",()=>familyFilterSuspended===true],
   ["La página declara el viewport que iOS necesita",()=>{
@@ -12006,8 +11906,6 @@ function runSelfTests(){
     const w=makeWorkspaceRadii2R(pick(DIFFICULTY_LEVELS)),wp=w.params;
     if(Math.abs(wp.radialMin-Math.abs(wp.L1-wp.L2))>1e-6||Math.abs(wp.radialMax-(wp.L1+wp.L2))>1e-6)return false;
     if(wp.L1===wp.L2&&wp.radialMin!==0)return false;
-    const j=makeJacobian2R(pick(DIFFICULTY_LEVELS));
-    if(Math.abs(j.answer)<1e-9&&Math.abs(Math.sin(rad(j.params.t2)))>1e-9)return false;
    }
    return true;
   }],
@@ -12202,62 +12100,16 @@ function runSelfTests(){
    }
    return true;
   }],
-  ["Las familias nuevas del capítulo 3 están en los cuatro niveles y son estancas",()=>{
+  ["La familia espacial existe en los cuatro niveles y es estanca",()=>{
    const guardadas=progress.preferences.families;
    familyFilterSuspended=false;
    try{
-    for(const familia of["coordenadas","cuaternion"]){
-     if(!familyIds(3).includes(familia))return false;
-     progress.preferences.families={...guardadas,3:[familia]};
-     for(const nivel of DIFFICULTY_LEVELS){
-      for(let i=0;i<12;i++){
-       if(exerciseFamily(makeChapter3(nivel))!==familia)return false;
-      }
-     }
-    }
-   }finally{progress.preferences.families=guardadas;familyFilterSuspended=true}
-   return true;
-  }],
-  ["El jacobiano directo y el inverso son consistentes entre sí",()=>{
-   for(let i=0;i<80;i++){
-    const e=makeJacobianInverse2R(pick(DIFFICULTY_LEVELS));
-    const{L1,L2,q1,q2,v}=e.params;
-    const J=jacobian2R(L1,L2,q1,q2);
-    const qd=[e.answer[0][0],e.answer[1][0]];
-    const reconstruida=jacobianApply(J,qd);
-    /* aplicar J a la solución debe devolver la velocidad pedida */
-    if(Math.abs(reconstruida[0]-v[0])>1e-4||Math.abs(reconstruida[1]-v[1])>1e-4)return false;
-    /* y el determinante nunca puede anularse en un ejercicio planteado */
-    if(Math.abs(L1*L2*Math.sin(rad(q2)))<1e-6)return false;
-   }
-   for(let i=0;i<60;i++){
-    const e=makeJacobianVelocity2R(pick(DIFFICULTY_LEVELS));
-    const{L1,L2,q1,q2,qd}=e.params;
-    const esperada=jacobianApply(jacobian2R(L1,L2,q1,q2),qd);
-    if(Math.abs(e.answer[0][0]-esperada[0])>1e-6||Math.abs(e.answer[1][0]-esperada[1])>1e-6)return false;
-   }
-   return true;
-  }],
-  ["El determinante del jacobiano coincide con L₁L₂sen q₂",()=>{
-   for(let i=0;i<60;i++){
-    const{L1,L2,q1,q2}=jacobianPose(pick(DIFFICULTY_LEVELS));
-    const J=jacobian2R(L1,L2,q1,q2);
-    const det=J[0][0]*J[1][1]-J[0][1]*J[1][0];
-    if(Math.abs(det-L1*L2*Math.sin(rad(q2)))>1e-6)return false;
-   }
-   return true;
-  }],
-  ["La familia del jacobiano existe en los cuatro niveles y es estanca",()=>{
-   const guardadas=progress.preferences.families;
-   familyFilterSuspended=false;
-   try{
-    if(!familyIds(4).includes("jacobiano"))return false;
-    progress.preferences.families={...guardadas,4:["jacobiano"]};
+    if(!familyIds(4).includes("3d"))return false;
+    progress.preferences.families={...guardadas,4:["3d"]};
     for(const nivel of DIFFICULTY_LEVELS){
      for(let i=0;i<12;i++){
       const e=makeKinematicsExercise(nivel);
-      if(exerciseFamily(e)!=="jacobiano")return false;
-      if(!/^jacobian_/.test(e.id))return false;
+      if(exerciseFamily(e)!=="3d")return false;
      }
     }
    }finally{progress.preferences.families=guardadas;familyFilterSuspended=true}
@@ -12987,7 +12839,8 @@ function runSelfTests(){
   ["Cada ejercicio apunta a un tema que existe",()=>{
    /* Una clave mal escrita no debe llegar al informe: allí aparecería como un
       tema fantasma sin lección a la que enlazar. */
-   const claves=[...Object.values(TOPIC_BY_EXERCISE),...Object.values(TOPIC_BY_CONCEPT).flatMap(v=>[...v])];
+   /* La clave vacía no es un error: marca una pregunta retirada del temario. */
+   const claves=[...Object.values(TOPIC_BY_EXERCISE),...Object.values(TOPIC_BY_CONCEPT).flatMap(v=>[...v])].filter(Boolean);
    if(!claves.length)return false;
    return claves.every(clave=>Boolean(topicByKey(clave))||Boolean(TOPIC_PENDIENTE[clave]));
   }],
@@ -12998,13 +12851,16 @@ function runSelfTests(){
    for(const [capitulo,claves] of Object.entries(TOPIC_BY_CONCEPT)){
     const banco=CHOICE_BANKS[capitulo]||[];
     if(!banco.length||claves.length!==banco.length)return false;
-    if(claves.some(clave=>!clave))return false;
    }
-   /* y el índice por enunciado debe resolver todas */
+   /* El índice debe resolver toda pregunta viva. Una clave vacía marca una
+      pregunta retirada del temario: no cuenta para ningún tema y, además, el
+      sorteo general tiene prohibido seguir sacándola. */
    const indice=conceptTopicIndex();
    for(const [capitulo,banco] of Object.entries(CHOICE_BANKS)){
-    if(!TOPIC_BY_CONCEPT[capitulo])continue;
-    if(banco.some(pregunta=>!indice.get(String(pregunta[0]))))return false;
+    const claves=TOPIC_BY_CONCEPT[capitulo];if(!claves)continue;
+    if(banco.some((pregunta,i)=>claves[i]&&!indice.get(String(pregunta[0]))))return false;
+    const sorteables=new Set(choicePool(Number(capitulo),2).map(pregunta=>pregunta[0]));
+    if(banco.some((pregunta,i)=>!claves[i]&&sorteables.has(pregunta[0])))return false;
    }
    return true;
   }],
@@ -13041,13 +12897,13 @@ function runSelfTests(){
    const previo={topics:progress.topics,history:progress.history};
    progress.topics={};progress.history=[];
    try{
-    const flojo={id:"jacobian_2R_determinant",chapter:4,difficulty:3};
+    const flojo={id:"forward_dh_3R",chapter:4,difficulty:3};
     const solido={id:"rotation_matrix",chapter:3,difficulty:3};
     for(let i=0;i<10;i++)recordTopicResult(flojo,i<2);   /* 2 de 10 */
     for(let i=0;i<10;i++)recordTopicResult(solido,i<9);  /* 9 de 10 */
     const informe=topicReport();
     const peor=informe.debiles[0];
-    if(!peor||peor.clave!=="4.5")return false;
+    if(!peor||peor.clave!=="4.2")return false;
     if(peor.intentos!==10||peor.aciertos!==2)return false;
     /* debe traer capítulo e índice para poder abrir la lección */
     const ref=topicByKey(peor.clave);
@@ -13574,68 +13430,18 @@ function runSelfTests(){
    }
    return revisadas>10;
   }],
-  ["El diagnóstico señala como correctas las cantidades que sí coinciden",()=>{
-   /* En «encuentra el error» solo una de las tres cantidades está falseada; el
-      motivo de las otras dos debe decir que coinciden, con su valor real. */
-   let revisadas=0;
-   for(let i=0;i<300;i++){
-    const e=makeChapter5(pick(DIFFICULTY_LEVELS));
-    if(e.id!=="find_error")continue;
-    revisadas++;
-    const fallos=(e.rationale||{}).fallos||{};
-    if(!fallos["No hay ningún error"])return false;
-    const etiquetas=["El cálculo de x","El cálculo de y","El cálculo de φ"];
-    for(const etiqueta of etiquetas){
-     if(etiqueta===e.answer){if(fallos[etiqueta])return false;continue}
-     if(!fallos[etiqueta]||!/correcto/i.test(fallos[etiqueta]))return false;
-    }
-    /* la cantidad falseada debe diferir de verdad de la real */
-    const {fake,real}=e.params;
-    const clave=e.answer==="El cálculo de x"?"x":e.answer==="El cálculo de y"?"y":"phi";
-    if(Math.abs(fake[clave]-real[clave])<1e-9)return false;
-   }
-   return revisadas>5;
-  }],
-  ["El jacobiano coincide con derivar la cinemática directa",()=>{
-   /* Diferencias finitas sobre la posición del extremo: si el jacobiano
-      analítico del generador tuviera un signo cambiado, aquí se vería. */
-   const D=Math.PI/180;
-   const fk=(L1,L2,q1,q2)=>({x:L1*Math.cos(q1*D)+L2*Math.cos((q1+q2)*D),
-                             y:L1*Math.sin(q1*D)+L2*Math.sin((q1+q2)*D)});
-   const jac=(L1,L2,q1,q2)=>{
-    const h=1e-5/D;   /* paso en grados equivalente a 1e-5 rad */
-    const a=fk(L1,L2,q1+h,q2),b=fk(L1,L2,q1-h,q2),c=fk(L1,L2,q1,q2+h),d=fk(L1,L2,q1,q2-h);
-    return[[(a.x-b.x)/(2*h*D),(c.x-d.x)/(2*h*D)],[(a.y-b.y)/(2*h*D),(c.y-d.y)/(2*h*D)]];
-   };
-   let revisadas=0;
-   for(let i=0;i<4000&&revisadas<30;i++){
-    const e=makeKinematicsExercise(pick(DIFFICULTY_LEVELS)),p=e.params||{};
-    if(!/^jacobian_/.test(e.id||""))continue;
-    const J=jac(p.L1,p.L2,p.q1??p.t1,p.q2??p.t2);
-    const det=J[0][0]*J[1][1]-J[0][1]*J[1][0];
-    if(e.id==="jacobian_2R_determinant"){revisadas++;if(Math.abs(det-e.answer)>2e-3)return false;continue}
-    if(e.id==="jacobian_velocity_2R"&&p.qd){
-     revisadas++;
-     const v=[J[0][0]*p.qd[0]+J[0][1]*p.qd[1],J[1][0]*p.qd[0]+J[1][1]*p.qd[1]];
-     const a=e.answer.map(f=>f[0]);
-     if(Math.abs(v[0]-a[0])>3e-3||Math.abs(v[1]-a[1])>3e-3)return false;continue;
-    }
-    if(e.id==="jacobian_inverse_2R"&&p.v&&Math.abs(det)>1e-6){
-     revisadas++;
-     const qd=[(J[1][1]*p.v[0]-J[0][1]*p.v[1])/det,(-J[1][0]*p.v[0]+J[0][0]*p.v[1])/det];
-     const a=e.answer.map(f=>f[0]);
-     if(Math.abs(qd[0]-a[0])>3e-3||Math.abs(qd[1]-a[1])>3e-3)return false;
-    }
-   }
-   return revisadas>=30;
-  }],
   ["Los radios del área de trabajo salen de barrer el mecanismo",()=>{
    /* En un 2R el radio solo depende del codo, así que barrerlo basta para
       obtener los extremos sin usar la fórmula cerrada del generador. */
    const D=Math.PI/180;
    let revisadas=0;
-   for(let i=0;i<4000&&revisadas<25;i++){
-    const e=makeKinematicsExercise(pick(DIFFICULTY_LEVELS)),p=e.params||{};
+   /* Las tres familias se piden por su nombre en vez de sortear el capítulo.
+      El sorteo exigía dar con 25 entre 4000 muestras, y ese recuento depende
+      de cuántos tipos tenga el capítulo —cambia al añadir o quitar uno— y no
+      de que la comprobación de fondo sea correcta. */
+   const familias=[makeWorkspaceRadii2R,makeWorkspaceArea2R,makeWorkspaceScaraVolume];
+   for(const nivel of DIFFICULTY_LEVELS)for(const make of familias)for(let k=0;k<3;k++){
+    const e=make(nivel),p=e.params||{};
     if(!["workspace_radii_2R","workspace_area_2R","workspace_volume_scara"].includes(e.id||""))continue;
     let min=Infinity,max=-Infinity;
     for(let q2=0;q2<=360;q2+=.25){
@@ -13988,13 +13794,11 @@ function runSelfTests(){
     A.every((f,i)=>Array.isArray(f)&&Array.isArray(B[i])&&f.length===B[i].length&&
      f.every((v,j)=>Math.abs(v-B[i][j])<1e-6));
    const cadenas=[makeDh3R,makeSpatial2R,makeSpatial3R,makeScara,makeRrrp,makeIndustrial6R];
-   const jacobianas=[makeJacobian2R,makeJacobianInverse2R,makeJacobianVelocity2R];
-   let conBloque=0,jacobianos=0;
+   let conBloque=0;
    const revisar=e=>{
     if(e.type!=="matrix")return true;
     e.pedagogyTrace=buildPedagogyTrace(e);
     const html=solutionProcedureMarkup(e);
-    if(/^jacobian_/.test(e.id||"")){jacobianos++;return !html}
     if(!html)return true;
     conBloque++;
     const tr=e.pedagogyTrace;
@@ -14014,10 +13818,9 @@ function runSelfTests(){
    };
    for(const nivel of DIFFICULTY_LEVELS){
     for(const make of cadenas)for(let i=0;i<3;i++){const e=make(nivel);e.difficulty=nivel;if(!revisar(e))return false}
-    for(const make of jacobianas)for(let i=0;i<3;i++){const e=make(nivel);e.difficulty=nivel;if(!revisar(e))return false}
     for(let i=0;i<12;i++){const e=makeChapter3(nivel);e.difficulty=nivel;if(!revisar(e))return false}
    }
-   return conBloque>15&&jacobianos>5;
+   return conBloque>15;
   }],
   ["El nombre de cada factor se lee sin código de fórmula",()=>{
    /* Se limitaba a borrar barras invertidas y dejaba «R{x}(180^circ);text{...}». */
@@ -14656,7 +14459,7 @@ function runSelfTests(){
   ["Clasificador reconoce signo opuesto",()=>classifyCellCause(-.5,.5,0,0,[ [.5] ],[[-.5]],{}).includes("signo")],
   ["Diagnóstico usa la primera Aᵢ capturada",()=>{const e={pedagogyTrace:{n:1,individual:[identityMatrix(4)]},stageState:{results:{0:{ok:false,cells:[false,...Array(15).fill(true)],matrix:[[2,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]]}}}};return firstCapturedStageDifference(e).title.includes("A1(1,1)")}],
   ["Ejercicio presenta láminas fijas",()=>Boolean(document.getElementById("exerciseSvg2R").closest("#exercise2RPanel"))&&Boolean(document.getElementById("exerciseSpatialPlate").closest(".book-plate"))&&Boolean(document.getElementById("exerciseFramePlate").closest(".book-plate"))],
-  ["Nuevos ejercicios planar 3R y Jacobiano son finitos",()=>{const p=makePlanar3R(2),j=makeJacobian2R(2);return p.model==="Planar3R"&&Number.isFinite(p.answer)&&j.id==="jacobian_2R_determinant"&&Number.isFinite(j.answer)}],
+  ["Nuevos ejercicios planar 3R son finitos",()=>{const p=makePlanar3R(2);return p.model==="Planar3R"&&Number.isFinite(p.answer)}],
   ["Proyector de marcos produce coordenadas finitas",()=>{const project=frameProjector([{R:identityMatrix(3),p:[3,-2,1]}],720,330,2.2),p=project([3,-2,1]);return p.every(Number.isFinite)}],
   ...ROBOT2R_VISUAL_FIXTURES.map(fixture=>[`SVG 2R caso ${fixture.id}`,()=>{
    const spec=buildRobot2RDiagramSpec(fixtureExercise2R(fixture)),layout=diagramLayout2R(spec),points=Object.values(layout.points);
@@ -14718,7 +14521,7 @@ function runSelfTests(){
  if(failures.length)console.error("RoboTutor: autopruebas fallidas",failures);else console.info(`RoboTutor: ${passed}/${results.length} autopruebas correctas.`);
  return{passed,total:results.length,failures,results};
 }
-window.RoboTutor={textbookScara,textbookCylindrical,makeTextbookExercise,mechanicalScene,mechanicalPlateSvg,isMechanicalWorksheet,makeGeometric2R,makeWorkspaceRP,planarExamSvg,CC_PAIRS,makeReflection,reflectionPool,REFLECTION_BANK,startReflection,reviewOpen,readOpenDraft,calculationMeta,calculationChoices,cleanMechanismPoints,cleanMechanismSvg,makeClassification,ccKinds,ccGeometry,ccSvg,CC_MODELS,renderClassificationLessons,makeWorkspaceThree,makeWorkspaceThreeSymbolic,wsThreeDiagram,makeNarrativeSymbolic,nsParse,nsCompose,nsPolyText,makeNarrativeTransform,narrativeChainSteps,isNarrativeExercise,startTopicPractice,leaveTopicPractice,topicPracticeAvailability,makeTopicExercise,topicNumericGenerators,topicChapter3Kinds,topicChoicePool,APP_VERSION,APP_STAGE,DIFFICULTY_LEVELS,DIFFICULTY_NAMES,appState,runSelfTests,Parser,shuffle,composeChain,chainProductText,makeChainFixed,makeChainMixed,makePointFromMovingTranslation,makeHomogeneousApplyPoint,makePointRotatedTranslated,makePointFixedToMoving,makeQuaternionFromAxisAngle,makeQuaternionCompose,makeQuaternionAngle,quaternionFromAxisAngle,quaternionProduct,quaternionAngleDeg,makeCylindricalToCartesian,makeCartesianToCylindrical,makeSphericalToCartesian,makeCartesianToSpherical,makeChapter3,makeChoice,makeKinematicsExercise,makeChapter5,makeFoundationExercise,NUMERIC_GENERATORS,CONCEPT_SHARE,workspace2R,workspace3R,radius2R,annulusArea,classifyWorkspacePoint,makeWorkspaceExercise,makeWorkspaceToolOffset2R,makeWorkspaceToolAngled2R,makeWorkspaceLinkPoint2R,toolReach2R,workspaceToolPoint2R,makeWorkspaceSectorArea2R,makeWorkspaceSectorSpan2R,makeWorkspaceSectorEffect,workspaceSector2R,elbowShift2R,makeWorkspaceRadii2R,makeWorkspaceArea2R,makeWorkspaceLimited2R,makeWorkspace3R,makeWorkspaceScaraVolume,makeWorkspaceMembership,workspaceSvgMarkup,buildWorkspaceDiagramSpec,makeWorkspaceEquation,makeWorkspaceIdentify,workspacePoseForDisplay,EXERCISE_FAMILIES,activeFamilies,familyIds,familyAllowed,exerciseFamily,CHAPTER3_FAMILY,solutionPitfallsMarkup,numericAlternativeMatch,scalarDifferenceCause,spatialScalarAlternatives,SOLUTION_REASONING,solutionReasoning,solutionReasoningMarkup,createSeededRandom,SELFTEST_SEED,makeAccuracyStats,makeFindError,makeSafetyDistance,makeGravity2R,roadmap,safeStorage,downloadJson,save,CHAPTER3_KINDS,LABEL_OFFSETS,ensureStageState,validateProgressData,progress,kinematicsCandidates,chapter5Candidates,chapter3Kinds,workspaceArmPoints,workspaceArm2R,workspaceArm3R,chooseSpatialCamera,spatialFillScore,spatialFramingPoints,paintSpatialRobot,syncExamUI,abandonExam,solutionProcedureMarkup,plainTraceFactor,saveExam,loadStoredExam,discardStoredExam,restoreExamOnBoot,EXAM_STORAGE_KEY,chargeExamTime,examRecorrido,examVecino,motionOff,viewFadeKeyframes,contentEnterKeyframes,fadeInView,enterContent,unfoldElement,foldElement,revealInView,announceExercise,onceOnly,whenAnimationEnds,announceFeedback,wrongCellKeyframes,cellsToPulse,pulseWrongCells,animateHeight,detailsClosedHeight,announceLesson,switchTheme,applyThemeEverywhere,LESSON_PLATES,renderLessonPlates,composeExam,startExam,submitExam,answerIsCorrect,examRemainingMs,examFormat,stopExamClock,exerciseTopicKey,topicByKey,topicLabel,topicReport,topicHistorySeries,recordTopicResult,conceptTopicIndex,spatialMinLinkRatio,spatialPostureIsPlausible,plausibleSpatial,createLabelPlacer,drawSpatialRobotFrame,paintSpatialRobot,renderSpatialPlate,renderScaraProjectionSvg,spatialRobotSvgMarkup,scaraProjectionSvgMarkup,createSvgSurface,svgParseFont,svgMeasure,chainKinematics,chainProductFactors,chainSideBreakdown,matrixStructureCheck,buildPedagogyTrace,chapters,painterOrder,jointLocalAxis,jointIsRevolute,jointRotationFrame,spatialProjection,spatialDimensionLabels,pickInformativeAsk,makeIndustrial6R,makeDh3R,makeSpatial2R,makeSpatial3R,makeScara,makeRrrp,makeJacobian2R,makeJacobianVelocity2R,makeJacobianInverse2R,jacobian2R,jacobianApply,jacobianSolve,angleLabel,exerciseFramePoints,frameProjector,drawFrameDiagram,paintFrameDiagram,frameDiagramSvgMarkup,frameExercisePoses,renderFramePlate,chainGhostFrames,makePayloadBudget,makeCycleTime,makeReachDistance,makeAccuracyStats,makeGearRatio,makeRmsTorque,makeToolMoment,makeEncoderResolution,makeGripForce,pedagogyLevelPolicy,solutionRevealPolicy,visibleStepIndexes,solutionStepsMarkup,baseTolerance,cellTolerance,angleTolerance,make2R,rot,hom,invT,forward2R,solveRobot2R,solveIK,solvePlanar2RIk,solveScaraRrpIk,makeTargetStrike,targetStrikeError,KinematicsEngine,dhTransform,isSO3Matrix,isSE3Matrix,validateDhFrameRules,exerciseTheorySpec,matrixLatex,firstObservableDifference,firstCapturedStageDifference,parsePastedMatrix,classifyCellCause,buildRobot2RDiagramSpec,robot2RSvgMarkup,drawScaraProjection,drawFrameExercise,matrixCellPolicy,formatAngle,CHOICE_BANKS,CHOICE_LEVELS,choicePool,CHOICE_RATIONALE,choiceRationale,choiceFailureReason,ROBOT2R_VISUAL_FIXTURES,gravityTorque2R,inertiaMatrix2R,coriolisCoupling2R,makeInertia2R,makeCoriolis2R,makeCubicTrajectory,makeTrapezoidalProfile,makeSecondOrderSpecs,makePidGainDesign,manipulabilityPlanar2R,simulatePID1DOF,makeGravity2R,makeSafetyDistance,makeFindError};
+window.RoboTutor={textbookScara,textbookCylindrical,makeTextbookExercise,mechanicalScene,mechanicalPlateSvg,isMechanicalWorksheet,makeGeometric2R,makeWorkspaceRP,planarExamSvg,CC_PAIRS,makeReflection,reflectionPool,REFLECTION_BANK,startReflection,reviewOpen,readOpenDraft,calculationMeta,calculationChoices,cleanMechanismPoints,cleanMechanismSvg,makeClassification,ccKinds,ccGeometry,ccSvg,CC_MODELS,renderClassificationLessons,makeWorkspaceThree,makeWorkspaceThreeSymbolic,wsThreeDiagram,makeNarrativeSymbolic,nsParse,nsCompose,nsPolyText,makeNarrativeTransform,narrativeChainSteps,isNarrativeExercise,startTopicPractice,leaveTopicPractice,topicPracticeAvailability,makeTopicExercise,topicNumericGenerators,topicChapter3Kinds,topicChoicePool,APP_VERSION,APP_STAGE,DIFFICULTY_LEVELS,DIFFICULTY_NAMES,appState,runSelfTests,Parser,shuffle,composeChain,chainProductText,makeChainFixed,makeChainMixed,makePointFromMovingTranslation,makeHomogeneousApplyPoint,makePointRotatedTranslated,makePointFixedToMoving,makeQuaternionFromAxisAngle,makeQuaternionCompose,makeQuaternionAngle,quaternionFromAxisAngle,quaternionProduct,quaternionAngleDeg,makeCylindricalToCartesian,makeCartesianToCylindrical,makeSphericalToCartesian,makeCartesianToSpherical,makeChapter3,makeChoice,makeKinematicsExercise,makeChapter5,makeFoundationExercise,NUMERIC_GENERATORS,CONCEPT_SHARE,workspace2R,workspace3R,radius2R,annulusArea,classifyWorkspacePoint,makeWorkspaceExercise,makeWorkspaceToolOffset2R,makeWorkspaceToolAngled2R,makeWorkspaceLinkPoint2R,toolReach2R,workspaceToolPoint2R,makeWorkspaceSectorArea2R,makeWorkspaceSectorSpan2R,makeWorkspaceSectorEffect,workspaceSector2R,elbowShift2R,makeWorkspaceRadii2R,makeWorkspaceArea2R,makeWorkspaceLimited2R,makeWorkspace3R,makeWorkspaceScaraVolume,makeWorkspaceMembership,workspaceSvgMarkup,buildWorkspaceDiagramSpec,makeWorkspaceEquation,makeWorkspaceIdentify,workspacePoseForDisplay,EXERCISE_FAMILIES,activeFamilies,familyIds,familyAllowed,exerciseFamily,CHAPTER3_FAMILY,solutionPitfallsMarkup,numericAlternativeMatch,scalarDifferenceCause,spatialScalarAlternatives,SOLUTION_REASONING,solutionReasoning,solutionReasoningMarkup,createSeededRandom,SELFTEST_SEED,makeAccuracyStats,makeFindError,makeSafetyDistance,makeGravity2R,roadmap,safeStorage,downloadJson,save,CHAPTER3_KINDS,LABEL_OFFSETS,ensureStageState,validateProgressData,progress,kinematicsCandidates,chapter5Candidates,chapter3Kinds,workspaceArmPoints,workspaceArm2R,workspaceArm3R,chooseSpatialCamera,spatialFillScore,spatialFramingPoints,paintSpatialRobot,syncExamUI,abandonExam,solutionProcedureMarkup,plainTraceFactor,saveExam,loadStoredExam,discardStoredExam,restoreExamOnBoot,EXAM_STORAGE_KEY,chargeExamTime,examRecorrido,examVecino,motionOff,viewFadeKeyframes,contentEnterKeyframes,fadeInView,enterContent,unfoldElement,foldElement,revealInView,announceExercise,onceOnly,whenAnimationEnds,announceFeedback,wrongCellKeyframes,cellsToPulse,pulseWrongCells,animateHeight,detailsClosedHeight,announceLesson,switchTheme,applyThemeEverywhere,LESSON_PLATES,renderLessonPlates,composeExam,startExam,submitExam,answerIsCorrect,examRemainingMs,examFormat,stopExamClock,exerciseTopicKey,topicByKey,topicLabel,topicReport,topicHistorySeries,recordTopicResult,conceptTopicIndex,spatialMinLinkRatio,spatialPostureIsPlausible,plausibleSpatial,createLabelPlacer,drawSpatialRobotFrame,paintSpatialRobot,renderSpatialPlate,renderScaraProjectionSvg,spatialRobotSvgMarkup,scaraProjectionSvgMarkup,createSvgSurface,svgParseFont,svgMeasure,chainKinematics,chainProductFactors,chainSideBreakdown,matrixStructureCheck,buildPedagogyTrace,chapters,painterOrder,jointLocalAxis,jointIsRevolute,jointRotationFrame,spatialProjection,spatialDimensionLabels,pickInformativeAsk,makeIndustrial6R,makeDh3R,makeSpatial2R,makeSpatial3R,makeScara,makeRrrp,angleLabel,exerciseFramePoints,frameProjector,drawFrameDiagram,paintFrameDiagram,frameDiagramSvgMarkup,frameExercisePoses,renderFramePlate,chainGhostFrames,makePayloadBudget,makeCycleTime,makeReachDistance,makeAccuracyStats,makeGearRatio,makeRmsTorque,makeToolMoment,makeEncoderResolution,makeGripForce,pedagogyLevelPolicy,solutionRevealPolicy,visibleStepIndexes,solutionStepsMarkup,baseTolerance,cellTolerance,angleTolerance,make2R,rot,hom,invT,forward2R,solveRobot2R,solveIK,solvePlanar2RIk,solveScaraRrpIk,makeTargetStrike,targetStrikeError,KinematicsEngine,dhTransform,isSO3Matrix,isSE3Matrix,validateDhFrameRules,exerciseTheorySpec,matrixLatex,firstObservableDifference,firstCapturedStageDifference,parsePastedMatrix,classifyCellCause,buildRobot2RDiagramSpec,robot2RSvgMarkup,drawScaraProjection,drawFrameExercise,matrixCellPolicy,formatAngle,CHOICE_BANKS,CHOICE_LEVELS,choicePool,CHOICE_RATIONALE,choiceRationale,choiceFailureReason,ROBOT2R_VISUAL_FIXTURES,gravityTorque2R,inertiaMatrix2R,coriolisCoupling2R,makeInertia2R,makeCoriolis2R,makeCubicTrajectory,makeTrapezoidalProfile,makeSecondOrderSpecs,makePidGainDesign,manipulabilityPlanar2R,simulatePID1DOF,makeGravity2R,makeSafetyDistance,makeFindError};
 
 /* ---------- MODO EXAMEN · PANTALLAS ---------- */
 const examSetupState={formatoId:"parcial",capitulos:[],dificultad:3};
@@ -15529,7 +15332,7 @@ function renderWsFormat(){
 function initWsPractice(){
  document.getElementById("workspaceLinks").addEventListener("change",event=>{if(!examEnCurso())wsPractice.links=event.target.value});
  document.getElementById("workspaceMode").addEventListener("change",event=>{if(examEnCurso())return;wsPractice.mode=event.target.value});
- document.getElementById("workspaceGenerate").onclick=()=>{if(examEnCurso())return;startTopicPractice("4.11")};
+ document.getElementById("workspaceGenerate").onclick=()=>{if(examEnCurso())return;startTopicPractice("3.13")};
  document.getElementById("answerArea").addEventListener("click",event=>{if(event.target.id==="wsClearExpressions")resetResponse()});
  document.getElementById("answerArea").addEventListener("input",event=>{if(event.target.matches("[data-ws-answer]"))clearValidation(event.target)});
  document.getElementById("answerArea").addEventListener("keydown",event=>{if(event.target.matches("[data-ws-answer]")&&event.key==="Enter"&&event.ctrlKey){event.preventDefault();check()}});

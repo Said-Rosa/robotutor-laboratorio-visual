@@ -13,53 +13,12 @@
  *
  * Uso: node scripts/check-kinematics.cjs [ruta/al/robotutor.html]
  */
-const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path'),assert=require('node:assert/strict');
+const assert=require('node:assert/strict');
+const {cargar,RUTA_POR_DEFECTO}=require('./sandbox.cjs');
 
-const file=process.argv[2]||path.join(__dirname,'..','robotutor.html');
-const source=fs.readFileSync(file,'utf8');
-const scripts=[...source.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map(m=>m[1]);
-let main=scripts.find(s=>s.includes('const APP_VERSION='));
-assert.ok(main,'no se encontró el script principal');
-/* Se corta justo antes del arranque: a partir de ahí el script pinta la
-   interfaz y genera el primer ejercicio, que sin DOM de verdad no tiene
-   sentido. Todo lo anterior son declaraciones y enganches de eventos. */
-const corte=main.indexOf('document.getElementById("appVersionLabel")');
-assert.ok(corte>0,'no se encontró el arranque de la aplicación');
-main=main.slice(0,corte);
-
-/* Objeto camaleón: responde a cualquier propiedad y a cualquier llamada. Basta
-   para los enganches de eventos del nivel superior, que es lo único que el
-   script toca antes del arranque. */
-const fake=()=>new Proxy(function(){},{
- get(t,k){
-  if(k===Symbol.toPrimitive)return()=>'';
-  if(k===Symbol.iterator)return function*(){};
-  if(k==='then')return undefined;
-  if(k==='length')return 0;
-  if(k==='dataset')return{};
-  if(k==='textContent'||k==='innerHTML'||k==='value'||k==='id'||k==='className')return'';
-  if(k==='hidden'||k==='disabled'||k==='checked')return false;
-  if(k==='children'||k==='options')return[];
-  return fake();
- },
- set(){return true},apply(){return fake()},construct(){return fake()},has(){return true}
-});
-const almacen=new Map();
-const ctx={console,Math,JSON,Date,Number,String,Boolean,Array,Object,Map,Set,WeakMap,WeakSet,Promise,Symbol,RegExp,Error,isNaN,isFinite,parseFloat,parseInt,
- setTimeout:()=>0,clearTimeout(){},setInterval:()=>0,clearInterval(){},queueMicrotask(){},requestAnimationFrame:()=>0,
- localStorage:{getItem:k=>almacen.has(k)?almacen.get(k):null,setItem:(k,v)=>almacen.set(k,String(v)),removeItem:k=>almacen.delete(k)},
- document:fake(),navigator:{userAgent:'node'},location:{href:'file:///robotutor.html'},performance:{now:()=>0},
- matchMedia:()=>({matches:false,addEventListener(){},addListener(){}}),getComputedStyle:()=>fake(),
- CustomEvent:function(){},Event:function(){},addEventListener(){},removeEventListener(){},dispatchEvent:()=>true,
- alert(){},confirm:()=>false,scrollTo(){},innerWidth:1280,innerHeight:900,devicePixelRatio:1,
- MutationObserver:function(){return{observe(){},disconnect(){},takeRecords:()=>[]}},
- ResizeObserver:function(){return{observe(){},disconnect(){}}},IntersectionObserver:function(){return{observe(){},disconnect(){}}},
- TextEncoder,TextDecoder,structuredClone};
-ctx.window=ctx;ctx.globalThis=ctx;ctx.self=ctx;
-const sonda='\n;globalThis.__probe={makeDhAssignment,makeDhAssignment6R,cleanMechanismSvg,KinematicsEngine,exerciseTopicKey,DIFFICULTY_LEVELS,spatialPostureIsPlausible,kinematicsCandidates,topicNumericGenerators,buildPedagogyTrace,solutionReasoningMarkup};\n';
-vm.createContext(ctx);
-new vm.Script(main+sonda,{filename:'robotutor-main.js'}).runInContext(ctx);
-const P=ctx.__probe;
+const P=cargar(['makeDhAssignment','makeDhAssignment6R','cleanMechanismSvg','KinematicsEngine','exerciseTopicKey',
+  'DIFFICULTY_LEVELS','spatialPostureIsPlausible','kinematicsCandidates','topicNumericGenerators',
+  'buildPedagogyTrace','solutionReasoningMarkup'],process.argv[2]||RUTA_POR_DEFECTO);
 
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y,a.z-b.z);
 const rotulosDe=svg=>[...svg.matchAll(/<text[^>]*>([^<]*)<\/text>/g)].map(m=>m[1].trim());
@@ -120,7 +79,7 @@ for(const nivel of P.DIFFICULTY_LEVELS)for(let i=0;i<SORTEOS;i++){
 /* Añadir un generador no puede dejar sin representación a ninguna familia. */
 for(const nivel of P.DIFFICULTY_LEVELS){
  const familias=new Set(P.kinematicsCandidates(nivel).map(c=>c.family));
- for(const f of ['2d','3d','area','concepto','jacobiano'])assert.ok(familias.has(f),'nivel '+nivel+': falta la familia '+f+' en el capítulo 4');
+ for(const f of ['2d','3d','concepto'])assert.ok(familias.has(f),'nivel '+nivel+': falta la familia '+f+' en el capítulo 4');
  assert.ok(P.topicNumericGenerators('4.3',nivel).length>=2,'nivel '+nivel+': el tema 4.3 se quedó sin generadores');
 }
 console.log('Asignación de marcos DH validada: '+generados+' ejercicios sorteados, láminas y tablas coherentes.');

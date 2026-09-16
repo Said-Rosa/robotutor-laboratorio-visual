@@ -1,3 +1,19 @@
+# Revisión 3.36.0 · láminas mecánicas de cinemática directa
+
+Rama `codex/laminas-mecanicas`, basada en `main` 51b8516 (3.35.0). PR pendiente de revisión antes de fusionar, según README.
+
+- Nuevo dibujo vectorial fijo con cuerpos mecánicos, cotas exteriores y extremo E para ejercicios `forward_` espaciales. Sin ejes, marcas de giro, controles de postura ni proyecciones resueltas. Los datos y la referencia permanecen explícitos.
+- SCARA RRPR y cilíndrico RPPR de cuatro articulaciones, seleccionables en capítulo 4 / tema 4.1. Posición o transformación homogénea según dificultad. Modelos nuevos independientes del SCARA RRP existente; q3 del SCARA nuevo mide descenso.
+- La figura se calcula desde las mismas matrices que la respuesta. El 6R conserva su tabla DH y su geometría, con el nombre «Antropomórfico».
+- Se conserva el ejercicio separado de asignación de marcos DH incorporado por Claude. Sus ejes y tabla editable siguen visibles en su propia actividad.
+- Fórmulas y convenciones de los modelos nuevos en Aprender 4.1. La lámina de práctica solo muestra enunciado, dimensiones, datos y referencia.
+
+Validación: ocho grupos de integración local con JSDOM (coordenadas, dibujo, interfaz, calificación, guardado/restauración de Examen, transición DH, selector y KaTeX), sin errores de ejecución; 210 escenas aleatorias verificadas. Se revisaron renders vectoriales a anchura de escritorio y 390 px. `scripts/check-source.cjs` añade 108 combinaciones angulares contrastadas con fórmulas independientes para ambos modelos y se ejecuta en CI. No se ha hecho una prueba física en iOS.
+
+Publicación: se prepara la misma fuente para el enlace público de Sites habitual. GitHub Pages seguirá `main` y recibirá esta revisión al fusionar el PR. No existe sincronización permanente entre ambos alojamientos.
+
+---
+
 # Coordinación Claude / Codex
 
 Esta rama propone la revisión 3.33.0 sobre la fuente inicial 3.32.0 de `main`.

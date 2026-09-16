@@ -4743,6 +4743,15 @@ function cleanMechanismSvg(k,options={}){
   const punto=P[pinPoints[i]];if(!punto)return;
   const ejeMundo=jointRotationFrame(k,i).axis,q=project(ejeMundo),norm=Math.hypot(q.u-zero.u,q.v-zero.v)||1,dx=(q.u-zero.u)/norm,dy=(q.v-zero.v)/norm,half=bare?34:20;
   parts.push(line({x:punto.x+dx*half,y:punto.y-dy*half},{x:punto.x-dx*half,y:punto.y+dy*half},`stroke="var(--muted)" stroke-width="${bare?1.7:1}" stroke-dasharray="5,4"`));
+  /* La punta de flecha fija el sentido positivo de z(i-1). Sin ella la tabla
+     no es unica: invertir un eje cambia el signo de alfa(i), y una tabla
+     perfectamente valida quedaria marcada como error. La figura de un examen
+     entrega ese sentido, asi que la lamina desnuda tambien debe entregarlo. */
+  if(bare){
+   const sx=dx,sy=-dy,tip={x:punto.x+sx*half,y:punto.y+sy*half},base={x:tip.x-sx*11,y:tip.y-sy*11},px=-sy*4.6,py=sx*4.6;
+   const pt=(x,y)=>`${x.toFixed(1)},${y.toFixed(1)}`;
+   parts.push(`<polygon data-joint-arrow="${i}" points="${pt(tip.x,tip.y)} ${pt(base.x+px,base.y+py)} ${pt(base.x-px,base.y-py)}" fill="var(--muted)"/>`);
+  }
  });
  // One marker for coincident DH origins; no stack of unreadable joint labels.
  const groups=[];P.slice(0,-1).forEach((p,i)=>{let g=groups.find(g=>Math.hypot(g.p.x-p.x,g.p.y-p.y)<20);if(g)g.ids.push(i);else groups.push({p,ids:[i]})});
@@ -4751,7 +4760,14 @@ function cleanMechanismSvg(k,options={}){
   /* Numerar las articulaciones no adelanta nada: el enunciado ya las cuenta
      desde la base, y sin el número no hay forma de decir a qué fila de la
      tabla corresponde cada una. */
-  if(bare)parts.push(label(g.p.x,g.p.y+7,String(g.ids[0]+1),'text-anchor="middle" font-size="17" font-weight="700"'));
+  if(bare){
+   /* Una muñeca esferica concentra tres ejes en un punto. Numerar solo el
+      primero escondería dos filas enteras de la tabla que se pide. */
+   const nombres=g.ids.map(id=>id+1).join('·');
+   parts.push(g.ids.length===1
+    ?label(g.p.x,g.p.y+7,nombres,'text-anchor="middle" font-size="17" font-weight="700"')
+    :label(g.p.x+15,g.p.y-13,nombres,'font-size="17" font-weight="700"'));
+  }
  }
  const tcp=P.at(-1);parts.push(`<circle data-tcp="true" cx="${tcp.x}" cy="${tcp.y}" r="8" fill="var(--card)" stroke="#c43a3a" stroke-width="3"/>`,line(tcp,{x:625,y:75},'stroke="#c43a3a" stroke-width="1.3" stroke-dasharray="4 3"'),label(630,78,bare?'E':'TCP','font-weight="750"'));
  /* En modo desnudo la terna se ancla a la base del propio robot y se dibuja
@@ -4770,7 +4786,10 @@ function cleanMechanismSvg(k,options={}){
   for(let i=0;i<P.length-1;i++){
    const nombre=cotas[i];if(!nombre)continue;
    const dx=P[i+1].x-P[i].x,dy=P[i+1].y-P[i].y,largo=Math.hypot(dx,dy);
-   if(largo<14)continue;
+   /* Un tramo corto puede escorzarse casi por completo cuando su eje apunta
+      hacia la cámara. Antes se omitía su cota y la lámina dejaba sin nombrar
+      un dato que el enunciado sí menciona; ahora se rotula junto al extremo. */
+   if(largo<14){parts.push(label(P[i+1].x+16,P[i+1].y+20,nombre,'font-weight="700"'));continue}
    parts.push(label((P[i].x+P[i+1].x)/2+dy/largo*28-12,(P[i].y+P[i+1].y)/2-dx/largo*28,nombre,'font-weight="700"'));
   }
  }else{
@@ -6502,7 +6521,7 @@ function makeIndustrial6R(diff){
    eligen otros sentidos para xᵢ. Por eso el enunciado cierra la convención
    antes de pedir nada. Sin cerrarla no habría forma honesta de corregir celda
    a celda, porque una tabla válida podría marcarse como error. */
-const DH_ASSIGN_CONVENTION='Usa <strong>DH estándar</strong>: el eje de la articulación i es z<sub>i−1</sub>, x<sub>i</sub> se apoya en la normal común de z<sub>i−1</sub> a z<sub>i</sub> y O<sub>i</sub> es su corte con z<sub>i</sub>. El marco base dibujado fija z₀ vertical hacia arriba. Longitudes en metros y ángulos en grados.';
+const DH_ASSIGN_CONVENTION='Usa <strong>DH estándar</strong>: el eje de la articulación i es z<sub>i−1</sub>, x<sub>i</sub> se apoya en la normal común de z<sub>i−1</sub> a z<sub>i</sub> y O<sub>i</sub> es su corte con z<sub>i</sub>. El marco base dibujado fija z₀ vertical hacia arriba, y <strong>la flecha de cada eje marca su sentido positivo</strong>: invertir un eje cambia el signo de α<sub>i</sub>, así que sin ese dato la tabla no sería única. Longitudes en metros y ángulos en grados.';
 function makeDhAssignment(diff){
  const H=pick([2,2.5,3]),L2=pick([2.5,3,3.5]),L3=pick([1.5,2,2.5]);
  const q=[pick([0,30,45,60,-30]),pick([-30,0,30,45]),pick([-60,-30,0,30])];
@@ -6526,6 +6545,53 @@ function makeDhAssignment(diff){
    `Fila 2. z₁ y z₂ son paralelos —hombro y codo cabecean en el mismo plano—, así que α₂=0 y d₂=0. La normal común entre ambos ejes es el propio eslabón: a₂=L₂=${fmt(L2,2)}.`,
    `Fila 3. Mismo razonamiento que la anterior: α₃=0, d₃=0 y a₃=L₃=${fmt(L3,2)}.`,
    'La columna θ recoge la variable de cada articulación de revolución, θᵢ=qᵢ, con los valores de la postura dibujada.',
+   `Comprobación: con esa tabla el extremo queda en p=[${fmt(tcp.x,3)}, ${fmt(tcp.y,3)}, ${fmt(tcp.z,3)}]ᵀ, que es la postura de la lámina.`]};
+}
+/* ---------- MUÑECA ESFÉRICA · SEIS EJES ----------
+   Segunda entrega del tema. El caso de seis ejes quedó fuera de la primera
+   porque las torsiones alfa4 y alfa5 dependen del sentido en que se tomen los
+   ejes de la muñeca, y un esquema sin flechas no lo fija: dos tablas opuestas
+   en signo describen el mismo dibujo y la aplicación habría marcado como error
+   una respuesta correcta. Con el sentido positivo dibujado sobre cada eje la
+   tabla vuelve a ser única y el ejercicio se puede corregir celda a celda.
+
+   La cadena es el brazo antropomórfico de libro: columna, brazo, antebrazo y
+   los tres últimos ejes concurrentes en la punta del antebrazo. Se comprobó por
+   cálculo que los ejes 4, 5 y 6 cortan en un mismo punto —definición de muñeca
+   esférica— y que el extremo cae donde lo dibuja la lámina. */
+function makeDhAssignment6R(diff){
+ let H,L2,L3,L6,q,kinematics,filas;
+ /* La postura se resortea hasta que ningún punto del brazo baje del suelo.
+    Con estos rangos casi siempre acierta al primer intento; el bucle solo
+    cubre la minoría que cae por debajo. */
+ for(let intento=0;intento<40;intento++){
+  H=pick([2,2.5,3]);L2=pick([2.5,3,3.5]);L3=pick([1.5,2,2.5]);L6=pick([.5,.6,.8]);
+  q=[pick([0,30,45,60,-30,-45]),pick([0,30,45,60]),pick([-45,-30,0,30,45]),pick([-90,-45,0,45,90]),pick([-90,-45,45,90]),pick([-90,0,90])];
+  filas=[{a:0,alpha:90,d:H,theta:q[0]},{a:L2,alpha:0,d:0,theta:q[1]},{a:L3,alpha:90,d:0,theta:q[2]},
+   {a:0,alpha:-90,d:0,theta:q[3]},{a:0,alpha:90,d:0,theta:q[4]},{a:0,alpha:0,d:L6,theta:q[5]}];
+  kinematics={...KinematicsEngine.serialDH(filas),model:'DhAssignment6R'};
+  if(spatialPostureIsPlausible(kinematics))break;
+ }
+ const answer=filas.map(f=>[f.a,f.alpha,f.d,f.theta]),tcp=kinematics.positions.at(-1);
+ return{id:'dh_assignment_6R',kind:'dh-assignment',chapter:4,difficulty:diff,model:'DhAssignment6R',
+  visual:'dhAssignment',geometryTopic:'4.3',matrixLayout:'dh',
+  title:'Asignar los marcos de un brazo de seis ejes',
+  type:'matrix',rows:6,cols:4,answer,tolerance:.05,
+  statement:`La lámina entrega <strong>solo el marco base</strong>; los seis marcos los asignas tú. El brazo tiene una columna vertical de <strong>H=${fmt(H,2)} m</strong>, un brazo de <strong>L₂=${fmt(L2,2)} m</strong> y un antebrazo de <strong>L₃=${fmt(L3,2)} m</strong>. La base gira en acimut y el hombro y el codo cabecean sobre ejes paralelos entre sí. En la punta del antebrazo hay una <strong>muñeca esférica</strong>: los ejes 4, 5 y 6 se cortan en un mismo punto, por lo que entre ellos no hay ninguna distancia que recorrer. La herramienta sobresale <strong>L₆=${fmt(L6,2)} m</strong> desde ese punto, a lo largo del último eje. La postura dibujada corresponde a q₁=${q[0]}°, q₂=${q[1]}°, q₃=${q[2]}°, q₄=${q[3]}°, q₅=${q[4]}° y q₆=${q[5]}°.<br><br>Completa las seis filas de la <strong>tabla DH</strong>, en el orden (aᵢ, αᵢ, dᵢ, θᵢ). ${DH_ASSIGN_CONVENTION}`,
+  chips:[`H=${fmt(H,2)} m`,`L₂=${fmt(L2,2)} m`,`L₃=${fmt(L3,2)} m`,`L₆=${fmt(L6,2)} m`].concat(q.map((valor,i)=>formatAngle(valor,`q${'₁₂₃₄₅₆'[i]}`))),
+  params:{H,L2,L3,L6,q,kinematics,dimensions:['H','L₂','L₃','','','L₆']},
+  convention:'DH estándar, terna dextrógira y vectores columna. El marco base es el único dibujado; la flecha de cada eje da su sentido positivo.',
+  plateNote:'Brazo de seis ejes con muñeca esférica. Los tres últimos ejes se cortan en la punta del antebrazo, así que sus tres marcadores caen en el mismo punto y el rótulo los numera juntos.',
+  concepts:['asignación de marcos DH','muñeca esférica','tabla DH'],
+  commonErrors:['repartir el alcance del antebrazo entre varias filas cuando la muñeca no separa orígenes','poner α₄ y α₅ con el mismo signo sin mirar el sentido dibujado de los ejes','escribir L₆ en a₆ en vez de en d₆, que es la distancia medida sobre z₅'],
+  hints:['Las tres primeras filas son las del brazo antropomórfico: la torsión solo aparece donde dos ejes consecutivos dejan de ser paralelos.','Si tres ejes se cortan en un punto, entre ellos no hay normal común que recorrer: aᵢ=0 y dᵢ=0 en las filas de la muñeca.','αᵢ es el giro de zᵢ₋₁ a zᵢ alrededor de xᵢ, y su signo lo decide el sentido que marcan las flechas.'],
+  steps:[
+   `Fila 1. La columna sube H=${fmt(H,2)} m a lo largo de z₀, luego d₁=${fmt(H,2)} y a₁=0. Para que el hombro cabecee, z₁ tiene que quedar horizontal: α₁=90°.`,
+   `Fila 2. Hombro y codo cabecean sobre ejes paralelos, así que α₂=0 y d₂=0. La normal común entre ambos es el propio brazo: a₂=L₂=${fmt(L2,2)}.`,
+   `Fila 3. El antebrazo es la normal común entre el codo y el primer eje de la muñeca: a₃=L₃=${fmt(L3,2)} y d₃=0. Pero z₃ ya no es paralelo a z₂ —ahí arranca la muñeca—, y el giro que los separa es α₃=90°.`,
+   'Filas 4 y 5. Los tres ejes de la muñeca se cortan en un punto: no hay distancia que recorrer entre ellos, así que a₄=a₅=0 y d₄=d₅=0. Solo quedan las torsiones, α₄=−90° y α₅=90°, y el signo de cada una lo fija el sentido dibujado de los ejes.',
+   `Fila 6. La herramienta sale del punto de corte a lo largo de z₅, que es una distancia medida sobre z: d₆=L₆=${fmt(L6,2)}, con a₆=0 y α₆=0.`,
+   'La columna θ recoge la variable de cada articulación de revolución, θᵢ=qᵢ.',
    `Comprobación: con esa tabla el extremo queda en p=[${fmt(tcp.x,3)}, ${fmt(tcp.y,3)}, ${fmt(tcp.z,3)}]ᵀ, que es la postura de la lámina.`]};
 }
 function makeGravity2R(diff){
@@ -7315,6 +7381,7 @@ function kinematicsCandidates(diff){
     plausibleSpatial porque su postura no se resortea: la tabla que se pide
     describe justo el mecanismo dibujado. */
  lista.push({family:"3d",make:makeDhAssignment});
+ if(diff>=2)lista.push({family:"3d",make:makeDhAssignment6R});
  jacobianos.forEach(make=>lista.push({family:"jacobiano",make}));
  for(let i=0;i<Math.max(1,Math.round(lista.length*.28));i++)lista.push({family:"area",make:makeWorkspaceExercise});
  const conceptuales=Math.max(1,Math.round(lista.length*(CONCEPT_SHARE[diff]??.3)));
@@ -7420,7 +7487,7 @@ function legacyTopicNumericGenerators(key,diff){
  }
  /* El tema enseña a asignar marcos y construir la tabla; practicarlo con un
     ejercicio de cinemática inversa plana no entrenaba esa destreza. */
- if(key==="4.3")return[makeDhAssignment,d=>makeGeometric2R(d,"inverse")];
+ if(key==="4.3")return diff===1?[makeDhAssignment,d=>makeGeometric2R(d,"inverse")]:[makeDhAssignment,makeDhAssignment6R,d=>makeGeometric2R(d,"inverse")];
  if(key==="4.2")return diff>=3?[plausibleSpatial(makeDh3R)]:[];
  if(key==="4.5")return diff===1?[makeJacobianVelocity2R]:diff===2?[makeJacobianVelocity2R,makeJacobian2R]:[makeJacobian2R,makeJacobianInverse2R,makeJacobianVelocity2R];
  if(key==="4.11")return[makeWorkspaceExercise];
@@ -8118,6 +8185,7 @@ const SOLUTION_REASONING=Object.freeze({
  "forward_spatial_2R":{idea:"Los dos giros no son del mismo tipo: q₁ es un acimut alrededor de Z que orienta el plano de trabajo, y q₂ es una elevación dentro de ese plano. Conviene resolver primero la distancia horizontal y repartirla después entre X e Y.",comprobacion:"Con q₁ igual a cero el punto debe quedar contenido en el plano XZ, es decir, con la coordenada y nula."},
  "forward_spatial_3R":{idea:"La cadena se separa en dos problemas más simples: las elevaciones determinan la distancia horizontal y la altura, y el acimut solo gira ese perfil alrededor del eje vertical. Esa separación evita arrastrar los tres ángulos a la vez.",comprobacion:"La raíz de x²+y² debe coincidir con la distancia horizontal calculada antes de proyectar."},
  "forward_scara_rrp":{idea:"El SCARA está diseñado precisamente para desacoplar: las dos revolutas resuelven el plano XY como un 2R corriente y la prismática solo mueve la altura. Por eso su cinemática directa nunca mezcla las tres variables.",comprobacion:"Cambia el valor de la prismática: las coordenadas x e y deben quedar exactamente igual."},
+ "dh_assignment_6R":{idea:"Las tres primeras filas son las del brazo antropomórfico de siempre. Lo que cambia es la muñeca: cuando tres ejes se cortan en un mismo punto no queda ninguna normal común que recorrer, así que sus filas solo pueden aportar torsión. Por eso a y d se anulan ahí y toda la información se concentra en αᵢ, cuyo signo depende del sentido en que se tome cada eje.",comprobacion:"Multiplica las seis Aᵢ y mira dónde cae el extremo. Si has puesto L₆ en a₆ en vez de en d₆, la herramienta sale perpendicular al último eje en lugar de prolongarlo, y el punto final se desvía justo esa longitud."},
  "dh_assignment_3R":{idea:"La tabla no se lee del dibujo: se construye eligiendo primero los ejes. El eje de cada articulación fija zᵢ₋₁, y el reparto entre aᵢ y dᵢ sale de sobre qué eje se mide cada distancia: dᵢ recorre zᵢ₋₁ y aᵢ recorre xᵢ. La torsión αᵢ solo aparece donde dos ejes consecutivos dejan de ser paralelos.",comprobacion:"Sustituye la tabla en el producto de las Aᵢ y comprueba que el extremo cae donde lo dibuja la lámina. Una tabla con la altura en la columna equivocada suele dar el mismo alcance pero a otra altura."},
  "forward_dh_3R":{idea:"La tabla DH es un contrato: cada fila describe una transformación con cuatro parámetros en un orden fijo. Construir cada matriz por separado y acumularlas en el orden de la cadena es lo que impide perderse cuando hay muchos eslabones.",comprobacion:"La posición del extremo es la cuarta columna de la última acumulada, y su última fila debe seguir siendo [0,0,0,1]."},
  "forward_rrrp":{idea:"La articulación prismática se desplaza sobre un eje que las rotaciones anteriores ya han orientado, así que no puede tratarse como un movimiento en el sistema fijo. Tiene que entrar en la cadena en su posición, después de los giros.",comprobacion:"Con las tres rotaciones a cero, la extensión de la prismática debe sumarse íntegramente sobre el eje X del sistema base."},
@@ -10266,7 +10334,7 @@ function renderVisualPanelForExercise(exercise){
   const insignia=document.getElementById("exerciseVisualKind");
   insignia.textContent="Lámina técnica fija · vista isométrica";insignia.classList.add("fixed-plate-badge");
   document.getElementById("exerciseVisualCaption").textContent=exercise.convention;
-  document.getElementById("exerciseVisualDescription").textContent="Brazo articulado con su marco base dibujado. Las articulaciones van numeradas desde la base y las cotas llevan nombres mecánicos, no parámetros DH.";
+  document.getElementById("exerciseVisualDescription").textContent=exercise.plateNote||"Brazo articulado con su marco base dibujado. Las articulaciones van numeradas desde la base, la flecha de cada eje marca su sentido positivo y las cotas llevan nombres mecánicos, no parámetros DH.";
   const k=exercise.params.kinematics;
   document.getElementById("exerciseDhPlate").innerHTML=cleanMechanismSvg(k,{bare:true,dimensions:exercise.params.dimensions,camera:chooseSpatialCamera(k,720,420)});
   return;
@@ -13374,6 +13442,41 @@ function runSelfTests(){
      Boolean(host.querySelector("#texto-que-debe-sobrevivir"));
    }finally{host.remove()}
   }],
+  ["La muñeca esférica de seis ejes se dibuja y se corrige sin ambigüedad",()=>{
+   /* Este caso quedó fuera de la primera entrega: sin el sentido de los ejes
+      las torsiones α₄ y α₅ admiten dos signos y una tabla válida podía quedar
+      marcada como error. La flecha de cada eje cierra esa ambigüedad, así que
+      la autoprueba la exige en la lámina junto al resto de condiciones. */
+   for(const nivel of DIFFICULTY_LEVELS){
+    const e=makeDhAssignment6R(nivel);
+    if(e.type!=="matrix"||e.rows!==6||e.cols!==4)return false;
+    if(exerciseTopicKey(e)!=="4.3")return false;
+    const k=e.params.kinematics,pos=k.positions,dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y,a.z-b.z);
+    /* Muñeca esférica: los orígenes 3, 4 y 5 son el mismo punto, que es donde
+       se cortan los ejes de las articulaciones 4, 5 y 6. */
+    if(dist(pos[3],pos[4])>1e-9||dist(pos[4],pos[5])>1e-9)return false;
+    /* La herramienta prolonga el último eje exactamente L₆. */
+    if(Math.abs(dist(pos[5],pos[6])-e.params.L6)>1e-9)return false;
+    /* Si tres ejes se cortan, entre ellos no hay distancia que recorrer. */
+    for(const fila of [3,4])if(e.answer[fila][0]!==0||e.answer[fila][2]!==0)return false;
+    /* La tabla que se pide reproduce la cadena dibujada. */
+    const filas=e.answer.map(([a,alpha,d,theta])=>({a,alpha,d,theta}));
+    const comprobada=KinematicsEngine.serialDH(filas).positions.at(-1);
+    for(const eje of ["x","y","z"])if(Math.abs(comprobada[eje]-pos.at(-1)[eje])>1e-9)return false;
+    const svg=cleanMechanismSvg(k,{bare:true,dimensions:e.params.dimensions});
+    /* Una flecha por articulación: es el dato que hace única la tabla. */
+    if((svg.match(/data-joint-arrow=/g)||[]).length!==6)return false;
+    const rotulos=[...svg.matchAll(/<text[^>]*>([^<]*)<\/text>/g)].map(m=>m[1].trim());
+    /* Los tres ejes concurrentes comparten marcador y el rótulo los numera
+       juntos: numerar solo el primero escondería dos filas de la tabla. */
+    if(!rotulos.includes("4·5·6"))return false;
+    for(const cota of ["H","L₂","L₃","L₆"])if(!rotulos.includes(cota))return false;
+    /* Y la lámina sigue sin regalar la respuesta. */
+    if(rotulos.some(t=>/^(a|d|α|θ)[₀-₉0-9]/.test(t)))return false;
+    if(rotulos.some(t=>/^[xz][₀-₉0-9]/.test(t)))return false;
+   }
+   return true;
+  }],
   ["La lámina de asignación de marcos no entrega la respuesta",()=>{
    /* El ejercicio pide construir la tabla: si la figura nombrase los tramos
       aᵢ o dᵢ, o dibujase los marcos ya asignados, la estaría regalando. Solo
@@ -13388,12 +13491,12 @@ function runSelfTests(){
     for(const eje of ["x","y","z"])if(Math.abs(comprobada[eje]-dibujada[eje])>1e-9)return false;
     const svg=cleanMechanismSvg(e.params.kinematics,{bare:true,dimensions:e.params.dimensions});
     const rotulos=[...svg.matchAll(/<text[^>]*>([^<]*)<\/text>/g)].map(m=>m[1].trim());
-    if(/^(a|d|α|θ)[₀-₉0-9]/.test(rotulos.join(" ")))return false;
+    if(rotulos.some(t=>/^(a|d|α|θ)[₀-₉0-9]/.test(t)))return false;
     if(!rotulos.includes("X")||!rotulos.includes("Y")||!rotulos.includes("Z"))return false;
     for(const cota of e.params.dimensions)if(!rotulos.includes(cota))return false;
     for(let i=1;i<=3;i++)if(!rotulos.includes(String(i)))return false;
     /* y no debe colarse ninguna terna local ya resuelta */
-    if(/x[₀-₉1-9]|z[₀-₉1-9]/.test(rotulos.join(" ")))return false;
+    if(rotulos.some(t=>/^[xz][₀-₉0-9]/.test(t)))return false;
    }
    return true;
   }],

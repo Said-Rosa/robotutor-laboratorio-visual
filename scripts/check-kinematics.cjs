@@ -66,7 +66,7 @@ for(const nivel of P.DIFFICULTY_LEVELS)for(let i=0;i<SORTEOS;i++){
  assert.ok(P.spatialPostureIsPlausible(k),donde6+': la postura dibujada se hunde bajo el suelo');
  const svg6=P.mechanicalPlateSvg({...e6,kinematics:k}),r6=rotulosDe(svg6);
  assert.equal((svg6.match(/data-joint-axis="/g)||[]).length,6,donde6+': debe haber un eje dibujado por articulación');
- assert.ok(r6.includes('4·5·6'),donde6+': los ejes concurrentes deben numerarse juntos · '+JSON.stringify(r6));
+ for(const n of ['4','5','6'])assert.ok(r6.includes(n),donde6+': falta el número del eje '+n+' · '+JSON.stringify(r6));
  cotasPresentes(r6,['H','L₂','L₃','L₆'],donde6);
  laminaHonesta(r6,donde6);
 

@@ -897,7 +897,7 @@
               <div class="spatial-note">Se entrega el mecanismo y el marco base. Los marcos siguientes los asignas tú: la lámina no los dibuja.</div>
               <ul class="rt-legend">
                 <li><i style="background:#df4b58"></i>X <i style="background:#45c778"></i>Y <i style="background:#123f87"></i>Z = marco base, el único dado</li>
-                <li>Círculo numerado = articulación, contada desde la base</li>
+                <li>Rótulo numerado = articulación; en la muñeca, identifica la flecha de su eje</li>
                 <li>Recta discontinua = eje de giro de esa articulación</li>
                 <li><strong>E</strong> = extremo del brazo</li>
               </ul>
@@ -2754,7 +2754,7 @@ const roadmap = [
    en este punto y renombra el archivo en consecuencia.
    Ojo: `progress.version` es otra cosa — numera el esquema de datos guardados en
    localStorage y avanza solo cuando cambia la forma de ese objeto. */
-const APP_VERSION="3.37.1";
+const APP_VERSION="3.38.0";
 const APP_STAGE="láminas claras · verdadero/falso y respuestas abiertas";
 /* Los cuatro niveles del curso. Toda comprobación de dificultad debe leer de aquí:
    el selector, las preferencias guardadas, la política pedagógica y los bancos. */
@@ -4618,7 +4618,7 @@ function mechanicalScene(e){
   const R=k.pose,dir=[R[0][0],R[1][0],0],cross=scale(dir,width*.4),up=[0,0,width*.38];
   beam(add(add(tip,up),scale(cross,-1)),add(add(tip,up),cross),width*.15,width*.16);
   for(const sign of[-1,1])beam(add(add(tip,up),scale(cross,sign)),add(tip,scale(cross,sign)),width*.13,width*.14);
-  dim(origin,H,book?'l₁':'d₀','left');dim(H,J,book?'l₂':'L₁','upper');dim(J,W,book?'l₃':'L₂','upper');dim(W,tip,book?'q₃':'|q₃|','right');
+  dim(origin,H,book?'l₁':'d₀','left');dim(H,J,book?'l₂':'L₁','upper');dim(J,W,book?'l₃':'L₂','upper');dim(W,tip,book?'q₃':'|q₃|','right',true);
   referencePoints=[origin,H,J,W,tip];
  }else if(model==='Cylindrical_RPPR'){
   const h=p.l1+p.d2,B=[0,0,p.l1],C=[0,0,h],az=rad(p.theta1),u=[Math.cos(az),Math.sin(az),0],W=add(C,scale(u,p.d3)),width=.45;
@@ -4633,15 +4633,28 @@ function mechanicalScene(e){
  }else{
   const positive=points.slice(1).map((v,i)=>norm(sub(v,points[i]))).filter(v=>v>.01),size=Math.max(...positive),width=Math.max(.3,Math.min(.58,size*.13));
   const sc=points[1]?.[2]||1;rod(origin,[0,0,Math.min(.4,Math.abs(sc)*.15)],width*2);
-  points.slice(1).forEach((b,i)=>{const a=points[i];beam(a,b,width*(i>2?.8:1.2),width*(i>2?.75:1));});
+  points.slice(1).forEach((b,i)=>{
+   const a=points[i];
+   if(model==='RRRP'&&i===2){
+    // Four walls leave a real open mouth; the narrower slider overlaps inside.
+    const axis=unit(sub(b,a)),v=Math.abs(axis[2])>.85?[1,0,0]:[0,0,1];
+    const u=unit([axis[1]*v[2]-axis[2]*v[1],axis[2]*v[0]-axis[0]*v[2],axis[0]*v[1]-axis[1]*v[0]]),w=[axis[1]*u[2]-axis[2]*u[1],axis[2]*u[0]-axis[0]*u[2],axis[0]*u[1]-axis[1]*u[0]];
+    const outer=width*1.25,wall=width*.16,shift=(outer-wall)/2;
+    for(const sign of[-1,1]){
+     solid('box',add(a,scale(u,sign*shift)),add(b,scale(u,sign*shift)),wall,outer);
+     solid('box',add(a,scale(w,sign*shift)),add(b,scale(w,sign*shift)),outer-wall*2,wall);
+    }
+    beam(add(a,scale(sub(b,a),.22)),tip,width*.66,width*.66);
+   }else if(!(model==='RRRP'&&i===3))beam(a,b,width*(i>2?.8:1.2),width*(i>2?.75:1));
+  });
   // Coincident DH origins share a single housing; no fake zero-length link.
   const placed=[];(k.jointAxes||[]).forEach((axis,i)=>{if(!axis)return;const c=points[i];if(placed.some(v=>norm(sub(c,v))<1e-7))return;placed.push(c);const f=jointRotationFrame(k,i).axis;joint(c,V(f),width*.83,width*1.2)});
   /* La lámina de asignación de marcos no puede rotular aᵢ ni dᵢ: eso es la
      respuesta que el ejercicio pide construir. Cuando el ejercicio declara sus
      propias cotas mecánicas, mandan las suyas. */
   const labels=e.params?.dimensions||spatialDimensionLabels(model,points.length-1);
-  points.slice(1).forEach((b,i)=>{if(labels[i])dim(points[i],b,labels[i],i===0?'left':'auto',false)});
-  const R=k.pose,u=[R[0][2],R[1][2],R[2][2]],v=[R[0][0],R[1][0],R[2][0]],back=scale(u,-width*.6);
+  points.slice(1).forEach((b,i)=>{if(labels[i])dim(points[i],b,labels[i],i===0?'left':'auto',/^q/.test(labels[i]))});
+  const R=k.pose,along=['RRRP','Spatial2R','Spatial3R'].includes(model),u=along?unit(sub(tip,points.at(-2))):[R[0][2],R[1][2],R[2][2]],v=along?[R[0][1],R[1][1],R[2][1]]:[R[0][0],R[1][0],R[2][0]],back=scale(u,-width*.6);
   beam(add(add(tip,back),scale(v,-width*.45)),add(add(tip,back),scale(v,width*.45)),width*.2,width*.2);
   for(const sign of[-1,1])beam(add(add(tip,back),scale(v,sign*width*.45)),add(tip,scale(v,sign*width*.45)),width*.15,width*.15);
   referencePoints=points;
@@ -4659,85 +4672,135 @@ function mechanicalScene(e){
  }
  return{model,solids,dimensions,tip,referencePoints,frames};
 }
-function mechanicalPlateSvg(e,{mobile=false}={}){
+/* Orthographic hidden-surface clipping. Depth is a plane over each projected
+   convex face: only the portion physically behind another face is removed.
+   Edges use the same test, so rear rims never show through solid housings. */
+function mechanicalVisibility(faces,edges){
+ const eps=1e-7,cross=(a,b,p)=>(b[0]-a[0])*(p[1]-a[1])-(b[1]-a[1])*(p[0]-a[0]);
+ const clip=(poly,fn)=>{const out=[];for(let i=0;i<poly.length;i++){const a=poly[i],b=poly[(i+1)%poly.length],fa=fn(a),fb=fn(b);if(fa>=-eps)out.push(a);if((fa>eps&&fb<-eps)||(fa<-eps&&fb>eps)){const t=fa/(fa-fb);out.push([a[0]+t*(b[0]-a[0]),a[1]+t*(b[1]-a[1])])}}return out};
+ const area=p=>p.reduce((s,a,i)=>{const b=p[(i+1)%p.length];return s+a[0]*b[1]-a[1]*b[0]},0);
+ const prepared=faces.map(f=>{
+  let p=f.points;const a=p[0],b=p[1],c=p[2],d=cross(a,b,c);
+  if(Math.abs(d)<eps)return null;
+  const dx=((b[2]-a[2])*(c[1]-a[1])-(c[2]-a[2])*(b[1]-a[1]))/d;
+  const dy=((b[0]-a[0])*(c[2]-a[2])-(c[0]-a[0])*(b[2]-a[2]))/d;
+  const z=a[2]-dx*a[0]-dy*a[1];if(area(p)<0)p=[...p].reverse();
+  return{...f,p,depth:q=>dx*q[0]+dy*q[1]+z,bounds:[Math.min(...p.map(v=>v[0])),Math.min(...p.map(v=>v[1])),Math.max(...p.map(v=>v[0])),Math.max(...p.map(v=>v[1]))]};
+ }).filter(Boolean);
+ const overlap=(a,b)=>a[0]<b[2]-eps&&a[2]>b[0]+eps&&a[1]<b[3]-eps&&a[3]>b[1]+eps;
+ const surfaces=[];
+ for(const f of prepared){
+  let pieces=[f.p];
+  for(const g of prepared){
+   if(f===g||f.owner===g.owner||!overlap(f.bounds,g.bounds))continue;
+   const occluder=clip(g.p,p=>g.depth(p)-f.depth(p)-eps*10);if(occluder.length<3)continue;
+   const next=[];
+   for(const piece of pieces){let inside=piece;
+    for(let i=0;i<occluder.length&&inside.length>=3;i++){
+     const a=occluder[i],b=occluder[(i+1)%occluder.length],fn=p=>cross(a,b,p);
+     const outside=clip(inside,p=>-fn(p));if(outside.length>=3&&Math.abs(area(outside))>eps)next.push(outside);
+     inside=clip(inside,fn);
+    }
+   }
+   pieces=next;if(!pieces.length)break;
+  }
+  for(const p of pieces)surfaces.push({points:p,color:f.color});
+ }
+ const lines=[];
+ for(const edge of edges){const [a,b]=edge.points;let visible=[[0,1]];
+  const at=t=>a.map((v,i)=>v+(b[i]-v)*t);
+  for(const f of prepared){let lo=0,hi=1;
+   const restrict=(va,vb)=>{if(va<0&&vb<0){hi=-1;return}if(va<0)lo=Math.max(lo,va/(va-vb));else if(vb<0)hi=Math.min(hi,va/(va-vb))};
+   for(let i=0;i<f.p.length&&lo<=hi;i++)restrict(cross(f.p[i],f.p[(i+1)%f.p.length],a)+eps,cross(f.p[i],f.p[(i+1)%f.p.length],b)+eps);
+   restrict(f.depth(a)-a[2]-eps*20,f.depth(b)-b[2]-eps*20);if(lo>=hi)continue;
+   visible=visible.flatMap(([l,h])=>hi<=l||lo>=h?[[l,h]]:[...(lo>l?[[l,lo]]:[]),...(hi<h?[[hi,h]]:[])]);if(!visible.length)break;
+  }
+  for(const [lo,hi] of visible)if(hi-lo>eps)lines.push([at(lo),at(hi)]);
+ }
+ return{surfaces,lines};
+}
+function mechanicalPlateSvg(e,{mobile=Boolean(window.matchMedia?.("(max-width:600px)").matches)}={}){
  const scene=mechanicalScene(e),sub=(a,b)=>a.map((v,i)=>v-b[i]),dot=(a,b)=>a.reduce((s,v,i)=>s+v*b[i],0),cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],unit=a=>{const n=Math.hypot(...a)||1;return a.map(v=>v/n)},add=(a,b)=>a.map((v,i)=>v+b[i]),mul=(a,k)=>a.map(v=>v*k);
- const tip=scene.tip,az=Math.atan2(tip[1],tip[0]||1e-9)-Math.PI/3,elev=.44,view=[Math.cos(az)*Math.cos(elev),Math.sin(az)*Math.cos(elev),Math.sin(elev)],right=[-Math.sin(az),Math.cos(az),0],up=cross(view,right),project=a=>[dot(a,right),-dot(a,up),dot(a,view)];
- const faces=[];
- function face(points,edge=true){const n=unit(cross(sub(points[1],points[0]),sub(points[2],points[0])));if(dot(n,view)<=1e-9)return;const light=dot(n,unit([-.45,-.55,1]));faces.push({points,depth:points.reduce((s,p)=>s+dot(p,view),0)/points.length,color:light>.5?'#ffffff':light>0?'#edf1f5':'#d5dde5',edge})}
- for(const s of scene.solids){
+ // Choose a fixed, legible camera, never a different physical joint posture.
+ const bearing=Math.atan2(scene.tip[1],scene.tip[0]||1e-9),cameras=[];
+ for(const turn of[-65,-45,-85,-25,45])for(const elev of[.45,.65]){
+  const az=bearing+rad(turn),view=[Math.cos(az)*Math.cos(elev),Math.sin(az)*Math.cos(elev),Math.sin(elev)],right=[-Math.sin(az),Math.cos(az),0],up=cross(view,right),project=p=>[dot(p,right),-dot(p,up),dot(p,view)];
+  let score=0;
+  for(const d of scene.dimensions){const v=unit(sub(d.b,d.a)),ratio=Math.sqrt(Math.max(0,1-dot(v,view)**2));score+=Math.min(ratio,.85);if(ratio<.4)score-=8*(.4-ratio)}
+  if(scene.frames)for(const j of scene.frames.joints){const ratio=Math.sqrt(Math.max(0,1-dot(j.axis,view)**2));if(ratio<.4)score-=6*(.4-ratio)}
+  cameras.push({view,project,score:score-Math.abs(turn+65)*.002});
+ }
+ const {view,project}=cameras.sort((a,b)=>b.score-a.score)[0],faces=[],edges=[];
+ scene.solids.forEach((s,owner)=>{
   const axis=unit(sub(s.b,s.a)),ref=Math.abs(axis[2])>.85?[1,0,0]:[0,0,1],u=unit(cross(axis,ref)),v=cross(axis,u);
+  const face=points=>{const normal=unit(cross(sub(points[1],points[0]),sub(points[2],points[0])));if(dot(normal,view)<=1e-8)return;const light=dot(normal,unit([-.45,-.55,1]));faces.push({owner,points:points.map(project),color:light>.5?'#fff':light>0?'#edf1f5':'#d5dee7'})};
+  const edge=(a,b)=>edges.push({points:[project(a),project(b)]});
   if(s.kind==='box'){
    const corners=[[-1,-1],[1,-1],[1,1],[-1,1]],ring=c=>corners.map(([x,y])=>add(add(c,mul(u,x*s.width/2)),mul(v,y*s.height/2))),A=ring(s.a),B=ring(s.b);
-   face([...A].reverse());face(B);for(let i=0;i<4;i++){const j=(i+1)%4;face([A[i],A[j],B[j],B[i]])}
+   face([...A].reverse());face(B);for(let i=0;i<4;i++){const j=(i+1)%4;face([A[i],A[j],B[j],B[i]]);edge(A[i],A[j]);edge(B[i],B[j]);edge(A[i],B[i])}
   }else{
-   const count=32,ring=c=>Array.from({length:count},(_,i)=>add(add(c,mul(u,s.width*Math.cos(i*2*Math.PI/count))),mul(v,s.width*Math.sin(i*2*Math.PI/count)))),A=ring(s.a),B=ring(s.b);
-   face([...A].reverse());face(B);for(let i=0;i<count;i++){const j=(i+1)%count;face([A[i],A[j],B[j],B[i]],false)}
-   // The two silhouette generators close the cylindrical body without grooves.
-   const sideways=unit(cross(axis,view));for(const sign of[-1,1])faces.push({line:[add(s.a,mul(sideways,sign*s.width)),add(s.b,mul(sideways,sign*s.width))],depth:Math.max(dot(s.a,view),dot(s.b,view))+s.width+1e-6});
-   for(const ring of[A,B])for(let i=0;i<count;i++){const j=(i+1)%count,radial=add(sub(ring[i],ring===A?s.a:s.b),sub(ring[j],ring===A?s.a:s.b));if(dot(radial,view)>0)faces.push({line:[ring[i],ring[j]],depth:Math.max(dot(s.a,view),dot(s.b,view))+s.width+1e-6})}
+   const count=24,ring=c=>Array.from({length:count},(_,i)=>add(add(c,mul(u,s.width*Math.cos(i*2*Math.PI/count))),mul(v,s.width*Math.sin(i*2*Math.PI/count)))),A=ring(s.a),B=ring(s.b);
+   face([...A].reverse());face(B);for(let i=0;i<count;i++){const j=(i+1)%count;face([A[i],A[j],B[j],B[i]]);edge(A[i],A[j]);edge(B[i],B[j]);
+    const prev=(i+count-1)%count,n1=unit(add(sub(A[i],s.a),sub(A[j],s.a))),n0=unit(add(sub(A[prev],s.a),sub(A[i],s.a)));if((dot(n1,view)>0)!==(dot(n0,view)>0))edge(A[i],B[i]);
+   }
   }
+ });
+ const visible=mechanicalVisibility(faces,edges),raw=faces.flatMap(f=>f.points),xs=raw.map(p=>p[0]),ys=raw.map(p=>p[1]),scale=Math.min(580/(Math.max(...xs)-Math.min(...xs)||1),410/(Math.max(...ys)-Math.min(...ys)||1));
+ const map2=p=>[p[0]*scale,p[1]*scale],map=p=>map2(project(p)),n=v=>Number(v.toFixed(3)),poly=p=>p.map(v=>v.map(n).join(',')).join(' '),line=(a,b,attrs='')=>`<line x1="${n(a[0])}" y1="${n(a[1])}" x2="${n(b[0])}" y2="${n(b[1])}" ${attrs}/>`;
+ const drawn=visible.surfaces.map(f=>f.points.map(map2)),body=faces.map(f=>f.points.map(map2)),bounds=raw.map(map2),pieces=[];
+ for(const [i,f] of visible.surfaces.entries())pieces.push(`<polygon data-mechanical-face="true" points="${poly(drawn[i])}" fill="${f.color}" stroke="${f.color}" stroke-width=".4"/>`);
+ for(const edge of visible.lines)pieces.push(line(...edge.map(map2),'data-visible-edge="true" stroke="#304454" stroke-width="1.4" stroke-linejoin="round"'));
+ const font=mobile?34:22,labels=[],strokes=[],annotations=[],topLabels=[];
+ const box=(p,text,size=font)=>({x:p[0]-(text.length*.58*size+12)/2,y:p[1]-size*.65,w:text.length*.58*size+12,h:size*1.3});
+ const corners=b=>[[b.x,b.y],[b.x+b.w,b.y],[b.x+b.w,b.y+b.h],[b.x,b.y+b.h]],overlap=(a,b)=>a.x<b.x+b.w+8&&a.x+a.w+8>b.x&&a.y<b.y+b.h+8&&a.y+a.h+8>b.y;
+ const inside=(p,pts)=>{let yes=false;for(let i=0,j=pts.length-1;i<pts.length;j=i++)if((pts[i][1]>p[1])!==(pts[j][1]>p[1])&&p[0]<(pts[j][0]-pts[i][0])*(p[1]-pts[i][1])/(pts[j][1]-pts[i][1])+pts[i][0])yes=!yes;return yes};
+ const inBody=p=>body.some(f=>inside(p,f));
+ const orient=(a,b,c)=>(b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]);
+ const crossing=(a,b,c,d)=>orient(a,b,c)*orient(a,b,d)<-1e-6&&orient(c,d,a)*orient(c,d,b)<-1e-6;
+ const throughBox=(a,b,r)=>inside(a,corners(r))||inside(b,corners(r))||corners(r).some((c,i,cs)=>crossing(a,b,c,cs[(i+1)%4]));
+ const collision=b=>labels.filter(r=>overlap(b,r)).length*1000+corners(b).concat([[b.x+b.w/2,b.y+b.h/2]]).filter(inBody).length*100+strokes.filter(([a,c])=>throughBox(a,c,b)).length*150;
+ const putText=(p,text,{color='#182938',size=font,weight=400,attrs='',badge=false}={})=>{const b=box(p,text,size);labels.push(b);bounds.push(...corners(b));topLabels.push(`<g ${attrs}>${badge?`<rect x="${n(b.x)}" y="${n(b.y)}" width="${n(b.w)}" height="${n(b.h)}" rx="5" fill="#fff" stroke="${color}"/>`:`<rect x="${n(b.x)}" y="${n(b.y)}" width="${n(b.w)}" height="${n(b.h)}" rx="3" fill="#fff"/>`}<text x="${n(p[0])}" y="${n(p[1]+size*.33)}" text-anchor="middle" font-family="Georgia,serif" font-size="${size}" font-style="${badge?'normal':'italic'}" font-weight="${weight}" fill="${color}">${traceHtmlEscape(text)}</text></g>`);return b};
+ const drawLine=(a,b,color='#536778',width=1,extra='')=>{bounds.push(a,b);strokes.push([a,b]);annotations.push(line(a,b,`stroke="${color}" stroke-width="${width}" ${extra}`))};
+ const arrow=(a,b,color,width=1.3)=>{drawLine(a,b,color,width);const u=unit(sub(b,a)),p=[-u[1]*3.5,u[0]*3.5],c=add(b,mul(u,-9));annotations.push(`<path d="M${b.map(n).join(' ')} L${add(c,p).map(n).join(' ')} L${sub(c,p).map(n).join(' ')} Z" fill="${color}"/>`)};
+ const placeCallout=(anchor,text,options={})=>{
+  const candidates=[];for(const radius of[34,54,78,106,140])for(let i=0;i<16;i++){const t=i*Math.PI/8,p=add(anchor,[Math.cos(t)*radius,Math.sin(t)*radius]);candidates.push({p,score:collision(box(p,text,options.size||font))+radius*.18+Array.from({length:6},(_,j)=>inBody(add(anchor,mul(sub(p,anchor),(j+1)/7)))).filter(Boolean).length*3})}
+  const p=candidates.sort((a,b)=>a.score-b.score)[0].p,b=box(p,text,options.size||font),v=sub(anchor,p),ratio=Math.min((b.w/2)/Math.max(Math.abs(v[0]),1e-9),(b.h/2)/Math.max(Math.abs(v[1]),1e-9)),contact=add(p,mul(v,ratio));
+  drawLine(anchor,contact,options.color||'#536778',1);putText(p,text,options);return p;
+ };
+ // Reserve axes before positioning dimensions, so labels cannot cover arrows.
+ if(scene.frames){const f=scene.frames,base=map(f.base),size=font*.87;
+  for(const [v,name,color] of [[[1,0,0],'X','#be3b43'],[[0,1,0],'Y','#07866b'],[[0,0,1],'Z','#2867b2']]){
+   const projected=sub(map(add(f.base,v)),base),end=add(base,mul(unit(projected),88));annotations.push(`<g data-base-axis="${name}">`);arrow(base,end,color,2);annotations.push('</g>');placeCallout(end,name,{color,size,weight:700});
+  }
+  const groups=[];for(const j of f.joints){const C=map(j.c),v=sub(map(add(j.c,j.axis)),C),u=unit(v),A=add(C,mul(u,-31)),B=add(C,mul(u,52));annotations.push(`<g data-joint-axis="${j.n}">`);drawLine(A,C,'#64748b',1,'stroke-dasharray="5,4"');arrow(C,B,'#64748b',1.2);annotations.push('</g>');const g=groups.find(g=>Math.hypot(...sub(C,g.p))<3);if(g){g.ns.push(j.n);g.ends.push(B)}else groups.push({p:C,ns:[j.n],ends:[B]});}
+  for(const g of groups)for(const [i,joint] of g.ns.entries())placeCallout(g.ns.length>1?g.ends[i]:g.p,String(joint),{size:font*.82,weight:700,badge:true,attrs:`data-joint-label="${joint}"`});
  }
- const all=faces.flatMap(f=>f.points||f.line).map(project),xmin=Math.min(...all.map(p=>p[0])),xmax=Math.max(...all.map(p=>p[0])),ymin=Math.min(...all.map(p=>p[1])),ymax=Math.max(...all.map(p=>p[1]));
- const W=760,H=590,k=Math.min(440/(xmax-xmin||1),360/(ymax-ymin||1)),mx=380-(xmin+xmax)*k/2,my=295-(ymin+ymax)*k/2,map=p=>{const q=project(p);return[q[0]*k+mx,q[1]*k+my]};
- const n=v=>Number(v.toFixed(3)),line=(a,b,attr='')=>`<line x1="${n(a[0])}" y1="${n(a[1])}" x2="${n(b[0])}" y2="${n(b[1])}" ${attr}/>`;
- const pieces=[`<rect width="760" height="590" fill="#fff"/>`];
- for(const f of faces.sort((a,b)=>a.depth-b.depth)){if(f.line)pieces.push(line(...f.line.map(map),'stroke="#52616e" stroke-width="1.15"'));else pieces.push(`<polygon data-mechanical-face="true" points="${f.points.map(map).map(p=>p.map(n).join(',')).join(' ')}" fill="${f.color}" stroke="${f.edge?'#334454':f.color}" stroke-width="${f.edge?1.45:.6}" stroke-linejoin="round"/>`)}
- const font=mobile?30:25,labels=[],dimColor='#536778',varColor='#1668b8',center=[380,295],dimensions=[],extras=[];
- const overlaps=(box,other)=>box.x<other.x+other.w+6&&box.x+box.w+6>other.x&&box.y<other.y+other.h+6&&box.y+box.h+6>other.y;
- const label=(p,text,variable=false)=>{const w=text.length*font*.56+18,h=font+12,box={x:p[0]-w/2,y:p[1]-h/2,w,h};labels.push(box);return`<g data-dimension-label="${traceAttrEscape(text)}" data-dimension-variable="${variable?'1':'0'}"><rect x="${n(box.x)}" y="${n(box.y)}" width="${n(w)}" height="${n(h)}" rx="4" fill="#fff"/><text x="${n(p[0])}" y="${n(p[1]+font*.34)}" text-anchor="middle" font-size="${font}" font-family="Georgia,serif" font-style="italic" font-weight="${variable?'700':'400'}" fill="${variable?varColor:'#182938'}">${traceHtmlEscape(text)}</text></g>`};
- for(const [index,d] of scene.dimensions.entries()){
-  const a=map(d.a),b=map(d.b),dx=b[0]-a[0],dy=b[1]-a[1],length=Math.hypot(dx,dy);if(length<2)continue;
-  let normal=[-dy/length,dx/length],mid=[(a[0]+b[0])/2,(a[1]+b[1])/2],sign=dot(normal,sub(mid,center))>=0?1:-1;
-  if(d.side==='left')sign=normal[0]<0?1:-1;else if(d.side==='right')sign=normal[0]>0?1:-1;else if(d.side==='upper')sign=normal[1]<0?1:-1;
-  normal=mul(normal,sign);let offset=48+(d.side==='auto'?index%2*15:0),A,B,pos;
-  for(let attempt=0;attempt<6;attempt++){A=add(a,mul(normal,offset));B=add(b,mul(normal,offset));pos=add(mid,mul(normal,offset+18));const box={x:pos[0]-d.label.length*font*.3-9,y:pos[1]-font/2-6,w:d.label.length*font*.6+18,h:font+12};if(!labels.some(v=>overlaps(box,v)))break;offset+=26}
-  const trazo=d.variable?varColor:dimColor;
-  dimensions.push(line(add(a,mul(normal,12)),add(A,mul(normal,7)),`stroke="${trazo}" stroke-width="1"`),line(add(b,mul(normal,12)),add(B,mul(normal,7)),`stroke="${trazo}" stroke-width="1"`),line(A,B,`stroke="${trazo}" stroke-width="${d.variable?1.9:1.35}"`));
-  const tangent=[dx/length,dy/length];for(const [end,sgn] of [[A,1],[B,-1]]){const c=add(end,mul(tangent,sgn*8));dimensions.push(`<path d="M${end.map(n).join(' ')} L${add(c,mul(normal,3.4)).map(n).join(' ')} L${add(c,mul(normal,-3.4)).map(n).join(' ')} Z" fill="${trazo}"/>`)}
-  dimensions.push(label(pos,d.label,d.variable));
+ const center=[(Math.min(...xs)+Math.max(...xs))*scale/2,(Math.min(...ys)+Math.max(...ys))*scale/2];
+ for(const d of scene.dimensions){
+  const a=map(d.a),b=map(d.b),delta=sub(b,a),length=Math.hypot(...delta),u=unit(delta),normal=[-u[1],u[0]],mid=mul(add(a,b),.5),color=d.variable?'#1668b8':'#536778';
+  if(length<5){placeCallout(mid,d.label,{color,attrs:`data-dimension-label="${traceAttrEscape(d.label)}" data-dimension-variable="${d.variable?1:0}"`});continue}
+  const candidates=[];
+  for(const sign of[-1,1])for(const offset of[42,62,84,110,142,180]){
+   const off=mul(normal,sign*offset),A=add(a,off),B=add(b,off),p=add(mid,mul(normal,sign*(offset+font*.65+10))),r=box(p,d.label);
+   let penalty=collision(r)+offset*.3;
+   for(let i=0;i<=8;i++)if(inBody(add(A,mul(sub(B,A),i/8))))penalty+=45;
+   penalty+=labels.filter(l=>throughBox(A,B,l)).length*200+strokes.filter(([c,v])=>crossing(A,B,c,v)).length*35;
+   penalty+=Math.max(0,-dot(mul(normal,sign),sub(mid,center)))*.04;
+   candidates.push({A,B,p,r,normal:mul(normal,sign),offset,penalty});
+  }
+  const best=candidates.sort((a,b)=>a.penalty-b.penalty)[0],{A,B,p}=best;
+  for(const [c,v] of [[a,A],[b,B]])drawLine(add(c,mul(best.normal,9)),add(v,mul(best.normal,5)),color,.85);
+  drawLine(A,B,color,d.variable?1.7:1.1);
+  // Outside arrowheads keep short tool and extension dimensions readable.
+  if(length<35){arrow(sub(A,mul(u,14)),A,color);arrow(add(B,mul(u,14)),B,color)}else{arrow(add(A,mul(u,10)),A,color);arrow(sub(B,mul(u,10)),B,color)}
+  putText(p,d.label,{color:d.variable?color:'#182938',weight:d.variable?700:400,attrs:`data-dimension-label="${traceAttrEscape(d.label)}" data-dimension-variable="${d.variable?1:0}"`});
  }
- pieces.push(...dimensions);
- /* Marco base y ejes de articulación de la lámina de asignación. Es todo lo que
-    un examen entrega: la terna de la base, una recta por cada eje y su sentido
-    positivo. Los números dicen a qué fila de la tabla corresponde cada eje, y
-    los ejes que se cortan en un punto comparten rótulo para que no se pierda
-    ninguna fila. */
- const marcos=[];
- if(scene.frames){
-  const f=scene.frames,span=f.span,ejeFont=Math.round(font*.92);
-  const flecha=(p0,p1,color,ancho)=>{
-   const A=map(p0),B=map(p1),vx=B[0]-A[0],vy=B[1]-A[1],L=Math.hypot(vx,vy)||1,ux=vx/L,uy=vy/L;
-   const base=[B[0]-ux*12,B[1]-uy*12],px=-uy*4.6,py=ux*4.6;
-   return line(A,B,`stroke="${color}" stroke-width="${ancho}"`)+
-    `<path d="M${n(B[0])} ${n(B[1])} L${n(base[0]+px)} ${n(base[1]+py)} L${n(base[0]-px)} ${n(base[1]-py)} Z" fill="${color}"/>`;
-  };
-  const rotulo=(pt,texto,color,peso)=>`<text x="${n(pt[0])}" y="${n(pt[1])}" font-size="${ejeFont}" font-family="Georgia,serif" font-weight="${peso}" fill="${color}">${traceHtmlEscape(texto)}</text>`;
-  for(const [v,nombre,color] of [[[1,0,0],'X','#be3b43'],[[0,1,0],'Y','#07866b'],[[0,0,1],'Z','#2867b2']]){
-   const destino=f.base.map((c,i)=>c+v[i]*span*.55);
-   marcos.push(`<g data-base-axis="${nombre}">`+flecha(f.base,destino,color,2.1)+'</g>');
-   const B=map(destino);extras.push(B);marcos.push(rotulo([B[0]+9,B[1]+7],nombre,color,700));
-  }
-  const grupos=[];
-  for(const j of f.joints){
-   const a=j.c.map((c,i)=>c-j.axis[i]*span*.34),b=j.c.map((c,i)=>c+j.axis[i]*span*.34);
-   const A=map(a),B=map(b);extras.push(A,B);
-   marcos.push(`<g data-joint-axis="${j.n}">`+line(A,B,'stroke="#5c6a7d" stroke-width="1.3" stroke-dasharray="7,5"')+flecha(j.c,b,'#5c6a7d',1.3)+'</g>');
-   const C=map(j.c),g=grupos.find(v=>Math.hypot(v.p[0]-C[0],v.p[1]-C[1])<18);
-   if(g)g.ns.push(j.n);else grupos.push({p:C,ns:[j.n]});
-  }
-  for(const g of grupos){
-   const texto=g.ns.join('·'),ancho=texto.length*ejeFont*.58+14;
-   marcos.push(`<rect x="${n(g.p[0]-ancho/2)}" y="${n(g.p[1]-ejeFont*.82)}" width="${n(ancho)}" height="${n(ejeFont*1.5)}" rx="5" fill="#fff" stroke="#182938" stroke-width="1.4"/>`);
-   marcos.push(`<text x="${n(g.p[0])}" y="${n(g.p[1]+ejeFont*.4)}" text-anchor="middle" font-size="${ejeFont}" font-family="Georgia,serif" font-weight="700" fill="#182938">${traceHtmlEscape(texto)}</text>`);
-   extras.push([g.p[0]-ancho/2,g.p[1]-ejeFont],[g.p[0]+ancho/2,g.p[1]+ejeFont]);
-  }
- }
- pieces.push(...marcos);
- const end=map(scene.tip),ep=[Math.max(40,end[0]-38),Math.min(545,end[1]+32)];pieces.push(`<text data-endpoint-label="true" x="${n(ep[0])}" y="${n(ep[1])}" font-family="Georgia,serif" font-size="${font}" font-style="italic" fill="#182938">E</text>`);
- // Tight responsive viewBox includes all dimension label bounds, without scaling a link independently.
- const minX=Math.min(105,...labels.map(b=>b.x-18),...extras.map(q=>q[0]-26)),maxX=Math.max(655,ep[0]+35,...labels.map(b=>b.x+b.w+18),...extras.map(q=>q[0]+26)),minY=Math.min(60,...labels.map(b=>b.y-18),...extras.map(q=>q[1]-26)),maxY=Math.max(520,...labels.map(b=>b.y+b.h+18));
- return`<svg xmlns="http://www.w3.org/2000/svg" class="mechanical-plate-svg" viewBox="${n(minX)} ${n(minY)} ${n(maxX-minX)} ${n(maxY-minY)}" role="img" aria-label="${traceAttrEscape(e.title)}. Estructura mecánica con cotas de longitud. Sin ejes ni marcas de giro. E identifica el extremo solicitado."><title>${traceHtmlEscape(e.title)}</title>${pieces.join('')}</svg>`;
+ const endpoint=map(scene.tip);placeCallout(endpoint,'E',{attrs:`data-endpoint-label="true" data-anchor-x="${n(endpoint[0])}" data-anchor-y="${n(endpoint[1])}"`});
+ const pad=22,minX=Math.min(...bounds.map(p=>p[0]))-pad,minY=Math.min(...bounds.map(p=>p[1]))-pad,maxX=Math.max(...bounds.map(p=>p[0]))+pad,maxY=Math.max(...bounds.map(p=>p[1]))+pad;
+ const description=scene.frames?'Incluye marco base y sentidos positivos de las articulaciones.':'Sin ejes ni marcas de giro.';
+ return`<svg xmlns="http://www.w3.org/2000/svg" class="mechanical-plate-svg" viewBox="${[minX,minY,maxX-minX,maxY-minY].map(n).join(' ')}" role="img" aria-label="${traceAttrEscape(e.title)}. Estructura mecánica con cotas. ${description} E señala el extremo calculado."><title>${traceHtmlEscape(e.title)}</title><rect x="${n(minX)}" y="${n(minY)}" width="${n(maxX-minX)}" height="${n(maxY-minY)}" fill="#fff"/>${pieces.join('')}${annotations.join('')}${topLabels.join('')}</svg>`;
 }
+
 /* Clave de lectura de la lámina. Solo se añade si esa lámina tiene de verdad
    alguna cota variable: prometer un código de color que no se usa confunde
    más que callarse. */
@@ -4750,7 +4813,7 @@ function mechanicalReference(e){
  if(e.kind==='textbook-direct')return e.convention+mechanicalColourKey(e);
  if(e.model==='SCARA_RRP')return mechanicalColourKey(e)+'Base: origen en el suelo y Z hacia arriba. X sigue el primer brazo cuando q₁=0; Y completa el sistema dextrógiro. q₁ y q₂ positivos son antihorarios vistos desde arriba; q₂ es relativo al primer brazo. q₃ es positivo hacia arriba y negativo hacia abajo; la cota |q₃| representa la distancia entre el brazo y E.';
  if(e.model==='Industrial6R'||e.model==='SerialDH')return'La tabla DH define el origen, los sentidos positivos y la configuración solicitada. La lámina representa sus longitudes; E es el extremo cuya posición se pide. No se obtienen ángulos midiendo la perspectiva.';
- return e.convention+' El origen está en la base; Z apunta hacia arriba y X es la dirección del primer tramo cuando q₁=0. Y completa el sistema dextrógiro.';
+ return e.convention+mechanicalColourKey(e)+(e.model==='RRRP'?' L₃ mide la camisa fija; q₄ es la extensión adicional desde su boca hasta E.':'')+' El origen está en la base; Z apunta hacia arriba y X es la dirección del primer tramo cuando q₁=0. Y completa el sistema dextrógiro.';
 }
 function renderMechanicalWorksheet(e){
  const root=document.getElementById('exerciseVisual'),host=document.getElementById('workspaceActivity');root.hidden=false;host.hidden=false;
@@ -6558,9 +6621,13 @@ function makeIndustrial6R(diff){
 const DH_ASSIGN_CONVENTION='Usa <strong>DH estándar</strong>: el eje de la articulación i es z<sub>i−1</sub>, x<sub>i</sub> se apoya en la normal común de z<sub>i−1</sub> a z<sub>i</sub> y O<sub>i</sub> es su corte con z<sub>i</sub>. El marco base dibujado fija z₀ vertical hacia arriba, y <strong>la flecha de cada eje marca su sentido positivo</strong>: invertir un eje cambia el signo de α<sub>i</sub>, así que sin ese dato la tabla no sería única. Longitudes en metros y ángulos en grados.';
 function makeDhAssignment(diff){
  const H=pick([2,2.5,3]),L2=pick([2.5,3,3.5]),L3=pick([1.5,2,2.5]);
- const q=[pick([0,30,45,60,-30]),pick([-30,0,30,45]),pick([-60,-30,0,30])];
- const filas=[{a:0,alpha:90,d:H,theta:q[0]},{a:L2,alpha:0,d:0,theta:q[1]},{a:L3,alpha:0,d:0,theta:q[2]}];
- const kinematics={...KinematicsEngine.serialDH(filas),model:'DhAssignment'};
+ let q,filas,kinematics;
+ for(let attempt=0;attempt<40;attempt++){
+  q=attempt===39?[30,30,-30]:[pick([0,30,45,60,-30]),pick([-30,0,30,45]),pick([-60,-30,0,30])];
+  filas=[{a:0,alpha:90,d:H,theta:q[0]},{a:L2,alpha:0,d:0,theta:q[1]},{a:L3,alpha:0,d:0,theta:q[2]}];
+  kinematics={...KinematicsEngine.serialDH(filas),model:'DhAssignment'};
+  if(kinematics.positions.slice(1).every(p=>p.z>.3))break;
+ }
  const answer=filas.map(f=>[f.a,f.alpha,f.d,f.theta]);
  const tcp=kinematics.positions.at(-1);
  return{id:'dh_assignment_3R',kind:'dh-assignment',chapter:4,difficulty:diff,model:'DhAssignment',
@@ -6615,7 +6682,7 @@ function makeDhAssignment6R(diff){
   chips:[`H=${fmt(H,2)} m`,`L₂=${fmt(L2,2)} m`,`L₃=${fmt(L3,2)} m`,`L₆=${fmt(L6,2)} m`].concat(q.map((valor,i)=>formatAngle(valor,`q${'₁₂₃₄₅₆'[i]}`))),
   params:{H,L2,L3,L6,q,kinematics,dimensions:['H','L₂','L₃','','','L₆']},
   convention:'DH estándar, terna dextrógira y vectores columna. El marco base es el único dibujado; la flecha de cada eje da su sentido positivo.',
-  plateNote:'Brazo de seis ejes con muñeca esférica. Los tres últimos ejes se cortan en la punta del antebrazo, así que sus tres marcadores caen en el mismo punto y el rótulo los numera juntos.',
+  plateNote:'Brazo de seis ejes con muñeca esférica. Los tres últimos ejes se cortan en la punta del antebrazo. Cada flecha tiene su número para identificar el sentido positivo de los ejes 4, 5 y 6.',
   concepts:['asignación de marcos DH','muñeca esférica','tabla DH'],
   commonErrors:['repartir el alcance del antebrazo entre varias filas cuando la muñeca no separa orígenes','poner α₄ y α₅ con el mismo signo sin mirar el sentido dibujado de los ejes','escribir L₆ en a₆ en vez de en d₆, que es la distancia medida sobre z₅'],
   hints:['Las tres primeras filas son las del brazo antropomórfico: la torsión solo aparece donde dos ejes consecutivos dejan de ser paralelos.','Si tres ejes se cortan en un punto, entre ellos no hay normal común que recorrer: aᵢ=0 y dᵢ=0 en las filas de la muñeca.','αᵢ es el giro de zᵢ₋₁ a zᵢ alrededor de xᵢ, y su signo lo decide el sentido que marcan las flechas.'],
@@ -10295,7 +10362,7 @@ function renderVisualPanelForExercise(exercise){
   root.hidden=false;projectionStrip.hidden=true;dhPanel.hidden=false;
   document.getElementById("exerciseVisualTitle").textContent="Mecanismo · solo marco base";
   const insignia=document.getElementById("exerciseVisualKind");
-  insignia.textContent="Lámina técnica fija · vista isométrica";insignia.classList.add("fixed-plate-badge");
+  insignia.textContent="Lámina técnica fija · perspectiva ortográfica";insignia.classList.add("fixed-plate-badge");
   document.getElementById("exerciseVisualCaption").textContent=exercise.convention;
   document.getElementById("exerciseVisualDescription").textContent=exercise.plateNote||"Brazo articulado con su marco base dibujado. Las articulaciones van numeradas desde la base, la flecha de cada eje marca su sentido positivo y las cotas llevan nombres mecánicos, no parámetros DH.";
   /* La lámina usa el mismo motor técnico que las de cinemática directa:
@@ -10326,7 +10393,7 @@ function renderVisualPanelForExercise(exercise){
   document.getElementById("exerciseVisualDescription").textContent=desc;
   renderRobot2RSvg(svgHost,spec);
  }else if(isSpatialExercise(exercise)){
-  spatialPanel.hidden=false;document.getElementById("exerciseVisualTitle").textContent=exercise.title;document.getElementById("exerciseVisualKind").textContent=exercise.model==="Planar3R"?"Lámina técnica fija · vista XY":"Lámina técnica fija · vista isométrica";document.getElementById("exerciseVisualKind").classList.add("fixed-plate-badge");
+  spatialPanel.hidden=false;document.getElementById("exerciseVisualTitle").textContent=exercise.title;document.getElementById("exerciseVisualKind").textContent=exercise.model==="Planar3R"?"Lámina técnica fija · vista XY":"Lámina técnica fija · perspectiva ortográfica";document.getElementById("exerciseVisualKind").classList.add("fixed-plate-badge");
   document.getElementById("exerciseVisualCaption").textContent=exercise.convention;document.getElementById("exerciseSpatialNote").textContent=`${exercise.convention} Proyección ortográfica fija: la figura no gira ni cambia durante el ejercicio.`;
   document.getElementById("exerciseVisualDescription").textContent=`${exercise.model} con ${exercise.kinematics.positions.length-1} transformaciones acumuladas. El TCP y la incógnita ${exercise.visualConfig.highlight} se representan desde el mismo motor que verifica la respuesta.`;
   const bookCamera=exercise.model==="Planar3R"?SPATIAL_CAMERA_PRESETS.top:chooseSpatialCamera(exercise.kinematics,720,380);projectionStrip.hidden=exercise.model!=="SCARA_RRP";
@@ -13459,9 +13526,9 @@ function runSelfTests(){
     if((svg.match(/data-joint-axis="/g)||[]).length!==6)return false;
     for(const eje of ["X","Y","Z"])if(!svg.includes(`data-base-axis="${eje}"`))return false;
     const rotulos=[...svg.matchAll(/<text[^>]*>([^<]*)<\/text>/g)].map(m=>m[1].trim());
-    /* Los tres ejes concurrentes comparten marcador y el rótulo los numera
-       juntos: numerar solo el primero escondería dos filas de la tabla. */
-    if(!rotulos.includes("4·5·6"))return false;
+    /* Los tres ejes concurrentes llevan números separados junto a sus flechas;
+       numerar solo el primero escondería dos filas de la tabla. */
+    if(!["4","5","6"].every(n=>rotulos.includes(n)))return false;
     for(const cota of ["H","L₂","L₃","L₆"])if(!rotulos.includes(cota))return false;
     /* Y la lámina sigue sin regalar la respuesta. */
     if(rotulos.some(t=>/^(a|d|α|θ)[₀-₉0-9]/.test(t)))return false;

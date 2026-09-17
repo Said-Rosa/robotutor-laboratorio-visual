@@ -2754,7 +2754,7 @@ const roadmap = [
    en este punto y renombra el archivo en consecuencia.
    Ojo: `progress.version` es otra cosa — numera el esquema de datos guardados en
    localStorage y avanza solo cuando cambia la forma de ese objeto. */
-const APP_VERSION="3.37.0";
+const APP_VERSION="3.37.1";
 const APP_STAGE="láminas claras · verdadero/falso y respuestas abiertas";
 /* Los cuatro niveles del curso. Toda comprobación de dificultad debe leer de aquí:
    el selector, las preferencias guardadas, la política pedagógica y los bancos. */
@@ -6331,7 +6331,7 @@ function makeWorkspaceRP(diff,variant=pick(['area','radii','point','membership',
  const symbolic=['region','offset'].includes(variant),offset=variant==='offset'||(!symbolic&&diff>=2&&Math.random()<.5),L=offset?ri(1,3):0;
  const qmin=pick([0,1,2]),qmax=qmin+ri(2,5),[amin,amax]=pick([[0,360],[0,90],[-60,60],[30,150],[120,240]]),q1=(amin+amax)/2,q2=(qmin+qmax)/2,rmin=L+qmin,rmax=L+qmax;
  const A=rad(amax-amin)*(rmax*rmax-rmin*rmin)/2;
- const base={id:'workspace_rp_'+variant,chapter:4,difficulty:diff,kind:'workspace',visual:'workspace2d',geometryTopic:'3.13',title:'Área de trabajo · RP telescópico',params:{rp:true,offset,L,qmin,qmax,amin,amax,q1,q2,variant,symbolic},chips:[],hints:[],steps:[],commonErrors:[],concepts:['área de trabajo','método geométrico','rotación y extensión'],tolerance:.003};
+ const base={id:'workspace_rp_'+variant,chapter:3,difficulty:diff,kind:'workspace',visual:'workspace2d',geometryTopic:'3.13',title:'Área de trabajo · RP telescópico',params:{rp:true,offset,L,qmin,qmax,amin,amax,q1,q2,variant,symbolic},chips:[],hints:[],steps:[],commonErrors:[],concepts:['área de trabajo','método geométrico','rotación y extensión'],tolerance:.003};
  const definition=offset?'q₂ es la extensión medida desde el final de una longitud fija L, no desde O.':'q₂ es la distancia radial total desde O hasta E, no solo la parte que sobresale del tubo.';
  const assumptions=`El brazo RP de la figura gira en O y desliza en la dirección del tubo. q₁ se mide desde +X, positivo antihorario. ${definition} El giro y la extensión son independientes. Considera un mecanismo ideal, sin obstáculos ni colisiones. `;
  if(symbolic){
@@ -6396,7 +6396,11 @@ function makeWorkspaceRP(diff,variant=pick(['area','radii','point','membership',
    },
    statement:assumptions+data+`El punto P=(${px.toFixed(5)}, ${py.toFixed(5)}) m se define exactamente por radio ${r} m y dirección ${angle}°. Decide si pertenece a la región alcanzable. Las coordenadas cartesianas se muestran redondeadas.`};
  }
- return{...base,type:'number',answer:A,tolerance:.02,steps:[
+ /* La variante de superficie caía en este retorno sin enunciado, así que el
+    alumno veía la figura y un hueco donde debía estar la pregunta. */
+ return{...base,type:'number',answer:A,tolerance:.02,
+ statement:assumptions+data+'Calcula la superficie de la región alcanzable, en metros cuadrados. No midas la figura.',
+ steps:[
   `Radios: r mín = ${fmt(rmin,4)} m y r máx = ${fmt(rmax,4)} m.`,
   `Barrido angular: de ${amin}° a ${amax}°, es decir ${fmt(rad(amax-amin),4)} rad.`,
   'La región es un sector anular: A = (b−a)·(r máx² − r mín²)/2, con el ángulo en radianes.',
@@ -6914,7 +6918,7 @@ function makeChapter5(diff){
 }
 /* ---------- GENERADORES DEL ÁREA DE TRABAJO ---------- */
 function workspaceBase(id,title,statement,params,extra){
- return Object.assign({id,kind:"workspace",chapter:4,visual:"workspace2d",title,statement,
+ return Object.assign({id,kind:"workspace",chapter:3,visual:"workspace2d",title,statement,
   concepts:["espacio de trabajo","alcance","geometría del manipulador"],
   commonErrors:["olvidar el valor absoluto en el radio interior","confundir el radio máximo con el área"],
   params},extra);
@@ -7047,7 +7051,7 @@ function makeWorkspaceEquation(diff){
  const L1=ri(2,6),L2=ri(1,6),w=workspace2R(L1,L2);
  const paso=diff<=1?"identidad":diff===2?"radio":diff===3?"desigualdad":"extremos";
  const enunciadoComun=`<div class="formula">$$X = l_1\\cos q_1 + l_2\\cos(q_1+q_2) \\qquad Y = l_1\\sin q_1 + l_2\\sin(q_1+q_2)$$</div>`;
- const base={id:"workspace_equation",kind:"workspace",chapter:4,visual:null,
+ const base={id:"workspace_equation",kind:"workspace",chapter:3,visual:null,
   title:"Deducción algebraica del área de trabajo",
   concepts:["espacio de trabajo","cinemática directa","identidades trigonométricas"],
   commonErrors:["dejar q₁ dentro del resultado","olvidar el doble producto del cuadrado de una suma"],
@@ -7172,7 +7176,7 @@ function makeWorkspaceIdentify(diff){
  const galeria=`<div class="ws-options">${mezclado.map((c,i)=>workspaceRegionThumb(c.min,c.max,escalaComun,letras[i])).join("")}</div>`;
  const correctaIndice=mezclado.indexOf(correcta);
  const opciones=letras.map(letra=>`Figura ${letra}`);
- return{id:"workspace_identify",kind:"workspace",chapter:4,visual:"workspace2d",
+ return{id:"workspace_identify",kind:"workspace",chapter:3,visual:"workspace2d",
   title:"Identifica el área de trabajo",
   statement:`Un brazo planar 2R tiene <strong>l₁ = ${L1}</strong> y <strong>l₂ = ${L2}</strong>, con ambas articulaciones libres. Las cuatro figuras muestran regiones dibujadas a la misma escala. <strong>¿Cuál corresponde a su área de trabajo?</strong>${galeria}`,
   type:"choice",options:opciones,answer:opciones[correctaIndice],
@@ -7447,7 +7451,12 @@ function legacyTopicNumericGenerators(key,diff){
   "5.2":[makeGravity2R],"5.3":[makeSecondOrderSpecs],"5.5":diff===1?[makeInertia2R]:[makeInertia2R,makeCoriolis2R],"5.6":diff>=2?[makePidGainDesign]:[],"5.7":[makeSafetyDistance]};
  if(key==="4.1"){
   const spatial=diff===1?[makeSpatial2R]:diff===2?[makeSpatial2R,makeSpatial3R,makeScara]:diff===3?[makeSpatial3R,makeScara,makeSpatial2R,makeRrrp,makeIndustrial6R]:[makeIndustrial6R,makeRrrp,makeScara,makeSpatial3R];
-  return[d=>makeTextbookExercise(d,"scara"),d=>makeTextbookExercise(d,"cylindrical"),makeGeometric2R,make2R,makePlanar3R,...spatial.map(make=>plausibleSpatial(make))];
+  /* makeGeometric2R sortea su variante, y la inversa pertenece al tema de
+     asignación de marcos, no a este. Al salir, makeTopicExercise detectaba el
+     desajuste y lanzaba sin que nadie lo recogiera: una de cada cuatro veces
+     que tocaba ese generador, la práctica del tema se quedaba sin ejercicio.
+     Aquí se piden solo las variantes que son de este tema. */
+  return[d=>makeTextbookExercise(d,"scara"),d=>makeTextbookExercise(d,"cylindrical"),d=>makeGeometric2R(d,pick(["point","point","length"])),make2R,makePlanar3R,...spatial.map(make=>plausibleSpatial(make))];
  }
  /* El tema enseña a asignar marcos y construir la tabla; practicarlo con un
     ejercicio de cinemática inversa plana no entrenaba esa destreza. */
@@ -11418,7 +11427,7 @@ function runSelfTests(){
    for(const generador of generadores){
     for(let i=0;i<20;i++){
      const e=generador(pick(DIFFICULTY_LEVELS));
-     if(e.chapter!==4||e.visual!=="workspace2d")return false;
+     if(e.chapter!==3||e.visual!=="workspace2d")return false;
      if(!Number.isFinite(e.params.radialMin)||!Number.isFinite(e.params.radialMax))return false;
      if(e.params.radialMin>e.params.radialMax)return false;
      if(e.type==="matrix"&&!eq(e.answer,[[e.params.radialMin],[e.params.radialMax]],1e-9))return false;
@@ -11732,7 +11741,7 @@ function runSelfTests(){
    for(let i=0;i<80;i++){
     const e=makeWorkspaceEquation(pick(DIFFICULTY_LEVELS));
     vistos.add(e.params.paso);
-    if(e.chapter!==4||e.kind!=="workspace")return false;
+    if(e.chapter!==3||e.kind!=="workspace")return false;
     if(e.type==="choice"){
      if(!e.options.includes(e.answer))return false;
      if(e.options.length!==4)return false;
@@ -12403,8 +12412,8 @@ function runSelfTests(){
    for(const make of[makeWorkspaceSectorArea2R,makeWorkspaceSectorSpan2R,makeWorkspaceSectorEffect]){
     for(const nivel of DIFFICULTY_LEVELS){
      const e=make(nivel);
-     if(e.kind!=="workspace"||e.chapter!==4)return false;
-     if(exerciseFamily({...e,chapter:4})!=="area")return false;
+     if(e.kind!=="workspace"||e.chapter!==3)return false;
+     if(exerciseFamily(e)!=="area")return false;
      if(!Array.isArray(e.params.q1Limits)||e.params.q1Limits.length!==2)return false;
      if(!solutionReasoning(e))return false;
     }
@@ -15313,7 +15322,7 @@ function makeWorkspaceThreeSymbolic(diff,variant='dominant1'){
   const side='sqrt(L2^2+L3^2+2*L2*L3*cos(theta))';min='L1-'+side;max='L1+'+side;area='4*pi*L1*'+side;
   condition=`L1 &gt; ${side}.`;restriction='q₁ y q₂ pueden dar una vuelta completa; q₃ se mantiene fijo en θ, con 0&lt;θ&lt;π. θ es un parámetro, no una articulación libre.';p={L1:7,L2:3,L3:2,q3Fixed:65,q3Symbol:'θ'};
  }
- return{id:'workspace_symbolic_three_'+variant,chapter:4,kind:'workspace',type:'symbolic',visual:'workspace2d',difficulty:diff,title:'Tres eslabones · deducción simbólica',
+ return{id:'workspace_symbolic_three_'+variant,chapter:3,kind:'workspace',type:'symbolic',visual:'workspace2d',difficulty:diff,title:'Tres eslabones · deducción simbólica',
  statement:`Un brazo planar tiene longitudes L1, L2 y L3 positivas, sin valores asignados. ${condition} Los ángulos q₂ y q₃ se miden respecto al eslabón anterior. ${restriction} Considera eslabones sin grosor, sin obstáculos ni autocolisiones. Deduce los radios interior y exterior y la superficie de la región alcanzable por E. Expresa el resultado con los símbolos del enunciado. El esquema no está a escala.`,
  symbols:variant==='locked'?[...names,'theta']:names,symbolFields:[{key:'rmin',label:'Radio interior r mín'},{key:'rmax',label:'Radio exterior r máx'},{key:'area',label:'Superficie A'}],answer:{rmin:min,rmax:max,area},params:{...p,symbolic:true,symbolicKind:'three',ask:'simbolico',workspaceVariant:variant},chips:[],hints:[],steps:[],commonErrors:[],concepts:['área de trabajo','método geométrico']};
 }
@@ -15361,7 +15370,7 @@ function makeWorkspaceTelescopic(diff){
 }
 function makeWorkspaceSymbolic(diff,forced){
  const kind=forced||pick(diff<=1?["full"]:diff===2?["full","limited"]:["full","limited","telescopic"]);
- const common={id:"workspace_symbolic_"+kind,kind:"workspace",chapter:4,visual:"workspace2d",type:"symbolic",difficulty:diff,concepts:["método geométrico","espacio de trabajo","deducción simbólica"],commonErrors:["confundir el radio con el área","olvidar una condición geométrica"],params:{L1:4,L2:3,ask:"simbolico",symbolic:true,symbolicKind:kind},chips:["Sin valores numéricos para las longitudes","Modelo ideal sin colisiones"]};
+ const common={id:"workspace_symbolic_"+kind,kind:"workspace",chapter:3,visual:"workspace2d",type:"symbolic",difficulty:diff,concepts:["método geométrico","espacio de trabajo","deducción simbólica"],commonErrors:["confundir el radio con el área","olvidar una condición geométrica"],params:{L1:4,L2:3,ask:"simbolico",symbolic:true,symbolicKind:kind},chips:["Sin valores numéricos para las longitudes","Modelo ideal sin colisiones"]};
  if(kind==="full")return{...common,title:"Deducir la región y su área con L₁ y L₂",symbols:["L1","L2"],
   statement:"Un brazo planar 2R tiene longitudes <strong>L₁&gt;0 y L₂&gt;0</strong>, sin fijar cuál es mayor. Ambos giros son libres. Deduce mediante geometría los radios de la región alcanzable y su superficie. <strong>Escribe expresiones con L1 y L2.</strong> La figura es un esquema sin escala.",
   symbolFields:[{key:"rmin",label:"Radio interior r mín"},{key:"rmax",label:"Radio exterior r máx"},{key:"area",label:"Superficie A"}],answer:{rmin:"abs(L1-L2)",rmax:"L1+L2",area:"4*pi*L1*L2"},
@@ -15395,7 +15404,7 @@ function wsGenerate(diff){
  if(!isolated)wsPractice.lastKey=chosen.key;
  return chosen.make();
 }
-function wsIsExercise(exercise){return Boolean(exercise?.chapter===4&&exercise.kind==="workspace")}
+function wsIsExercise(exercise){return Boolean(exercise?.chapter===3&&exercise.kind==="workspace")}
 function wsCanReveal(exercise){return false}
 function wsPrepareView(exercise){
 

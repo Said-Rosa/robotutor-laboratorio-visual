@@ -16,6 +16,7 @@ jobs:
       - run: node scripts/check-source.cjs
       - run: node scripts/check-kinematics.cjs
       - run: node scripts/check-selftests.cjs
+      - run: node scripts/check-exercises.cjs
       - run: bash build-artifact.sh robotutor.html /tmp/robotutor-pages.html
       - run: bash build-artifact.sh robotutor.html /tmp/robotutor-artifact.html artifact
       - run: node scripts/check-source.cjs /tmp/robotutor-pages.html

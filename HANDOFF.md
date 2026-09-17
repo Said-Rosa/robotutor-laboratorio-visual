@@ -45,7 +45,7 @@ La publicación habitual en https://robotutor-laboratorio-visual.rainy-jay-3988.
 
 Añadido por Claude el 8 de septiembre de 2026, sabiendo que Codex no estaría disponible durante cinco días. Esta sección lista lo que se hizo en su ausencia y lo que conviene que revise al volver.
 
-**Actualizado el 16 de septiembre de 2026: todo lo de abajo ya está fusionado en `main` y publicado.** La versión en vivo es la v3.35.0 en https://said-rosa.github.io/robotutor-laboratorio-visual/ y las autopruebas van en 394/394. Cuando se escribió esta sección nada estaba fusionado; esa frase quedó obsoleta y se corrige aquí para que no engañe.
+**Actualizado el 17 de septiembre de 2026: todo lo de abajo ya está fusionado en `main` y publicado.** La versión en vivo es la **v3.37.0** en https://said-rosa.github.io/robotutor-laboratorio-visual/. Cuando se escribió esta sección nada estaba fusionado; esa frase quedó obsoleta y se corrige aquí para que no engañe.
 
 ## 1 · PR #1 · Tres arreglos aplicados sobre esta misma rama
 
@@ -142,9 +142,55 @@ El brazo de **seis ejes con muñeca esférica**. Las torsiones α₄ y α₅ dep
 
 Queda también la variante encadenada que describió el usuario: tabla DH + matriz homogénea + coordenadas del efector final en un mismo ejercicio, usando el banco de trabajo por etapas como paso obligatorio y calificado.
 
-## 10 · Versión
+## 10 · PR #13 · Muñeca esférica de seis ejes
 
-`APP_VERSION` se quedó en 3.34.0 durante los PR #8, #9 y #10. Se sube a **3.35.0** con este cambio, para que la etiqueta del pie identifique de verdad lo que hay publicado.
+Cierra lo que el #10 dejó pendiente. **La clave está en el dibujo, no en el álgebra:** las torsiones α₄ y α₅ dependen del sentido en que se tomen los ejes, y un esquema sin flechas no lo fija —dos tablas opuestas en signo describen el mismo dibujo—, así que la aplicación podía marcar como error una respuesta correcta. Ahora la lámina dibuja el sentido positivo de cada eje y el enunciado lo declara. Eso cierra también el mismo hueco latente en el ejercicio de tres ejes.
+
+Antes de elegir el mecanismo verifiqué por cálculo cuatro disposiciones candidatas. **La que ya usaba `industrial6R` desplaza la muñeca de lado respecto del antebrazo**, que no es la forma que un alumno espera ni la que dibuja un examen; la elegida pone los tres ejes concurrentes en la punta del antebrazo.
+
+**Revisable:** dejé `industrial6R` como estaba, porque sus ejercicios entregan la tabla y no dependen de que la forma sea reconocible. Si te parece que también debería corregirse, adelante.
+
+## 11 · PR #14 · Fuera el jacobiano · el área de trabajo al capítulo 3
+
+Decisión del usuario: el jacobiano no se da en su curso. Fuera los temas 4.5 y 4.9 completos, los tres generadores, su familia, su ficha teórica y 15 preguntas conceptuales.
+
+- Las preguntas **no se borran del banco**: el índice que las liga a un tema es posicional, así que borrarlas lo desalinearía. Quedan marcadas con clave vacía y `choicePool` tiene prohibido sacarlas. Volverían con una línea.
+- **Singularidades y desacoplo de muñeca no eran del jacobiano**, así que no se van con él: se reescribieron sin derivadas ni rango y viven en cinemática inversa, que es donde el alumno se los encuentra.
+- El **área de trabajo** se muda al capítulo 3 con su teoría y sus ejercicios. Sus preguntas conceptuales siguen escritas en el banco del capítulo 4, así que `topicChoicePool` busca ahora la clave en todos los bancos y `choicePool` descarta lo que ya no pertenece a ese capítulo.
+- El capítulo 4 se renumera: ocho temas correlativos. Recuerda que las claves del código son los números **del fuente** (`claveOriginal`) y que los visibles los recalcula `applyTopicOrder` por posición.
+
+## 12 · PR #15 · Los formatos, dentro de cada ejercicio
+
+Las tres barras de formato estaban apiladas sobre el ejercicio y se veían todas a la vez. Ahora cada una viaja con el ejercicio que genera. Antes de moverlas comprobé que los tres tipos siguen teniendo puerta de entrada por «Generar ejercicio» y por la práctica de su tema.
+
+**Revisable:** se descubren menos. Si crees que el verdadero/falso necesita una entrada más visible, el sitio natural es el filtro de tipo de ejercicio.
+
+## 13 · PR #16 · Láminas
+
+La de asignación de marcos pasa a usar el motor técnico de las láminas mecánicas —cuerpos sólidos y cotas acotadas— con la terna de la base, el eje de cada articulación y su número dibujados encima. El modo esquemático de `cleanMechanismSvg` queda sin uso y se retira.
+
+En las láminas de cinemática directa, las **cotas variables van en azul** y las fijas en gris, con la leyenda solo cuando esa lámina tiene alguna. Y «Nuevo ejercicio» estrena «Cualquier modelo», que sortea uno y nunca repite el anterior.
+
+**No pude verificar el aspecto**: en esa sesión no tuve herramientas de navegador. Le mandé al usuario una vista previa renderizada. Si al abrirlo algo no encaja visualmente, es ajuste de parámetros.
+
+## 14 · Comprobación sin navegador · lo más útil de este lote
+
+`runSelfTests` vive dentro de la página y solo corre abriéndola, así que un cambio grande se fusionaba sin batería. Ya no.
+
+- **`scripts/sandbox.cjs`** carga el script principal en un `vm` con un DOM postizo. Recorta el arranque, que pinta interfaz y no tiene sentido sin DOM real.
+- **`scripts/check-selftests.cjs`** ejecuta la batería entera sin navegador y **falla ante cualquier rojo que no esté en la lista de las 42 que sí necesitan interfaz**. Si añades una comprobación que necesite DOM de verdad, añádela a esa lista con su nombre exacto.
+- **`scripts/check-kinematics.cjs`** ejercita los generadores y láminas de asignación de marcos con 480 sorteos, mucho más muestreo del que hace la batería.
+
+Los tres corren en el CI de los PR. **Encontraron dos cosas que de otro modo se habrían escapado:** una cota que desaparecía cuando su eje apuntaba a la cámara (el PR #13, que mi propia autoprueba habría delatado solo unas veces de cada diez) y **diez regresiones del PR #14**, ninguna de las cuales habría visto a mano.
+
+La forma de usarlo en un cambio grande es comparar contra `main`: se ejecuta la batería en las dos versiones y se restan los conjuntos de fallos. Los del DOM salen en ambas; lo que aparezca solo en tu rama es tuyo.
+
+**No sustituye a abrir la página.** Las 42 listadas siguen necesitando un navegador, y el aspecto no lo comprueba nadie más que tú.
+
+## 15 · Versión
+
+
+`APP_VERSION` se quedó en 3.34.0 durante los PR #8, #9 y #10, y se subió a 3.35.0 al ponerlo al día. Desde entonces: **3.36.0** con el PR #14 y **3.37.0** con el #16.
 
 ## Nota sobre las cuentas de GitHub
 

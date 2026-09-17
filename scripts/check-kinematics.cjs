@@ -16,8 +16,8 @@
 const assert=require('node:assert/strict');
 const {cargar,RUTA_POR_DEFECTO}=require('./sandbox.cjs');
 
-const P=cargar(['makeDhAssignment','makeDhAssignment6R','cleanMechanismSvg','KinematicsEngine','exerciseTopicKey',
-  'DIFFICULTY_LEVELS','spatialPostureIsPlausible','kinematicsCandidates','topicNumericGenerators',
+const P=cargar(['makeDhAssignment','makeDhAssignment6R','KinematicsEngine','exerciseTopicKey',
+  'DIFFICULTY_LEVELS','spatialPostureIsPlausible','kinematicsCandidates','topicNumericGenerators','mechanicalPlateSvg',
   'buildPedagogyTrace','solutionReasoningMarkup'],process.argv[2]||RUTA_POR_DEFECTO);
 
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y,a.z-b.z);
@@ -31,6 +31,11 @@ function laminaHonesta(rotulos,donde){
  assert.ok(!rotulos.some(t=>/^[xz][₀-₉0-9]/.test(t)),donde+': la lámina dibuja una terna local ya resuelta · '+JSON.stringify(rotulos));
  for(const eje of ['X','Y','Z'])assert.ok(rotulos.includes(eje),donde+': falta el eje '+eje+' del marco base');
 }
+/* La cota de un tramo declarado debe llegar al dibujo. Un tramo de longitud
+   nula no lleva cota: la muñeca esférica no separa orígenes. */
+function cotasPresentes(rotulos,cotas,donde){
+ for(const cota of cotas)if(cota)assert.ok(rotulos.includes(cota),donde+': falta la cota '+cota+' · '+JSON.stringify(rotulos));
+}
 
 let generados=0;
 for(const nivel of P.DIFFICULTY_LEVELS)for(let i=0;i<SORTEOS;i++){
@@ -39,10 +44,10 @@ for(const nivel of P.DIFFICULTY_LEVELS)for(let i=0;i<SORTEOS;i++){
  const donde3='3R nivel '+nivel;
  assert.equal(e3.type,'matrix',donde3);assert.equal(e3.rows,3,donde3);assert.equal(e3.cols,4,donde3);
  assert.equal(P.exerciseTopicKey(e3),'4.3',donde3);
- const svg3=P.cleanMechanismSvg(e3.params.kinematics,{bare:true,dimensions:e3.params.dimensions}),r3=rotulosDe(svg3);
- assert.equal((svg3.match(/data-joint-arrow=/g)||[]).length,3,donde3+': debe haber una flecha por articulación');
+ const svg3=P.mechanicalPlateSvg({...e3,kinematics:e3.params.kinematics}),r3=rotulosDe(svg3);
+ assert.equal((svg3.match(/data-joint-axis="/g)||[]).length,3,donde3+': debe haber un eje dibujado por articulación');
  for(const n of ['1','2','3'])assert.ok(r3.includes(n),donde3+': falta la articulación '+n);
- for(const cota of e3.params.dimensions)if(cota)assert.ok(r3.includes(cota),donde3+': falta la cota '+cota);
+ cotasPresentes(r3,e3.params.dimensions,donde3);
  laminaHonesta(r3,donde3);
 
  // ---- seis ejes con muñeca esférica (segunda entrega) ----
@@ -59,10 +64,10 @@ for(const nivel of P.DIFFICULTY_LEVELS)for(let i=0;i<SORTEOS;i++){
  }
  assert.ok(Math.abs(dist(pos[5],pos[6])-e6.params.L6)<1e-9,donde6+': la herramienta no mide L6');
  assert.ok(P.spatialPostureIsPlausible(k),donde6+': la postura dibujada se hunde bajo el suelo');
- const svg6=P.cleanMechanismSvg(k,{bare:true,dimensions:e6.params.dimensions}),r6=rotulosDe(svg6);
- assert.equal((svg6.match(/data-joint-arrow=/g)||[]).length,6,donde6+': debe haber una flecha por articulación');
+ const svg6=P.mechanicalPlateSvg({...e6,kinematics:k}),r6=rotulosDe(svg6);
+ assert.equal((svg6.match(/data-joint-axis="/g)||[]).length,6,donde6+': debe haber un eje dibujado por articulación');
  assert.ok(r6.includes('4·5·6'),donde6+': los ejes concurrentes deben numerarse juntos · '+JSON.stringify(r6));
- for(const cota of ['H','L₂','L₃','L₆'])assert.ok(r6.includes(cota),donde6+': falta la cota '+cota+' · '+JSON.stringify(r6));
+ cotasPresentes(r6,['H','L₂','L₃','L₆'],donde6);
  laminaHonesta(r6,donde6);
 
  for(const par of [[e3,donde3],[e6,donde6]]){

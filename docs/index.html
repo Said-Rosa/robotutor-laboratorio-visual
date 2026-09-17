@@ -835,7 +835,7 @@
         <div class="statement" id="statement"></div>
         <div class="chips" id="chips"></div>
         <div class="exercise-variants" id="exerciseVariants">
-          <section id="mechanicalFormats" class="reflection-formats" hidden aria-label="Láminas de cinemática directa"><label for="mechanicalModel">Cinemática directa</label><select id="mechanicalModel"><option value="scara">SCARA · 4 articulaciones</option><option value="cylindrical">Cilíndrico · 4 articulaciones</option><option value="anthropomorphic">Antropomórfico · 6 articulaciones</option></select><button id="newMechanical" class="btn soft" type="button">Nuevo ejercicio</button></section>
+          <section id="mechanicalFormats" class="reflection-formats" hidden aria-label="Láminas de cinemática directa"><label for="mechanicalModel">Cinemática directa</label><select id="mechanicalModel"><option value="any" selected>Cualquier modelo · sortea uno distinto</option><option value="scara">SCARA · 4 articulaciones</option><option value="cylindrical">Cilíndrico · 4 articulaciones</option><option value="anthropomorphic">Antropomórfico · 6 articulaciones</option></select><button id="newMechanical" class="btn soft" type="button">Nuevo ejercicio</button></section>
           <section id="planarGeometryFormat" class="reflection-formats" hidden aria-label="Método geométrico planar"><strong>Planar 2R · método geométrico</strong><button id="newPlanarNumeric" class="btn soft" type="button">Con datos numéricos</button><button id="newPlanarSymbolic" class="btn soft" type="button">Deducir ecuaciones</button></section>
           <section id="reflectionFormats" class="reflection-formats" hidden aria-label="Preguntas de teoría"><strong>Preguntas de teoría</strong><button id="newVF" class="btn soft" type="button">Verdadero / Falso</button><button id="newOpen" class="btn soft" type="button">Pregunta abierta</button></section>
         </div>
@@ -2754,7 +2754,7 @@ const roadmap = [
    en este punto y renombra el archivo en consecuencia.
    Ojo: `progress.version` es otra cosa — numera el esquema de datos guardados en
    localStorage y avanza solo cuando cambia la forma de ese objeto. */
-const APP_VERSION="3.36.0";
+const APP_VERSION="3.37.0";
 const APP_STAGE="láminas claras · verdadero/falso y respuestas abiertas";
 /* Los cuatro niveles del curso. Toda comprobación de dificultad debe leer de aquí:
    el selector, las preferencias guardadas, la política pedagógica y los bancos. */
@@ -4601,7 +4601,12 @@ function mechanicalScene(e){
  const solid=(kind,a,b,width,height=width)=>{if(norm(sub(b,a))>1e-8)solids.push({kind,a,b,width,height})};
  const beam=(a,b,w=.35,h=.3)=>solid('box',a,b,w,h),rod=(a,b,r=.2)=>solid('cylinder',a,b,r);
  const joint=(c,axis,r=.32,h=.45)=>{const v=scale(unit(axis),h/2);rod(sub(c,v),add(c,v),r)};
- const dim=(a,b,label,side='auto')=>{if(norm(sub(b,a))>1e-8)dimensions.push({a,b,label,side})};
+ /* Una cota puede medir una longitud fija del robot o una variable articular
+    que cambia con la postura. Mirando la lámina no había forma de distinguirlas,
+    y es justo lo primero que hay que leer para plantear la cinemática directa.
+    Por defecto se reconoce por el nombre —la convención llama qᵢ a la variable—
+    y las láminas que usan otra notación lo declaran a mano. */
+ const dim=(a,b,label,side='auto',variable=/^q/.test(String(label)))=>{if(norm(sub(b,a))>1e-8)dimensions.push({a,b,label,side,variable})};
  let points=k.positions.map(V),origin=[0,0,0],tip=V(k.positions.at(-1)),referencePoints=[];
  if(['SCARA_RRP','SCARA_RRPR'].includes(model)){
   const book=model==='SCARA_RRPR',h=book?p.l1:p.d0,H=[0,0,h],J=book?V(k.positions[1]):[points[1][0],points[1][1],h],W=book?V(k.positions[2]):[points[2][0],points[2][1],h];
@@ -4624,20 +4629,35 @@ function mechanicalScene(e){
   const R=k.pose,v=[R[0][1],R[1][1],R[2][1]],back=scale(u,-.22);
   beam(add(add(tip,back),scale(v,-.22)),add(add(tip,back),scale(v,.22)),.13,.12);
   for(const sign of[-1,1])beam(add(add(tip,back),scale(v,sign*.22)),add(tip,scale(v,sign*.22)),.1,.1);
-  dim(origin,B,'l₁','left');dim(B,C,'d₂','left');dim(C,W,'d₃','upper');dim(W,tip,'l₄','upper');referencePoints=[origin,B,C,W,tip];
+  dim(origin,B,'l₁','left');dim(B,C,'d₂','left',true);dim(C,W,'d₃','upper',true);dim(W,tip,'l₄','upper');referencePoints=[origin,B,C,W,tip];
  }else{
   const positive=points.slice(1).map((v,i)=>norm(sub(v,points[i]))).filter(v=>v>.01),size=Math.max(...positive),width=Math.max(.3,Math.min(.58,size*.13));
   const sc=points[1]?.[2]||1;rod(origin,[0,0,Math.min(.4,Math.abs(sc)*.15)],width*2);
   points.slice(1).forEach((b,i)=>{const a=points[i];beam(a,b,width*(i>2?.8:1.2),width*(i>2?.75:1));});
   // Coincident DH origins share a single housing; no fake zero-length link.
   const placed=[];(k.jointAxes||[]).forEach((axis,i)=>{if(!axis)return;const c=points[i];if(placed.some(v=>norm(sub(c,v))<1e-7))return;placed.push(c);const f=jointRotationFrame(k,i).axis;joint(c,V(f),width*.83,width*1.2)});
-  const labels=spatialDimensionLabels(model,points.length-1);points.slice(1).forEach((b,i)=>{if(labels[i])dim(points[i],b,labels[i],i===0?'left':'auto')});
+  /* La lámina de asignación de marcos no puede rotular aᵢ ni dᵢ: eso es la
+     respuesta que el ejercicio pide construir. Cuando el ejercicio declara sus
+     propias cotas mecánicas, mandan las suyas. */
+  const labels=e.params?.dimensions||spatialDimensionLabels(model,points.length-1);
+  points.slice(1).forEach((b,i)=>{if(labels[i])dim(points[i],b,labels[i],i===0?'left':'auto',false)});
   const R=k.pose,u=[R[0][2],R[1][2],R[2][2]],v=[R[0][0],R[1][0],R[2][0]],back=scale(u,-width*.6);
   beam(add(add(tip,back),scale(v,-width*.45)),add(add(tip,back),scale(v,width*.45)),width*.2,width*.2);
   for(const sign of[-1,1])beam(add(add(tip,back),scale(v,sign*width*.45)),add(tip,scale(v,sign*width*.45)),width*.15,width*.15);
   referencePoints=points;
  }
- return{model,solids,dimensions,tip,referencePoints};
+ /* El examen entrega el marco base y el eje de cada articulación, con su
+    sentido, y nada más. Se calculan aquí para que la lámina técnica pueda
+    dibujarlos: sin el sentido positivo la tabla no sería única. */
+ let frames=null;
+ if(e.visual==='dhAssignment'){
+  const tramos=points.slice(1).map((v,i)=>norm(sub(v,points[i]))).filter(v=>v>.01);
+  const span=Math.max(...tramos,1);
+  const joints=[];
+  (k.jointAxes||[]).forEach((axis,i)=>{if(!axis)return;joints.push({c:points[i],axis:V(jointRotationFrame(k,i).axis),n:i+1})});
+  frames={base:[0,0,0],span,joints};
+ }
+ return{model,solids,dimensions,tip,referencePoints,frames};
 }
 function mechanicalPlateSvg(e,{mobile=false}={}){
  const scene=mechanicalScene(e),sub=(a,b)=>a.map((v,i)=>v-b[i]),dot=(a,b)=>a.reduce((s,v,i)=>s+v*b[i],0),cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],unit=a=>{const n=Math.hypot(...a)||1;return a.map(v=>v/n)},add=(a,b)=>a.map((v,i)=>v+b[i]),mul=(a,k)=>a.map(v=>v*k);
@@ -4662,28 +4682,73 @@ function mechanicalPlateSvg(e,{mobile=false}={}){
  const n=v=>Number(v.toFixed(3)),line=(a,b,attr='')=>`<line x1="${n(a[0])}" y1="${n(a[1])}" x2="${n(b[0])}" y2="${n(b[1])}" ${attr}/>`;
  const pieces=[`<rect width="760" height="590" fill="#fff"/>`];
  for(const f of faces.sort((a,b)=>a.depth-b.depth)){if(f.line)pieces.push(line(...f.line.map(map),'stroke="#52616e" stroke-width="1.15"'));else pieces.push(`<polygon data-mechanical-face="true" points="${f.points.map(map).map(p=>p.map(n).join(',')).join(' ')}" fill="${f.color}" stroke="${f.edge?'#334454':f.color}" stroke-width="${f.edge?1.45:.6}" stroke-linejoin="round"/>`)}
- const font=mobile?30:25,labels=[],dimColor='#536778',center=[380,295],dimensions=[];
+ const font=mobile?30:25,labels=[],dimColor='#536778',varColor='#1668b8',center=[380,295],dimensions=[],extras=[];
  const overlaps=(box,other)=>box.x<other.x+other.w+6&&box.x+box.w+6>other.x&&box.y<other.y+other.h+6&&box.y+box.h+6>other.y;
- const label=(p,text)=>{const w=text.length*font*.56+18,h=font+12,box={x:p[0]-w/2,y:p[1]-h/2,w,h};labels.push(box);return`<g data-dimension-label="${traceAttrEscape(text)}"><rect x="${n(box.x)}" y="${n(box.y)}" width="${n(w)}" height="${n(h)}" rx="4" fill="#fff"/><text x="${n(p[0])}" y="${n(p[1]+font*.34)}" text-anchor="middle" font-size="${font}" font-family="Georgia,serif" font-style="italic" fill="#182938">${traceHtmlEscape(text)}</text></g>`};
+ const label=(p,text,variable=false)=>{const w=text.length*font*.56+18,h=font+12,box={x:p[0]-w/2,y:p[1]-h/2,w,h};labels.push(box);return`<g data-dimension-label="${traceAttrEscape(text)}" data-dimension-variable="${variable?'1':'0'}"><rect x="${n(box.x)}" y="${n(box.y)}" width="${n(w)}" height="${n(h)}" rx="4" fill="#fff"/><text x="${n(p[0])}" y="${n(p[1]+font*.34)}" text-anchor="middle" font-size="${font}" font-family="Georgia,serif" font-style="italic" font-weight="${variable?'700':'400'}" fill="${variable?varColor:'#182938'}">${traceHtmlEscape(text)}</text></g>`};
  for(const [index,d] of scene.dimensions.entries()){
   const a=map(d.a),b=map(d.b),dx=b[0]-a[0],dy=b[1]-a[1],length=Math.hypot(dx,dy);if(length<2)continue;
   let normal=[-dy/length,dx/length],mid=[(a[0]+b[0])/2,(a[1]+b[1])/2],sign=dot(normal,sub(mid,center))>=0?1:-1;
   if(d.side==='left')sign=normal[0]<0?1:-1;else if(d.side==='right')sign=normal[0]>0?1:-1;else if(d.side==='upper')sign=normal[1]<0?1:-1;
   normal=mul(normal,sign);let offset=48+(d.side==='auto'?index%2*15:0),A,B,pos;
   for(let attempt=0;attempt<6;attempt++){A=add(a,mul(normal,offset));B=add(b,mul(normal,offset));pos=add(mid,mul(normal,offset+18));const box={x:pos[0]-d.label.length*font*.3-9,y:pos[1]-font/2-6,w:d.label.length*font*.6+18,h:font+12};if(!labels.some(v=>overlaps(box,v)))break;offset+=26}
-  dimensions.push(line(add(a,mul(normal,12)),add(A,mul(normal,7)),`stroke="${dimColor}" stroke-width="1"`),line(add(b,mul(normal,12)),add(B,mul(normal,7)),`stroke="${dimColor}" stroke-width="1"`),line(A,B,`stroke="${dimColor}" stroke-width="1.35"`));
-  const tangent=[dx/length,dy/length];for(const [end,sgn] of [[A,1],[B,-1]]){const c=add(end,mul(tangent,sgn*8));dimensions.push(`<path d="M${end.map(n).join(' ')} L${add(c,mul(normal,3)).map(n).join(' ')} L${add(c,mul(normal,-3)).map(n).join(' ')} Z" fill="${dimColor}"/>`)}
-  dimensions.push(label(pos,d.label));
+  const trazo=d.variable?varColor:dimColor;
+  dimensions.push(line(add(a,mul(normal,12)),add(A,mul(normal,7)),`stroke="${trazo}" stroke-width="1"`),line(add(b,mul(normal,12)),add(B,mul(normal,7)),`stroke="${trazo}" stroke-width="1"`),line(A,B,`stroke="${trazo}" stroke-width="${d.variable?1.9:1.35}"`));
+  const tangent=[dx/length,dy/length];for(const [end,sgn] of [[A,1],[B,-1]]){const c=add(end,mul(tangent,sgn*8));dimensions.push(`<path d="M${end.map(n).join(' ')} L${add(c,mul(normal,3.4)).map(n).join(' ')} L${add(c,mul(normal,-3.4)).map(n).join(' ')} Z" fill="${trazo}"/>`)}
+  dimensions.push(label(pos,d.label,d.variable));
  }
  pieces.push(...dimensions);
+ /* Marco base y ejes de articulación de la lámina de asignación. Es todo lo que
+    un examen entrega: la terna de la base, una recta por cada eje y su sentido
+    positivo. Los números dicen a qué fila de la tabla corresponde cada eje, y
+    los ejes que se cortan en un punto comparten rótulo para que no se pierda
+    ninguna fila. */
+ const marcos=[];
+ if(scene.frames){
+  const f=scene.frames,span=f.span,ejeFont=Math.round(font*.92);
+  const flecha=(p0,p1,color,ancho)=>{
+   const A=map(p0),B=map(p1),vx=B[0]-A[0],vy=B[1]-A[1],L=Math.hypot(vx,vy)||1,ux=vx/L,uy=vy/L;
+   const base=[B[0]-ux*12,B[1]-uy*12],px=-uy*4.6,py=ux*4.6;
+   return line(A,B,`stroke="${color}" stroke-width="${ancho}"`)+
+    `<path d="M${n(B[0])} ${n(B[1])} L${n(base[0]+px)} ${n(base[1]+py)} L${n(base[0]-px)} ${n(base[1]-py)} Z" fill="${color}"/>`;
+  };
+  const rotulo=(pt,texto,color,peso)=>`<text x="${n(pt[0])}" y="${n(pt[1])}" font-size="${ejeFont}" font-family="Georgia,serif" font-weight="${peso}" fill="${color}">${traceHtmlEscape(texto)}</text>`;
+  for(const [v,nombre,color] of [[[1,0,0],'X','#be3b43'],[[0,1,0],'Y','#07866b'],[[0,0,1],'Z','#2867b2']]){
+   const destino=f.base.map((c,i)=>c+v[i]*span*.55);
+   marcos.push(`<g data-base-axis="${nombre}">`+flecha(f.base,destino,color,2.1)+'</g>');
+   const B=map(destino);extras.push(B);marcos.push(rotulo([B[0]+9,B[1]+7],nombre,color,700));
+  }
+  const grupos=[];
+  for(const j of f.joints){
+   const a=j.c.map((c,i)=>c-j.axis[i]*span*.34),b=j.c.map((c,i)=>c+j.axis[i]*span*.34);
+   const A=map(a),B=map(b);extras.push(A,B);
+   marcos.push(`<g data-joint-axis="${j.n}">`+line(A,B,'stroke="#5c6a7d" stroke-width="1.3" stroke-dasharray="7,5"')+flecha(j.c,b,'#5c6a7d',1.3)+'</g>');
+   const C=map(j.c),g=grupos.find(v=>Math.hypot(v.p[0]-C[0],v.p[1]-C[1])<18);
+   if(g)g.ns.push(j.n);else grupos.push({p:C,ns:[j.n]});
+  }
+  for(const g of grupos){
+   const texto=g.ns.join('·'),ancho=texto.length*ejeFont*.58+14;
+   marcos.push(`<rect x="${n(g.p[0]-ancho/2)}" y="${n(g.p[1]-ejeFont*.82)}" width="${n(ancho)}" height="${n(ejeFont*1.5)}" rx="5" fill="#fff" stroke="#182938" stroke-width="1.4"/>`);
+   marcos.push(`<text x="${n(g.p[0])}" y="${n(g.p[1]+ejeFont*.4)}" text-anchor="middle" font-size="${ejeFont}" font-family="Georgia,serif" font-weight="700" fill="#182938">${traceHtmlEscape(texto)}</text>`);
+   extras.push([g.p[0]-ancho/2,g.p[1]-ejeFont],[g.p[0]+ancho/2,g.p[1]+ejeFont]);
+  }
+ }
+ pieces.push(...marcos);
  const end=map(scene.tip),ep=[Math.max(40,end[0]-38),Math.min(545,end[1]+32)];pieces.push(`<text data-endpoint-label="true" x="${n(ep[0])}" y="${n(ep[1])}" font-family="Georgia,serif" font-size="${font}" font-style="italic" fill="#182938">E</text>`);
  // Tight responsive viewBox includes all dimension label bounds, without scaling a link independently.
- const minX=Math.min(105,...labels.map(b=>b.x-18)),maxX=Math.max(655,ep[0]+35,...labels.map(b=>b.x+b.w+18)),minY=Math.min(60,...labels.map(b=>b.y-18)),maxY=Math.max(520,...labels.map(b=>b.y+b.h+18));
+ const minX=Math.min(105,...labels.map(b=>b.x-18),...extras.map(q=>q[0]-26)),maxX=Math.max(655,ep[0]+35,...labels.map(b=>b.x+b.w+18),...extras.map(q=>q[0]+26)),minY=Math.min(60,...labels.map(b=>b.y-18),...extras.map(q=>q[1]-26)),maxY=Math.max(520,...labels.map(b=>b.y+b.h+18));
  return`<svg xmlns="http://www.w3.org/2000/svg" class="mechanical-plate-svg" viewBox="${n(minX)} ${n(minY)} ${n(maxX-minX)} ${n(maxY-minY)}" role="img" aria-label="${traceAttrEscape(e.title)}. Estructura mecánica con cotas de longitud. Sin ejes ni marcas de giro. E identifica el extremo solicitado."><title>${traceHtmlEscape(e.title)}</title>${pieces.join('')}</svg>`;
 }
+/* Clave de lectura de la lámina. Solo se añade si esa lámina tiene de verdad
+   alguna cota variable: prometer un código de color que no se usa confunde
+   más que callarse. */
+function mechanicalColourKey(e){
+ try{return mechanicalScene(e).dimensions.some(d=>d.variable)
+  ?' Las cotas en azul son variables articulares: cambian con la postura. Las grises son longitudes fijas del robot.'
+  :'';}catch{return''}
+}
 function mechanicalReference(e){
- if(e.kind==='textbook-direct')return e.convention;
- if(e.model==='SCARA_RRP')return'Base: origen en el suelo y Z hacia arriba. X sigue el primer brazo cuando q₁=0; Y completa el sistema dextrógiro. q₁ y q₂ positivos son antihorarios vistos desde arriba; q₂ es relativo al primer brazo. q₃ es positivo hacia arriba y negativo hacia abajo; la cota |q₃| representa la distancia entre el brazo y E.';
+ if(e.kind==='textbook-direct')return e.convention+mechanicalColourKey(e);
+ if(e.model==='SCARA_RRP')return mechanicalColourKey(e)+'Base: origen en el suelo y Z hacia arriba. X sigue el primer brazo cuando q₁=0; Y completa el sistema dextrógiro. q₁ y q₂ positivos son antihorarios vistos desde arriba; q₂ es relativo al primer brazo. q₃ es positivo hacia arriba y negativo hacia abajo; la cota |q₃| representa la distancia entre el brazo y E.';
  if(e.model==='Industrial6R'||e.model==='SerialDH')return'La tabla DH define el origen, los sentidos positivos y la configuración solicitada. La lámina representa sus longitudes; E es el extremo cuya posición se pide. No se obtienen ángulos midiendo la perspectiva.';
  return e.convention+' El origen está en la base; Z apunta hacia arriba y X es la dirección del primer tramo cuando q₁=0. Y completa el sistema dextrógiro.';
 }
@@ -4702,8 +4767,18 @@ function renderMechanicalWorksheet(e){
    ve cuando ese ejercicio está en pantalla. A los tres tipos se sigue
    llegando por «Generar ejercicio» y por la práctica de su tema. */
 function renderMechanicalControls(){const host=document.getElementById('mechanicalFormats');if(host)host.hidden=examEnCurso()||exerciseVariantKind(appState.currentExercise)!=='mechanical'}
+/* Pulsar «Nuevo ejercicio» repetía siempre el mismo mecanismo: solo cambiaban
+   los números. Con «Cualquier modelo» se sortea uno, y nunca el que acaba de
+   salir, para que dos pulsaciones seguidas no den la misma lámina. */
+const MECHANICAL_MODELS=Object.freeze(['scara','cylindrical','anthropomorphic']);
+let ultimoModeloMecanico=null;
+function pickMechanicalModel(elegido,previo=ultimoModeloMecanico){
+ if(elegido&&elegido!=='any')return elegido;
+ const otros=MECHANICAL_MODELS.filter(m=>m!==previo);
+ return pick(otros.length?otros:MECHANICAL_MODELS);
+}
 function initMechanicalControls(){
- document.getElementById('newMechanical').onclick=()=>{if(examEnCurso())return;const model=document.getElementById('mechanicalModel').value,diff=Number(document.getElementById('difficulty').value);appState.practiceTopicKey='4.1';appState.currentExercise=model==='anthropomorphic'?plausibleSpatial(makeIndustrial6R)(diff):makeTextbookExercise(diff,model);document.getElementById('feedback').className='feedback';renderExercise()};renderMechanicalControls();
+ document.getElementById('newMechanical').onclick=()=>{if(examEnCurso())return;const model=pickMechanicalModel(document.getElementById('mechanicalModel').value),diff=Number(document.getElementById('difficulty').value);ultimoModeloMecanico=model;appState.practiceTopicKey='4.1';appState.currentExercise=model==='anthropomorphic'?plausibleSpatial(makeIndustrial6R)(diff):makeTextbookExercise(diff,model);document.getElementById('feedback').className='feedback';renderExercise()};renderMechanicalControls();
 }
 
 function cleanMechanismPoints(k,params={}){
@@ -4717,13 +4792,9 @@ function cleanMechanismSvg(k,options={}){
  const camera=options.camera||chooseSpatialCamera({...k,positions:points},720,420),project=p=>plane?{u:p.x,v:plane==='xy'?p.y:p.z}:spatialProjection(p,camera);
  const raw=points.map(project),minU=Math.min(...raw.map(p=>p.u)),maxU=Math.max(...raw.map(p=>p.u)),minV=Math.min(...raw.map(p=>p.v)),maxV=Math.max(...raw.map(p=>p.v));
  const W=720,H=470,scale=Math.min(490/Math.max(1,maxU-minU),270/Math.max(1,maxV-minV)),map=p=>{const q=project(p);return{x:110+(q.u-minU)*scale,y:360-(q.v-minV)*scale}},P=points.map(map),parts=[];
- /* Modo desnudo: la lámina entrega el mecanismo y el marco base, nada más.
-    Sin colores por parámetro y sin leyenda de símbolos, porque nombrar cada
-    tramo aᵢ o dᵢ es justo la respuesta que el ejercicio pide construir. */
- const bare=Boolean(options.bare);
- const colors=bare?Array(6).fill('#5c6a7d'):['#6c7d95','#2867b2','#008579','#a34bb4','#ba650e','#ba650e'],line=(a,b,attr='')=>`<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" ${attr}/>`;
+ const colors=['#6c7d95','#2867b2','#008579','#a34bb4','#ba650e','#ba650e'],line=(a,b,attr='')=>`<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" ${attr}/>`;
  const label=(x,y,t,attr='')=>`<text x="${x}" y="${y}" fill="var(--text)" font-size="22" font-family="system-ui,sans-serif" ${attr}>${t}</text>`;
- const title=plane?'Proyección '+plane.toUpperCase():bare?'Mecanismo y marco base':scara?'SCARA · brazos horizontales y eje vertical':'Antropomórfico · seis ejes';parts.push(label(24,34,title,'font-weight="700"'));
+ const title=plane?'Proyección '+plane.toUpperCase():scara?'SCARA · brazos horizontales y eje vertical':'Antropomórfico · seis ejes';parts.push(label(24,34,title,'font-weight="700"'));
  const base=P[0];parts.push(`<rect x="${base.x-28}" y="${base.y-4}" width="56" height="18" rx="5" fill="var(--soft)" stroke="var(--muted)" stroke-width="2"/>`);
  for(let i=0;i<P.length-1;i++){const length=Math.hypot(P[i+1].x-P[i].x,P[i+1].y-P[i].y);if(length<.01)continue;const prism=scara&&i===3;parts.push(line(P[i],P[i+1],`data-mechanism-link="${i}" stroke="${colors[i]}" stroke-width="${prism?9:15}" stroke-linecap="round"`));if(prism){parts.push(line(P[i],{x:P[i].x+(P[i+1].x-P[i].x)*.45,y:P[i].y+(P[i+1].y-P[i].y)*.45},'stroke="var(--card)" stroke-width="19"'),line(P[i],P[i+1],`stroke="${colors[i]}" stroke-width="3"`));const midx=(P[i].x+P[i+1].x)/2,midy=(P[i].y+P[i+1].y)/2;parts.push(label(midx+16,midy-12,'P','font-weight="700"'))}}
  /* Recta discontinua por cada articulación de revolución, igual que en el
@@ -4735,60 +4806,22 @@ function cleanMechanismSvg(k,options={}){
  (k.jointAxes||[]).forEach((eje,i)=>{
   if(!eje)return;
   const punto=P[pinPoints[i]];if(!punto)return;
-  const ejeMundo=jointRotationFrame(k,i).axis,q=project(ejeMundo),norm=Math.hypot(q.u-zero.u,q.v-zero.v)||1,dx=(q.u-zero.u)/norm,dy=(q.v-zero.v)/norm,half=bare?34:20;
-  parts.push(line({x:punto.x+dx*half,y:punto.y-dy*half},{x:punto.x-dx*half,y:punto.y+dy*half},`stroke="var(--muted)" stroke-width="${bare?1.7:1}" stroke-dasharray="5,4"`));
-  /* La punta de flecha fija el sentido positivo de z(i-1). Sin ella la tabla
-     no es unica: invertir un eje cambia el signo de alfa(i), y una tabla
-     perfectamente valida quedaria marcada como error. La figura de un examen
-     entrega ese sentido, asi que la lamina desnuda tambien debe entregarlo. */
-  if(bare){
-   const sx=dx,sy=-dy,tip={x:punto.x+sx*half,y:punto.y+sy*half},base={x:tip.x-sx*11,y:tip.y-sy*11},px=-sy*4.6,py=sx*4.6;
-   const pt=(x,y)=>`${x.toFixed(1)},${y.toFixed(1)}`;
-   parts.push(`<polygon data-joint-arrow="${i}" points="${pt(tip.x,tip.y)} ${pt(base.x+px,base.y+py)} ${pt(base.x-px,base.y-py)}" fill="var(--muted)"/>`);
-  }
+  const ejeMundo=jointRotationFrame(k,i).axis,q=project(ejeMundo),norm=Math.hypot(q.u-zero.u,q.v-zero.v)||1,dx=(q.u-zero.u)/norm,dy=(q.v-zero.v)/norm,half=20;
+  parts.push(line({x:punto.x+dx*half,y:punto.y-dy*half},{x:punto.x-dx*half,y:punto.y+dy*half},`stroke="var(--muted)" stroke-width="1" stroke-dasharray="5,4"`));
+
  });
  // One marker for coincident DH origins; no stack of unreadable joint labels.
  const groups=[];P.slice(0,-1).forEach((p,i)=>{let g=groups.find(g=>Math.hypot(g.p.x-p.x,g.p.y-p.y)<20);if(g)g.ids.push(i);else groups.push({p,ids:[i]})});
  for(const g of groups){
-  parts.push(`<circle data-mechanism-joint="${g.ids.join('-')}" cx="${g.p.x}" cy="${g.p.y}" r="${bare?11:8}" fill="var(--card)" stroke="var(--text)" stroke-width="2"/>`);
-  /* Numerar las articulaciones no adelanta nada: el enunciado ya las cuenta
-     desde la base, y sin el número no hay forma de decir a qué fila de la
-     tabla corresponde cada una. */
-  if(bare){
-   /* Una muñeca esferica concentra tres ejes en un punto. Numerar solo el
-      primero escondería dos filas enteras de la tabla que se pide. */
-   const nombres=g.ids.map(id=>id+1).join('·');
-   parts.push(g.ids.length===1
-    ?label(g.p.x,g.p.y+7,nombres,'text-anchor="middle" font-size="17" font-weight="700"')
-    :label(g.p.x+15,g.p.y-13,nombres,'font-size="17" font-weight="700"'));
-  }
+  parts.push(`<circle data-mechanism-joint="${g.ids.join('-')}" cx="${g.p.x}" cy="${g.p.y}" r="8" fill="var(--card)" stroke="var(--text)" stroke-width="2"/>`);
  }
- const tcp=P.at(-1);parts.push(`<circle data-tcp="true" cx="${tcp.x}" cy="${tcp.y}" r="8" fill="var(--card)" stroke="#c43a3a" stroke-width="3"/>`,line(tcp,{x:625,y:75},'stroke="#c43a3a" stroke-width="1.3" stroke-dasharray="4 3"'),label(630,78,bare?'E':'TCP','font-weight="750"'));
- /* En modo desnudo la terna se ancla a la base del propio robot y se dibuja
-    más grande: no es una miniatura de referencia en una esquina, es el marco
-    {0} del ejercicio y el único dato que se entrega. */
- const axisOrigin=bare?{x:P[0].x,y:P[0].y}:{x:50,y:395},axisLen=bare?58:40,origin=project({x:0,y:0,z:0});for(const [i,a] of [[0,'X'],[1,'Y'],[2,'Z']]){if(plane&&((plane==='xy'&&i===2)||(plane==='xz'&&i===1)))continue;const v={x:0,y:0,z:0};v[['x','y','z'][i]]=1;const q=project(v),norm=Math.hypot(q.u-origin.u,q.v-origin.v)||1,end={x:axisOrigin.x+(q.u-origin.u)*axisLen/norm,y:axisOrigin.y-(q.v-origin.v)*axisLen/norm};parts.push(line(axisOrigin,end,`stroke="${['#be3b43','#07866b','#2867b2'][i]}" stroke-width="2"`),label(end.x+4,end.y,a))}
+ const tcp=P.at(-1);parts.push(`<circle data-tcp="true" cx="${tcp.x}" cy="${tcp.y}" r="8" fill="var(--card)" stroke="#c43a3a" stroke-width="3"/>`,line(tcp,{x:625,y:75},'stroke="#c43a3a" stroke-width="1.3" stroke-dasharray="4 3"'),label(630,78,'TCP','font-weight="750"'));
+ const axisOrigin={x:50,y:395},axisLen=40,origin=project({x:0,y:0,z:0});for(const [i,a] of [[0,'X'],[1,'Y'],[2,'Z']]){if(plane&&((plane==='xy'&&i===2)||(plane==='xz'&&i===1)))continue;const v={x:0,y:0,z:0};v[['x','y','z'][i]]=1;const q=project(v),norm=Math.hypot(q.u-origin.u,q.v-origin.v)||1,end={x:axisOrigin.x+(q.u-origin.u)*axisLen/norm,y:axisOrigin.y-(q.v-origin.v)*axisLen/norm};parts.push(line(axisOrigin,end,`stroke="${['#be3b43','#07866b','#2867b2'][i]}" stroke-width="2"`),label(end.x+4,end.y,a))}
  /* La barra vertical móvil mide q3; d0+q3 es la altura desde el suelo.
     Se distinguen en la leyenda y en una nota para evitar atribuir la altura
     total a la longitud del tramo prismático. */
  if(scara)parts.push(label(26,64,'Altura de E: d₀ + q₃'));
- if(bare){
-  /* Cotas mecánicas sobre el propio tramo, con nombres neutros. Una cota dice
-     cuánto mide el eslabón; la leyenda de la lámina normal decía además qué
-     parámetro DH le corresponde, que es lo que aquí hay que deducir. */
-  const cotas=options.dimensions||[];
-  for(let i=0;i<P.length-1;i++){
-   const nombre=cotas[i];if(!nombre)continue;
-   const dx=P[i+1].x-P[i].x,dy=P[i+1].y-P[i].y,largo=Math.hypot(dx,dy);
-   /* Un tramo corto puede escorzarse casi por completo cuando su eje apunta
-      hacia la cámara. Antes se omitía su cota y la lámina dejaba sin nombrar
-      un dato que el enunciado sí menciona; ahora se rotula junto al extremo. */
-   if(largo<14){parts.push(label(P[i+1].x+16,P[i+1].y+20,nombre,'font-weight="700"'));continue}
-   parts.push(label((P[i].x+P[i+1].x)/2+dy/largo*28-12,(P[i].y+P[i+1].y)/2-dx/largo*28,nombre,'font-weight="700"'));
-  }
- }else{
-  const labels=scara?['d₀','L₁','L₂','q₃']:['d₁','a₂','a₃','d₄','a₅ = 0','d₆'];labels.forEach((name,i)=>{const x=130+i*(scara?135:90);parts.push(`<rect x="${x}" y="410" width="24" height="6" rx="3" fill="${colors[i]}"/>`,label(x,447,name))});
- }
+ const labels=scara?['d₀','L₁','L₂','q₃']:['d₁','a₂','a₃','d₄','a₅ = 0','d₆'];labels.forEach((name,i)=>{const x=130+i*(scara?135:90);parts.push(`<rect x="${x}" y="410" width="24" height="6" rx="3" fill="${colors[i]}"/>`,label(x,447,name))});
  return`<svg xmlns="http://www.w3.org/2000/svg" class="clean-mechanism-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="${title}. Esquema fijo. Geometría identificada por colores. El TCP conserva la posición del modelo de cálculo."><title>${title}</title><rect width="720" height="470" fill="var(--card)"/>${parts.join('')}</svg>`;
 }
 
@@ -10256,8 +10289,11 @@ function renderVisualPanelForExercise(exercise){
   insignia.textContent="Lámina técnica fija · vista isométrica";insignia.classList.add("fixed-plate-badge");
   document.getElementById("exerciseVisualCaption").textContent=exercise.convention;
   document.getElementById("exerciseVisualDescription").textContent=exercise.plateNote||"Brazo articulado con su marco base dibujado. Las articulaciones van numeradas desde la base, la flecha de cada eje marca su sentido positivo y las cotas llevan nombres mecánicos, no parámetros DH.";
-  const k=exercise.params.kinematics;
-  document.getElementById("exerciseDhPlate").innerHTML=cleanMechanismSvg(k,{bare:true,dimensions:exercise.params.dimensions,camera:chooseSpatialCamera(k,720,420)});
+  /* La lámina usa el mismo motor técnico que las de cinemática directa:
+     cuerpos sólidos y cotas acotadas en vez del esquema de líneas. La cinemática
+     vive en params —para que el banco de etapas no delate la respuesta—, así
+     que se le pasa en una copia de solo lectura. */
+  document.getElementById("exerciseDhPlate").innerHTML=mechanicalPlateSvg({...exercise,kinematics:exercise.params.kinematics});
   return;
  }
  if(!exercise||(!is2RExercise(exercise)&&!isSpatialExercise(exercise)&&!isWorkspaceExercise(exercise)&&exercise.visual!=="frames3d")){root.hidden=true;return}
@@ -13326,6 +13362,46 @@ function runSelfTests(){
      Boolean(host.querySelector("#texto-que-debe-sobrevivir"));
    }finally{host.remove()}
   }],
+  ["«Nuevo ejercicio» no repite el mismo mecanismo dos veces seguidas",()=>{
+   /* Con un modelo fijo en el selector manda el selector. Con «Cualquiera» se
+      sortea, y lo que hay que garantizar es que nunca repita el anterior: era
+      justo la queja, que pulsar de nuevo diera siempre la misma lámina. */
+   for(const modelo of MECHANICAL_MODELS){
+    if(pickMechanicalModel(modelo,"scara")!==modelo)return false;
+    for(let i=0;i<60;i++)if(pickMechanicalModel("any",modelo)===modelo)return false;
+   }
+   /* sin anterior, cualquiera de los tres vale, y con el tiempo salen los tres */
+   const vistos=new Set();
+   for(let i=0;i<200;i++)vistos.add(pickMechanicalModel("any",null));
+   return vistos.size===MECHANICAL_MODELS.length&&[...vistos].every(m=>MECHANICAL_MODELS.includes(m));
+  }],
+  ["La lámina distingue la cota que varía de la longitud fija",()=>{
+   /* Mirando la lámina no había forma de saber qué medida cambia con la
+      postura y cuál es una longitud del robot, que es lo primero que hay que
+      leer para plantear la directa. Se comprueba el reparto, no el color. */
+   const casos=[
+    [plausibleSpatial(d=>makeTextbookExercise(d,"scara"))(2),["q₃"],["l₁","l₂","l₃"]],
+    [plausibleSpatial(d=>makeTextbookExercise(d,"cylindrical"))(2),["d₂","d₃"],["l₁","l₄"]]
+   ];
+   for(const [e,variables,fijas] of casos){
+    const cotas=mechanicalScene(e).dimensions;
+    const marcadas=cotas.filter(d=>d.variable).map(d=>d.label).sort();
+    const sueltas=cotas.filter(d=>!d.variable).map(d=>d.label).sort();
+    if(marcadas.join(",")!==[...variables].sort().join(","))return false;
+    if(sueltas.join(",")!==[...fijas].sort().join(","))return false;
+    /* y el dibujo tiene que trasladar esa marca a cada rótulo */
+    const svg=mechanicalPlateSvg(e);
+    const azules=(svg.match(/data-dimension-variable="1"/g)||[]).length;
+    const grises=(svg.match(/data-dimension-variable="0"/g)||[]).length;
+    if(azules!==variables.length||grises!==fijas.length)return false;
+    /* si hay cota variable, la leyenda lo explica; si no, no lo promete */
+    if(!/cotas en azul/.test(mechanicalReference(e)))return false;
+   }
+   /* Una lámina sin cotas variables no anuncia el código de color. */
+   const dh=plausibleSpatial(makeIndustrial6R)(2);
+   if(mechanicalScene(dh).dimensions.some(d=>d.variable))return true;
+   return !/cotas en azul/.test(mechanicalReference(dh));
+  }],
   ["Cada barra de variantes acompaña solo a su propio ejercicio",()=>{
    /* Las tres barras de formato estaban apiladas encima del ejercicio y se
       veían todas a la vez. Ahora cada una viaja con el ejercicio que genera,
@@ -13368,9 +13444,11 @@ function runSelfTests(){
     const filas=e.answer.map(([a,alpha,d,theta])=>({a,alpha,d,theta}));
     const comprobada=KinematicsEngine.serialDH(filas).positions.at(-1);
     for(const eje of ["x","y","z"])if(Math.abs(comprobada[eje]-pos.at(-1)[eje])>1e-9)return false;
-    const svg=cleanMechanismSvg(k,{bare:true,dimensions:e.params.dimensions});
-    /* Una flecha por articulación: es el dato que hace única la tabla. */
-    if((svg.match(/data-joint-arrow=/g)||[]).length!==6)return false;
+    const svg=mechanicalPlateSvg({...e,kinematics:k});
+    /* Un eje dibujado por articulación, con su sentido: es el dato que hace
+       única la tabla. Y la terna de la base, que es el único marco entregado. */
+    if((svg.match(/data-joint-axis="/g)||[]).length!==6)return false;
+    for(const eje of ["X","Y","Z"])if(!svg.includes(`data-base-axis="${eje}"`))return false;
     const rotulos=[...svg.matchAll(/<text[^>]*>([^<]*)<\/text>/g)].map(m=>m[1].trim());
     /* Los tres ejes concurrentes comparten marcador y el rótulo los numera
        juntos: numerar solo el primero escondería dos filas de la tabla. */
@@ -13394,7 +13472,7 @@ function runSelfTests(){
     const filas=e.answer.map(([a,alpha,d,theta])=>({a,alpha,d,theta}));
     const comprobada=KinematicsEngine.serialDH(filas).positions.at(-1),dibujada=e.params.kinematics.positions.at(-1);
     for(const eje of ["x","y","z"])if(Math.abs(comprobada[eje]-dibujada[eje])>1e-9)return false;
-    const svg=cleanMechanismSvg(e.params.kinematics,{bare:true,dimensions:e.params.dimensions});
+    const svg=mechanicalPlateSvg({...e,kinematics:e.params.kinematics});
     const rotulos=[...svg.matchAll(/<text[^>]*>([^<]*)<\/text>/g)].map(m=>m[1].trim());
     if(rotulos.some(t=>/^(a|d|α|θ)[₀-₉0-9]/.test(t)))return false;
     if(!rotulos.includes("X")||!rotulos.includes("Y")||!rotulos.includes("Z"))return false;

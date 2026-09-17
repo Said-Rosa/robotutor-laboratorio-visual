@@ -1,3 +1,19 @@
+# Revisión 3.38.0 · correcciones de las láminas
+
+Parte de `main` 0e49c9b (3.37.1), conservando los PR #13–18 de Claude.
+
+- Sustituye la ordenación aproximada de caras y los contornos dibujados encima por recorte de superficies y aristas según profundidad en cada punto. Los cilindros y piezas intersectadas son opacos.
+- RRRP: camisa abierta formada por cuatro paredes, vástago interior más estrecho y solapado. L3 mide la parte fija y q4 la extensión adicional; q4 y la prismática del SCARA se identifican como variables.
+- Cámara fija elegida para evitar escorzos fuertes, encuadre ajustado al mecanismo y sus anotaciones, cotas exteriores con búsqueda de espacio y E unido al TCP real mediante una llamada.
+- DH: rótulos fuera de las piezas y flechas 4, 5 y 6 identificadas individualmente. Se mantienen solo el marco base y los sentidos articulares, sin entregar marcos locales resueltos. La leyenda describe los rótulos actuales. Las posturas del generador 3R mantienen sus extremos sobre el suelo.
+- Tipografía mayor en móvil; lámina horizontal sin el antiguo lienzo alto vacío.
+
+Validación: 393/393 autopruebas en Chrome real sin interfaz visible, sin errores de ejecución; barrido de 9.570 ejercicios; 480 casos DH; 72 láminas deterministas y casos analíticos de superficies cruzadas y contornos ocultos. El nuevo `scripts/check-mechanical-plates.cjs` se ejecuta en CI. Revisión de capturas reales de 5 escenas a 1280 y 390 px, sin desbordamiento horizontal. No equivale a una prueba física en Safari/iOS.
+
+**Destino de publicación confirmado por el usuario: GitHub Pages de este repositorio**, https://said-rosa.github.io/robotutor-laboratorio-visual/ . Las siguientes mejoras deben publicarse aquí; la copia histórica de Sites no es el destino de esta revisión. `robotutor.html` sigue siendo la fuente; el workflow genera `docs/index.html` al fusionar.
+
+---
+
 # Revisión 3.36.0 · láminas mecánicas de cinemática directa
 
 Rama `codex/laminas-mecanicas`, basada en `main` 51b8516 (3.35.0). PR pendiente de revisión antes de fusionar, según README.

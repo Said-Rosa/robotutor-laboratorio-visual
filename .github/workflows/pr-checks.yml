@@ -14,6 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: node scripts/check-source.cjs
+      - run: node scripts/check-mechanical-plates.cjs
       - run: node scripts/check-kinematics.cjs
       - run: node scripts/check-selftests.cjs
       - run: node scripts/check-exercises.cjs

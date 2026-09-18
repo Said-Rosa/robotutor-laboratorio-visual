@@ -1,3 +1,16 @@
+# Revisión 3.40.0 · modelado 3D de las láminas
+
+Parte de `main` fca0aa0. Destino: https://said-rosa.github.io/robotutor-laboratorio-visual/ .
+
+- Las láminas de cinemática directa y asignación DH usan mallas reales, profundidad WebGL, iluminación, materiales, cantos redondeados y sombra suave de apoyo. Se mantiene una postura fija. La misma cámara ortográfica proyecta el modelo y sus cotas SVG; no se alteran matrices, ángulos ni respuestas.
+- Revolutas con cuerpos cilíndricos y tapas; prismáticas con guía oscura y corredera clara. Se corrigió la orientación de las cuatro paredes de la camisa RRRP: sus secciones comparten ahora una base ortonormal. Se corrigió también la perpendicularidad de los dedos de la pinza respecto de su avance.
+- Pedestal debajo del cojinete, muñeca concurrente más compacta y herramienta proporcionada al tramo final para evitar que la carcasa oculte la pinza. La cámara DH penaliza las vistas que superponen los dos dedos. E sigue señalando el punto medio de sus extremos.
+- No se añaden ejes ni números a cinemática directa. Asignación DH conserva exclusivamente el marco base y los sentidos/números articulares necesarios para resolverla.
+- Three.js 0.185.0 se incorpora al HTML con licencia MIT. `scripts/mechanical-renderer.mjs` es el fuente legible del motor; `npm ci && npm run build:plates` regenera su bloque. Un solo contexto WebGL, caché máxima de ocho imágenes y liberación de recursos GPU por render. Sin WebGL se conserva el dibujo vectorial.
+- Validación: 18 láminas WebGL en Chrome a 390/1280 px con red bloqueada; cotas alineadas, sin desbordamiento, reglas de ejes, caché y alternativa SVG. Capturas revisadas. 393/393 autopruebas reales; 72 láminas geométricas, 480 casos DH, 9.570 ejercicios y 36 soluciones. Se verificó otra vez el flujo de errores/solución/reintento/resize y la protección de Examen. No se probó en un iPhone físico.
+
+---
+
 # Revisión 3.39.0 · articulaciones, efector y solución tras fallar
 
 Parte de `main` 7f627b2 (3.38.0). Destino: la misma GitHub Pages del repositorio.

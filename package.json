@@ -1,0 +1,6 @@
+{
+  "name": "robotutor-laboratorio-visual",
+  "private": true,
+  "scripts": { "build:plates": "node scripts/build-mechanical-renderer.cjs" },
+  "devDependencies": { "esbuild": "0.25.12", "three": "0.185.0" }
+}

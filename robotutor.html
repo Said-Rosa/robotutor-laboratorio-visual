@@ -2,7 +2,17 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <!-- Política de contenido. La página no pide nada a la red y todo va embebido,
+       así que puede declararlo y que el navegador lo imponga. Lo que de verdad
+       cierra es la salida: con connect-src e img-src sin destinos externos, un
+       script inyectado no tiene por dónde mandar nada fuera. script-src conserva
+       unsafe-inline porque los cuatro bloques de la aplicación son inline; no
+       lleva unsafe-eval, y no hay ningún eval ni new Function en el archivo.
+       frame-ancestors no se puede declarar desde un meta: necesita cabecera HTTP,
+       que GitHub Pages no deja poner. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data: blob:; font-src data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; media-src 'none'">
+  <meta name="referrer" content="no-referrer">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -2754,7 +2764,7 @@ const roadmap = [
    en este punto y renombra el archivo en consecuencia.
    Ojo: `progress.version` es otra cosa — numera el esquema de datos guardados en
    localStorage y avanza solo cuando cambia la forma de ese objeto. */
-const APP_VERSION="3.37.1";
+const APP_VERSION="3.38.0";
 const APP_STAGE="láminas claras · verdadero/falso y respuestas abiertas";
 /* Los cuatro niveles del curso. Toda comprobación de dificultad debe leer de aquí:
    el selector, las preferencias guardadas, la política pedagógica y los bancos. */
@@ -3827,7 +3837,13 @@ function validateProgressData(data){
  if(data.exams!==undefined&&data.exams!==null&&!Array.isArray(data.exams))throw Error("exams no tiene una estructura válida");
  clean.exams=(Array.isArray(data.exams)?data.exams:[])
   .filter(fila=>fila&&typeof fila==="object"&&typeof fila.formato==="string")
-  .map(fila=>({t:finiteCount(fila.t),formato:String(fila.formato).slice(0,32),
+  /* El identificador de formato era la única cadena del archivo que llegaba a
+     guardarse tal cual. Al pintarse siempre se resuelve contra la lista de
+     formatos conocidos, así que no llegaba a verse; aun así se limpia aquí,
+     para que ninguna cadena del archivo sobreviva a la validación. No se puede
+     comparar contra EXAM_FORMATS porque se declara mucho después de que el
+     progreso se cargue, y leerla aquí rompería el arranque. */
+  .map(fila=>({t:finiteCount(fila.t),formato:String(fila.formato).replace(/[^a-z0-9_-]/gi,"").slice(0,32),
    capitulos:Array.isArray(fila.capitulos)?fila.capitulos.map(finiteCount).filter(Boolean):[],
    dificultad:finiteCount(fila.dificultad)||1,preguntas:finiteCount(fila.preguntas),
    aciertos:Math.min(finiteCount(fila.preguntas),finiteCount(fila.aciertos)),
@@ -8434,10 +8450,15 @@ function check(){
  if(wsIsExercise(exercise))renderWsActivity(exercise);
  save();
 }
-function feedback(type,msg){
+/* El aviso se pintaba siempre como HTML, y no todo lo que llega es nuestro: al
+   importar un progreso, el mensaje de JSON.parse copia un trozo literal del
+   fichero —incluidos < y >— y acababa dentro de innerHTML. Ahora el texto se
+   escapa por defecto y quien necesita marcado lo pide expresamente. */
+function feedback(type,msg,{html=false}={}){
  const f=document.getElementById("feedback");
  const yaEstaba=f.classList.contains("show");
- f.className=`feedback show ${type}`;f.innerHTML=msg;
+ f.className=`feedback show ${type}`;
+ if(html)f.innerHTML=msg;else f.textContent=String(msg);
  announceFeedback(f,type,yaEstaba);
 }
 /* El aviso empujaba la página entre 126 y 167 px de golpe, y como nace debajo
@@ -8454,7 +8475,7 @@ function announceFeedback(f,tipo,yaEstaba){
  }
  return revealInView(f);
 }
-function hint(){if(examEnCurso()||!appState.currentExercise||isStatementOnlyExercise(appState.currentExercise))return;const exercise=appState.currentExercise,i=Math.min(hintIndex,exercise.hints.length-1);feedback("info",`<strong>Pista ${i+1}:</strong> ${exercise.hints[i]}`);hintIndex++}
+function hint(){if(examEnCurso()||!appState.currentExercise||isStatementOnlyExercise(appState.currentExercise))return;const exercise=appState.currentExercise,i=Math.min(hintIndex,exercise.hints.length-1);feedback("info",`<strong>Pista ${i+1}:</strong> ${exercise.hints[i]}`,{html:true});hintIndex++}
 /* ---------- REGISTRO Y LECTURA DEL PROGRESO POR TEMA ---------- */
 /* Un intento se anota bajo el tema que explica el ejercicio, no bajo el capítulo
    en que salió: «encuentra el error» aparece en el capítulo 5 pero lo que audita
@@ -9093,6 +9114,9 @@ document.getElementById("importProgress").addEventListener("click",()=>{
 });
 document.getElementById("progressFile").addEventListener("change",async e=>{
  const file=e.target.files[0];if(!file)return;
+ /* Un progreso de RoboTutor no llega al cuarto de mega. Cortar antes de leer
+    evita que un archivo desmedido congele la pestaña al analizarlo. */
+ if(file.size>2*1024*1024){feedback("bad","El archivo es demasiado grande para ser un progreso de RoboTutor.");e.target.value="";return}
  try{importValidatedProgress(JSON.parse(await file.text()))}
  catch(err){feedback("bad","No fue posible importar el archivo: "+err.message)}finally{e.target.value=""}
 });
@@ -13410,6 +13434,41 @@ function runSelfTests(){
    const dh=plausibleSpatial(makeIndustrial6R)(2);
    if(mechanicalScene(dh).dimensions.some(d=>d.variable))return true;
    return !/cotas en azul/.test(mechanicalReference(dh));
+  }],
+  ["Un progreso manipulado no cuela ni una cadena ajena",()=>{
+   /* El archivo de progreso es lo único que entra en la aplicación desde fuera:
+      se elige con el selector de archivos y se importa. La validación
+      reconstruye sobre un objeto por defecto, así que lo que hay que garantizar
+      es que ninguna cadena del archivo sobreviva a ese filtro, y no solo que el
+      formato sea correcto. */
+   const veneno='<img src=x onerror=alert(1)>';
+   const limpio=validateProgressData({
+    attempts:"9e99",correct:-5,streak:{},assisted:veneno,theme:veneno,
+    chapters:{4:[veneno,veneno]},
+    readTopics:{[veneno]:true,"4.1":true},
+    topics:{[veneno]:{i:3,a:1,r:[1,1]},"4.1":{i:3,a:1,r:[1,0]}},
+    history:[{t:1,k:veneno,ok:true,d:3,c:4},{t:2,k:"4.1",ok:true,d:1,c:4}],
+    exams:[{t:1,formato:veneno,capitulos:[veneno],dificultad:veneno,preguntas:5,aciertos:99,segundos:veneno,temas:{[veneno]:[1,2],"4.1":[1,2]}}],
+    preferences:{difficulty:veneno,angleUnit:veneno,families:{4:[veneno]}}
+   });
+   const serializado=JSON.stringify(limpio);
+   /* Ningún carácter capaz de abrir marcado puede sobrevivir. El identificador
+      de formato es el único campo de texto libre que se guarda, y queda
+      restringido a un alfabeto que no puede formar una etiqueta ni salirse de
+      un atributo. */
+   if(/[<>`]/.test(serializado))return false;
+   if(limpio.exams.some(e=>!/^[a-z0-9_-]*$/i.test(String(e.formato))))return false;
+   /* las claves inventadas se descartan; las reales se conservan */
+   if(limpio.readTopics[veneno]||limpio.topics[veneno])return false;
+   if(!limpio.topics["4.1"]||!limpio.readTopics["4.1"])return false;
+   if(limpio.history.some(fila=>fila.k===veneno))return false;
+   if(!limpio.history.some(fila=>fila.k==="4.1"))return false;
+   /* y los valores imposibles quedan acotados en vez de guardarse */
+   if(limpio.correct>limpio.attempts)return false;
+   if(limpio.exams.some(e=>e.aciertos>e.preguntas))return false;
+   if(limpio.theme!=="light"&&limpio.theme!=="dark")return false;
+   if(!DIFFICULTY_LEVELS.map(String).includes(limpio.preferences.difficulty))return false;
+   return ["degrees","radians"].includes(limpio.preferences.angleUnit);
   }],
   ["Cada barra de variantes acompaña solo a su propio ejercicio",()=>{
    /* Las tres barras de formato estaban apiladas encima del ejercicio y se

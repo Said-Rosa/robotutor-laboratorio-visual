@@ -5,6 +5,8 @@ on:
       - robotutor.html
       - build-artifact.sh
       - scripts/**
+      - package.json
+      - package-lock.json
       - .github/workflows/pr-checks.yml
 permissions:
   contents: read
@@ -13,6 +15,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --no-audit --no-fund
+      - run: npm run build:plates && git diff --exit-code -- robotutor.html
       - run: node scripts/check-source.cjs
       - run: node scripts/check-worked-solutions.cjs
       - run: node scripts/check-mechanical-plates.cjs

@@ -1,3 +1,20 @@
+# Revisión 3.39.0 · articulaciones, efector y solución tras fallar
+
+Parte de `main` 7f627b2 (3.38.0). Destino: la misma GitHub Pages del repositorio.
+
+- Pinza visible con dos dedos y superficies de contacto; el TCP sigue en el punto medio entre sus puntas. La geometría visual no cambia la respuesta ni añade una articulación al modelo.
+- Revolutas con carcasa circular, tapas y eje; los brazos se recortan en las uniones para evitar caras que atraviesen las tapas. Prismáticas con guía rectangular y vástago. No se añaden letras R/P ni otros símbolos al dibujo.
+- Se respeta la regla DH: θ variable / d fijo en revolutas, d variable / θ fijo en prismáticas. La notación genérica q del enunciado conserva sus unidades. La explicación distingue las cadenas de movimientos locales de una tabla DH.
+- Tras un intento incorrecto en práctica de cinemática directa o asignación DH, se abre el desarrollo completo: datos, ángulos acumulados, trigonometría, proyecciones y operaciones. Para las cadenas matriciales incluye sustitución de parámetros y las 16 entradas de cada producto acumulado. No se enmascaran pasos según dificultad.
+- Repetir la respuesta no cuenta otro intento y vuelve a mostrar el desarrollo. Después de verlo, los aciertos cuentan como asistidos. Al iniciar otro ejercicio se cierra. En Examen no se revela.
+- El redibujado por resize borraba la solución: ahora conserva el contenido y su visibilidad al girar el móvil.
+
+Validación: 36 soluciones y geometrías en la nueva prueba CI `check-worked-solutions.cjs`; flujo real de Chrome con respuestas incorrectas, repetidas, corregidas, cambio de ejercicio, resize y protección de Examen en seis familias. Capturas de escritorio/móvil revisadas. Batería completa: 393/393 en Chrome; barridos generales: 9.570 ejercicios y 480 láminas DH, todos aprobados.
+
+Referencia de la regla DH: https://www.mathworks.com/help/robotics/ref/rigidbodyjoint.setfixedtransform.html . La regla se explica en la solución, sin convertir los factores de transformación local en una supuesta tabla DH.
+
+---
+
 # Revisión 3.38.0 · correcciones de las láminas
 
 Parte de `main` 0e49c9b (3.37.1), conservando los PR #13–18 de Claude.

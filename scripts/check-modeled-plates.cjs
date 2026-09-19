@@ -12,20 +12,22 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
   await page.route('https://**/*',r=>r.abort());await page.goto(url);await page.waitForFunction(()=>window.RoboTutor);
   await page.evaluate(async()=>{await Promise.all([...document.fonts].map(font=>font.load()))});
   await page.evaluate(()=>{let seed=340;Math.random=()=>((seed=(1664525*seed+1013904223)>>>0)/4294967296)});
+  const architectures=await page.evaluate(()=>ROBOT_ARCHITECTURES.map(d=>d.id));
+  const cases=['makeSpatial2R','makeSpatial3R','makeScara','makeRrrp','makeIndustrial6R','makeDhAssignment','makeDhAssignment6R','scara','cylindrical',...architectures.flatMap(id=>['dh','direct','identify'].map(task=>id+':'+task))];
   let checked=0;
   for(const width of [390,1280]){
    await page.setViewportSize({width,height:980});
-   for(const name of ['makeSpatial2R','makeSpatial3R','makeScara','makeRrrp','makeIndustrial6R','makeDhAssignment','makeDhAssignment6R','scara','cylindrical']){
+   for(const name of cases){
     const state=await page.evaluate(name=>{
-     const e=['scara','cylindrical'].includes(name)?makeTextbookExercise(3,name):window[name](3);
+     const e=name.includes(':')?makeArchitectureExercise(3,...name.split(':')):['scara','cylindrical'].includes(name)?makeTextbookExercise(3,name):window[name](3);
      appState.currentView='practice';appState.currentChapter=4;appState.exam=null;appState.currentExercise=e;renderExercise();
      const target=document.getElementById(e.visual==='dhAssignment'?'exerciseDhPanel':'workspaceActivity'),svg=target.querySelector('.mechanical-plate-svg'),image=svg?.querySelector('[data-modeled-3d]');
      if(!svg||!image)return {modeled:false};
      const box=svg.viewBox.baseVal;
-     const detail=target.querySelector('.mechanical-detail'),needsDetail=!!mechanicalScene({...e,kinematics:e.kinematics||e.params.kinematics}).detail;
-     return {modeled:!!image.getAttribute('href').startsWith('data:image/png;base64,'),aligned:Math.abs(+image.getAttribute('width')-box.width)<.01&&Math.abs(+image.getAttribute('x')-box.x)<.01,overflow:document.documentElement.scrollWidth>innerWidth+1,axes:svg.querySelectorAll('[data-base-axis]').length,dh:e.visual==='dhAssignment',labels:[...svg.querySelectorAll('[data-dimension-label]')].length,numbered:!!target.querySelector('[data-joint-label]'),detail:!!detail?.querySelector('[data-modeled-3d]'),needsDetail,detailAxes:detail?.querySelectorAll('[data-joint-axis],[data-base-axis]').length||0};
+     const detail=target.querySelector('.mechanical-detail');
+     return {modeled:!!image.getAttribute('href').startsWith('data:image/png;base64,'),aligned:Math.abs(+image.getAttribute('width')-box.width)<.01&&Math.abs(+image.getAttribute('x')-box.x)<.01,overflow:document.documentElement.scrollWidth>innerWidth+1,axes:svg.querySelectorAll('[data-base-axis]').length,dh:e.visual==='dhAssignment',identify:e.kind==='robot-identification',labels:[...svg.querySelectorAll('[data-dimension-label]')].length,numbered:!!target.querySelector('[data-joint-label]'),detail:!!detail?.querySelector('[data-modeled-3d]'),plates:target.querySelectorAll('.mechanical-plate-svg').length,detailAxes:detail?.querySelectorAll('[data-joint-axis],[data-base-axis]').length||0};
     },name);
-    assert.equal(state.modeled,true,name+': missing offline WebGL image');assert.equal(state.aligned,true);assert.equal(state.overflow,false);assert.equal(state.axes,state.dh?3:0);assert.ok(state.labels>=2);assert.equal(state.numbered,false);assert.equal(state.detail,state.needsDetail);assert.equal(state.detailAxes,0);checked++;
+    assert.equal(state.modeled,true,name+': missing offline WebGL image');assert.equal(state.aligned,true);assert.equal(state.overflow,false);assert.equal(state.axes,state.dh?3:0);if(state.identify)assert.equal(state.labels,0);else assert.ok(state.labels>=2);assert.equal(state.numbered,false);assert.equal(state.detail,false);assert.equal(state.plates,1);assert.equal(state.detailAxes,0);checked++;
    }
   }
   // Repeat renders reuse an image; an unavailable renderer retains the technical plate.

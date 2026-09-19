@@ -884,7 +884,7 @@ var RoboTutorMechanical3D=(()=>{var Ka=Object.defineProperty;var Bh=Object.getOw
         <div class="statement" id="statement"></div>
         <div class="chips" id="chips"></div>
         <div class="exercise-variants" id="exerciseVariants">
-          <section id="mechanicalFormats" class="reflection-formats" hidden aria-label="Láminas de cinemática directa"><label for="mechanicalModel">Cinemática directa</label><select id="mechanicalModel"><option value="any" selected>Cualquier modelo · sortea uno distinto</option><option value="scara">SCARA · 4 articulaciones</option><option value="cylindrical">Cilíndrico · 4 articulaciones</option><option value="anthropomorphic">Antropomórfico · 6 articulaciones</option></select><button id="newMechanical" class="btn soft" type="button">Nuevo ejercicio</button></section>
+          <section id="mechanicalFormats" class="reflection-formats" hidden aria-label="Robots para identificación y cinemática"><label for="mechanicalModel">Robot para practicar</label><select id="mechanicalModel"><option value="any" selected>Cualquier modelo · sortea uno distinto</option><option value="scara">SCARA · 4 articulaciones</option><option value="cylindrical">Cilíndrico · 4 articulaciones</option><option value="anthropomorphic">Antropomórfico · 6 articulaciones</option></select><label for="mechanicalTask">Actividad</label><select id="mechanicalTask"><option value="identify">Identificar el robot</option><option value="dh">Construir la tabla DH</option><option value="direct" selected>Calcular la posición</option></select><button id="newMechanical" class="btn soft" type="button">Nuevo ejercicio</button></section>
           <section id="planarGeometryFormat" class="reflection-formats" hidden aria-label="Método geométrico planar"><strong>Planar 2R · método geométrico</strong><button id="newPlanarNumeric" class="btn soft" type="button">Con datos numéricos</button><button id="newPlanarSymbolic" class="btn soft" type="button">Deducir ecuaciones</button></section>
           <section id="reflectionFormats" class="reflection-formats" hidden aria-label="Preguntas de teoría"><strong>Preguntas de teoría</strong><button id="newVF" class="btn soft" type="button">Verdadero / Falso</button><button id="newOpen" class="btn soft" type="button">Pregunta abierta</button></section>
         </div>
@@ -947,7 +947,7 @@ var RoboTutorMechanical3D=(()=>{var Ka=Object.defineProperty;var Bh=Object.getOw
               <ul class="rt-legend">
                 <li><i style="background:#df4b58"></i>X <i style="background:#45c778"></i>Y <i style="background:#123f87"></i>Z = marco base, el único dado</li>
                 <li>Articulaciones sin numerar: recorre el mecanismo desde la base hasta la pinza</li>
-                <li>Recta discontinua = eje de giro de esa articulación</li>
+                <li>Recta discontinua = eje de la articulación</li>
                 <li><strong>E</strong> = extremo del brazo</li>
               </ul>
             </div>
@@ -2803,7 +2803,7 @@ const roadmap = [
    en este punto y renombra el archivo en consecuencia.
    Ojo: `progress.version` es otra cosa — numera el esquema de datos guardados en
    localStorage y avanza solo cuando cambia la forma de ese objeto. */
-const APP_VERSION="3.42.0";
+const APP_VERSION="3.43.0";
 const APP_STAGE="láminas claras · verdadero/falso y respuestas abiertas";
 /* Los cuatro niveles del curso. Toda comprobación de dificultad debe leer de aquí:
    el selector, las preferencias guardadas, la política pedagógica y los bancos. */
@@ -4644,12 +4644,74 @@ function makeTextbookExercise(diff,model='scara'){
    tres barras la consultan y una autoprueba la recorre entera. */
 function exerciseVariantKind(exercise){
  if(!exercise)return null;
- if(isMechanicalWorksheet(exercise))return 'mechanical';
+ if(isMechanicalWorksheet(exercise)||exercise.visual==='dhAssignment')return 'mechanical';
  if(exercise.kind==='geometric-2r')return 'planar';
  if(exercise.kind==='reflection')return 'reflection';
  return null;
 }
 function isMechanicalWorksheet(e){return Boolean(e?.chapter===4&&e.visual==='spatialRobot'&&e.kinematics&&String(e.id).startsWith('forward_')&&e.model!=='Planar3R')}
+/* Independent architecture templates. Joint count is mechanical mobility,
+   excluding the gripper fingers; the end-effector pose may have fewer than 6 DOF. */
+const ROBOT_ARCHITECTURES=Object.freeze([
+ {id:'cartesian3',name:'Cartesiano',types:'PPP'},
+ {id:'cartesian5',name:'Cartesiano con muñeca de dos ejes',types:'PPPRR'},
+ {id:'cartesian6',name:'Cartesiano con muñeca de tres ejes',types:'PPPRRR'},
+ {id:'cylindrical3',name:'Cilíndrico',types:'RPP'},
+ {id:'cylindrical6',name:'Cilíndrico con muñeca de tres ejes',types:'RPPRRR'},
+ {id:'polar3',name:'Polar o esférico',types:'RRP'},
+ {id:'scara4',name:'SCARA',types:'RRPR'},
+ {id:'anthropomorphic3',name:'Antropomórfico',types:'RRR'},
+ {id:'anthropomorphic6',name:'Antropomórfico con muñeca de tres ejes',types:'RRRRRR'}
+]);
+let lastArchitecture=null;
+function chooseRobotArchitecture(id='any'){
+ const definition=ROBOT_ARCHITECTURES.find(d=>d.id===id);
+ const selected=definition||pick(ROBOT_ARCHITECTURES.filter(d=>d.id!==lastArchitecture));lastArchitecture=selected.id;return selected;
+}
+function makeArchitectureExercise(diff,id='any',task='dh',question=null){
+ const def=chooseRobotArchitecture(id),n=def.types.length,sub=i=>'₁₂₃₄₅₆'[i];
+ let rows,k,params={},dimensions=[],description='';
+ const row=(a,alpha,d,theta)=>({a,alpha,d,theta}),q=()=>pick([-45,-30,30,45,60]),length=()=>pick([2.5,3,3.5]);
+ if(def.id.startsWith('anthropomorphic')){
+  const old=n===6?makeDhAssignment6R(diff):makeDhAssignment(diff);rows=old.params.kinematics.table;params={...old.params};delete params.kinematics;dimensions=old.params.dimensions;
+  description=`Columna H=${params.H} m, brazo L₂=${params.L2} m y antebrazo L₃=${params.L3} m.${n===6?` Herramienta L₆=${params.L6} m; los tres ejes de la muñeca son concurrentes.`:''}`;
+ }else if(def.id==='scara4'){
+  params={H:pick([4,4.5]),l1:0,l2:length(),l3:length(),q1:q(),q2:pick([-60,-35,35,60]),q3:pick([1.2,1.5,1.8]),q4:q(),tool:.9};params.l1=params.H;
+  rows=[row(params.l2,0,params.H,params.q1),row(params.l3,180,0,params.q2),row(0,0,params.q3,0),row(0,0,params.tool,params.q4)];
+  dimensions=['L₂','L₃','q₃','L₄'];description=`Altura fija H=${params.H} m; brazos horizontales L₂=${params.l2} m y L₃=${params.l3} m. La guía terminal apunta hacia abajo; L₄=${params.tool} m va desde el carro hasta E. Con los dos primeros giros en cero los brazos se extienden hacia +X.`;
+ }else{
+  if(def.id.startsWith('cartesian')){
+   rows=[row(0,-90,length(),0),row(0,90,length(),90),row(0,0,length(),0)];dimensions=['q₁','q₂','q₃'];
+   description='Las guías de la estructura están alineadas, desde la base, con +Z, +Y y +X. En el montaje de referencia, x₁ apunta hacia +X y x₂ hacia −Z; no hay giros de ajuste variables en esas guías.';
+  }else if(def.id.startsWith('cylindrical')){
+   params.H=1.5;rows=[row(0,0,params.H,q()),row(0,-90,length(),0),row(0,0,length(),0)];dimensions=['H','q₂','q₃'];
+   description=`La base fija tiene altura H=${params.H} m. Una guía vertical precede a la guía radial. Con el giro de la base en cero, la guía radial apunta hacia +Y y la normal de referencia hacia +X.`;
+  }else{
+   params.H=2;rows=[row(0,90,params.H,q()),row(0,-90,0,pick([-60,-45,-30])),row(0,0,pick([3,3.5,4]),0)];dimensions=['H','','q₃'];
+   description=`Altura H=${params.H} m. Con ambos giros en cero la guía apunta hacia +Z; el segundo eje apunta hacia −Y cuando el primero está en cero. La inclinación negativa del segundo giro hace avanzar la guía hacia +X en ese plano.`;
+  }
+  if(n===5){params.L4=.65;params.L5=1.1;rows.push(row(0,90,params.L4,q()),row(0,0,params.L5,q()));dimensions.push('L₄','L₅');description+=` La muñeca tiene dos ejes perpendiculares separados por L₄=${params.L4} m sobre el primero; la herramienta mide L₅=${params.L5} m sobre el último.`;}
+  if(n===6){params.L6=pick([1.2,1.4]);rows.push(row(0,90,0,q()),row(0,-90,0,pick([-60,-45,45,60])),row(0,0,params.L6,q()));dimensions.push('','','L₆');description+=` En la muñeca los tres ejes se cortan; L₆=${params.L6} m se mide desde el cruce hasta E. En su referencia cero, el primer y último eje de muñeca son paralelos; el eje intermedio se obtiene con un cuarto de vuelta positivo alrededor de la normal entrante.`;}
+ }
+ k={...KinematicsEngine.serialDH(rows),model:'ArchitectureDH',architectureId:def.id,jointTypes:def.types.split(''),jointAxes:def.types.split('').map(t=>t==='R'?JOINT_AXIS_Z:null),geometry:params};
+ // Store only input geometry beside the DH exercise, never expose a solved trace.
+ params={...params,dimensions,kinematics:k};
+ const coords=rows.map((r,i)=>`q${sub(i)}=${fmt(def.types[i]==='R'?r.theta:r.d,2)}${def.types[i]==='R'?'°':' m'}`);
+ const fixed=dimensions.map((label,i)=>label&&!/^q/.test(label)?`${label}=${fmt(rows[i].a||rows[i].d,2)} m`:null).filter(Boolean);
+ const steps=rows.map((r,i)=>`Fila ${i+1}. ${def.types[i]==='R'?'Revoluta: θ recibe el ángulo dado; d es fijo.':'Prismática: d recibe el desplazamiento dado; θ es fijo.'} Con la normal común y los sentidos del montaje: a=${r.a} m, α=${r.alpha}°, d=${r.d} m, θ=${r.theta}°.`);
+ const closingFrame='Para cerrar la tabla, toma z del marco final paralelo y con el mismo sentido que el último eje articular; si el último movimiento es prismático, conserva también x del marco anterior. Cuando dos ejes sean opuestos, expresa la torsión como +180°.';
+ const base={id:`dh_architecture_${def.id}`,kind:'dh-assignment',chapter:4,difficulty:diff,model:k.model,visual:'dhAssignment',geometryTopic:'4.3',matrixLayout:'dh',title:'Asignar marcos a partir del mecanismo',type:'matrix',rows:n,cols:4,answer:rows.map(r=>[r.a,r.alpha,r.d,r.theta]),tolerance:.05,params,chips:[...fixed,...coords],convention:'DH estándar, terna dextrógira y vectores columna. El marco base es el único dibujado.',plateNote:'Mecanismo completo en una sola vista. No se entregan marcos locales ni numeración sobre sus piezas.',statement:`Asigna los marcos y completa la tabla DH del robot mostrado. ${description} Coordenadas de la postura, en orden desde la base: ${coords.join('; ')}. La apertura de la pinza no forma parte de la cadena. ${DH_ASSIGN_CONVENTION} ${closingFrame}`,hints:['Distingue los cojinetes giratorios de los carros guiados antes de construir las transformaciones.','Usa el sentido de cada eje y la convención declarada para medir los cuatro parámetros de cada fila.'],steps,commonErrors:['confundir un carro deslizante con un cojinete de giro','añadir la apertura de la pinza a los grados de libertad del brazo'],concepts:['identificación de articulaciones','asignación de marcos DH']};
+ if(task==='identify'){
+  const ask=question||pick(['sequence','mobility','family']),family=def.id.startsWith('cartesian')?'Cartesiano':def.id.startsWith('cylindrical')?'Cilíndrico':def.id.startsWith('anthropomorphic')?'Antropomórfico':def.id==='scara4'?'SCARA':'Polar o esférico';
+  const sequence=def.types.split('').join('–'),options=ask==='family'?['Cartesiano','Cilíndrico','Polar o esférico','SCARA','Antropomórfico']:ask==='mobility'?['3','4','5','6']:[sequence,...['R'.repeat(n),'P'.repeat(n),'R'+'P'.repeat(n-1),'P'+'R'.repeat(n-1),'RR'+'P'.repeat(n-2)].map(s=>s.split('').join('–'))].filter((s,i,a)=>a.indexOf(s)===i).slice(0,4);
+  const correct=ask==='sequence'?sequence:ask==='mobility'?String(n):family;
+  const rationale={clave:`La cadena tiene ${n} articulaciones independientes, en orden ${sequence}. Sus tres primeras articulaciones y la orientación de sus ejes corresponden a la arquitectura ${family}. La apertura de la pinza no se cuenta.`,fallos:Object.fromEntries(options.filter(o=>o!==correct).map(o=>[o,ask==='mobility'?`El valor ${o} no corresponde al número de articulaciones independientes: la cadena contiene ${n}. Cuenta los carros y los cojinetes desde la base; excluye los dedos.`:ask==='sequence'?`La secuencia ${o} no coincide con los movimientos físicos del dibujo: desde la base la cadena es ${sequence}. Un cojinete gira; un carro se desplaza dentro de una guía.`:`${o} no corresponde al montaje de las tres primeras articulaciones; en esta figura forman un robot ${family}. La muñeca modifica la orientación de la herramienta, no la familia de posicionamiento.`]))};
+  return{...base,id:`forward_identify_${def.id}_${ask}`,kind:'robot-identification',visual:'spatialRobot',geometryTopic:'4.1',matrixLayout:undefined,kinematics:k,type:'choice',rows:undefined,cols:undefined,title:'Reconocer el robot de la figura',statement:ask==='sequence'?'Identifica la secuencia de articulaciones desde la base hasta la herramienta. R significa revoluta y P prismática. No incluyas la apertura de los dedos.':ask==='mobility'?'¿Cuántos grados de libertad independientes tiene la cadena mecánica del robot? Considera cada articulación actuada y excluye la apertura de la pinza.':'Identifica la arquitectura que forman las tres primeras articulaciones del robot; no incluyas la muñeca ni la apertura de la pinza.',answer:ask==='sequence'?sequence:ask==='mobility'?String(n):family,options:shuffle(options),rationale,chips:[],convention:'Observa la estructura completa. La pinza se considera una herramienta fija para contar la movilidad del brazo.',identify:{ask,sequence,family,dof:n},steps:[`Desde la base: ${def.types.split('').map((t,i)=>`${i+1}: ${t==='R'?'giro en cojinete':'traslación en guía'}`).join('; ')}.`,`Cada articulación es independiente: ${n} coordenadas articulares. La pinza no añade otra a esta cadena.`,`La arquitectura de posicionamiento es ${family}; secuencia completa ${sequence}.`]};
+ }
+ if(task==='direct')return{...base,id:`forward_architecture_${def.id}`,kind:'architecture-direct',visual:'spatialRobot',geometryTopic:'4.1',matrixLayout:undefined,kinematics:k,title:'Cinemática directa · '+def.name,type:'matrix',rows:3,cols:1,answer:k.pose.slice(0,3).map(r=>[r[3]]),statement:`Determina la posición [X; Y; Z] de E respecto de la base. ${description} Usa la tabla DH dada.${dhTableMarkup(rows)}`,convention:'La tabla DH fija la geometría y los sentidos. E señala el punto cuya posición se pide.'};
+ return base;
+}
+
 function mechanicalScene(e){
  const k=e.kinematics,p={...(k.geometry||{}),...(e.params||{})},model=k.model,solids=[],dimensions=[];
  const V=v=>Array.isArray(v)?v:[v.x,v.y,v.z],add=(a,b)=>a.map((v,i)=>v+b[i]),scale=(a,s)=>a.map(v=>v*s),sub=(a,b)=>a.map((v,i)=>v-b[i]),norm=a=>Math.hypot(...a),unit=a=>scale(a,1/(norm(a)||1));
@@ -4680,8 +4742,9 @@ function mechanicalScene(e){
     y las láminas que usan otra notación lo declaran a mano. */
  const dim=(a,b,label,side='auto',variable=/^q/.test(String(label)))=>{if(norm(sub(b,a))>1e-8)dimensions.push({a,b,label,side,variable})};
  let points=k.positions.map(V),origin=[0,0,0],tip=V(k.positions.at(-1)),referencePoints=[],detail=null;
- if(['SCARA_RRP','SCARA_RRPR'].includes(model)){
-  const book=model==='SCARA_RRPR',h=book?p.l1:p.d0,H=[0,0,h],J=book?V(k.positions[1]):[points[1][0],points[1][1],h],W=book?V(k.positions[2]):[points[2][0],points[2][1],h];
+ const architectureScara=k.architectureId==='scara4';
+ if(['SCARA_RRP','SCARA_RRPR'].includes(model)||architectureScara){
+  const book=model==='SCARA_RRPR'||architectureScara,h=book?p.l1:p.d0,H=[0,0,h],J=book?V(k.positions[1]):[points[1][0],points[1][1],h],W=book?V(k.positions[2]):[points[2][0],points[2][1],h];
   const size=Math.min(book?p.l2:p.l1,book?p.l3:p.l2),width=Math.max(.28,size*.13),baseH=Math.min(.35,h*.14);
   rod(origin,[0,0,baseH],width*2.2);rod([0,0,baseH],H,width*.72);
   beam(H,J,width*1.05,width*.58);beam(J,W,width*.94,width*.5);
@@ -4689,9 +4752,10 @@ function mechanicalScene(e){
   // A rectangular guide constrains sliding; no round revolute housing here.
   beam(add(W,[0,0,-width*.55]),add(W,[0,0,width*.55]),width*1.05,width*1.05);solids.at(-1).part='guide';
   const R=k.pose,dir=[R[0][0],R[1][0],0],travel=norm(sub(tip,W))>1e-8?unit(sub(tip,W)):[0,0,-1],toolSize=Math.min(width*.95,Math.max(width*.3,norm(sub(tip,W))*.32)),tail=gripper(tip,travel,dir,toolSize);
-  beam(add(W,scale(travel,-width*.45)),tail,width*.42,width*.42);solids.at(-1).part='slider';
-  if(book)joint(tail,[0,0,1],width*.4,width*.28);
-  dim(origin,H,book?'l₁':'d₀','left');dim(H,J,book?'l₂':'L₁','upper');dim(J,W,book?'l₃':'L₂','upper');dim(W,tip,book?'q₃':'|q₃|','right',true);
+  beam(add(W,scale(travel,-width*.45)),architectureScara?points[3]:tail,width*.42,width*.42);solids.at(-1).part='slider';
+  if(architectureScara){joint(points[3],[0,0,1],width*.68,width*.65);rod(points[3],tail,width*.2)}else if(book)joint(tail,[0,0,1],width*.4,width*.28);
+  dim(origin,H,architectureScara?'H':book?'l₁':'d₀','left');dim(H,J,architectureScara?'L₂':book?'l₂':'L₁','upper');dim(J,W,architectureScara?'L₃':book?'l₃':'L₂','upper');dim(W,architectureScara?points[3]:tip,book?'q₃':'|q₃|','right',true);
+  if(architectureScara)dim(points[3],tip,'L₄');
   referencePoints=[origin,H,J,W,tip];
  }else if(model==='Cylindrical_RPPR'){
   const h=p.l1+p.d2,B=[0,0,p.l1],C=[0,0,h],az=rad(p.theta1),u=[Math.cos(az),Math.sin(az),0],W=add(C,scale(u,p.d3)),width=.45;
@@ -4706,9 +4770,22 @@ function mechanicalScene(e){
   const spherical=points.length===7&&norm(sub(points[3],points[4]))<1e-7&&norm(sub(points[4],points[5]))<1e-7;
   const toolWidth=(k.jointAxes||[]).length>=6?Math.min(width,norm(sub(tip,points.at(-2)))*(spherical?.32:.5)):width;
   // Put the pedestal under the first bearing, not through its lower cap.
-  const foot=-width*1.2*.82;rod([0,0,foot-width*.55],[0,0,foot],width*2);
+  const foot=-width*1.2*.82;
+  if(k.jointTypes?.[0]==='P')solid('box',[0,0,-width*.5],[0,0,0],width*3,width*3,'guide');else rod([0,0,foot-width*.55],[0,0,foot],width*2);
   points.slice(1).forEach((b,i)=>{
    const a=points[i];
+   if(k.jointTypes?.[i]==='P'){
+    const axis=unit(sub(b,a)),ref=Math.abs(axis[2])>.85?[1,0,0]:[0,0,1],cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],u=unit(cross(axis,ref)),v=cross(axis,u),outer=width*1.3,wall=width*.17,shift=(outer-wall)/2;
+    const housingEnd=add(a,scale(axis,Math.min(1.6,norm(sub(b,a))*.5)));
+    for(const sign of[-1,1]){
+     solid('box',add(a,scale(u,sign*shift)),add(housingEnd,scale(u,sign*shift)),wall,outer,'guide');solids.at(-1).side=u;
+     solid('box',add(a,scale(v,sign*shift)),add(housingEnd,scale(v,sign*shift)),outer-wall*2,wall,'guide');solids.at(-1).side=u;
+    }
+    const last=i===points.length-2,wristInput=spherical&&i===2,tail=wristInput?add(b,scale(axis,-width*2.1)):last?add(b,scale(axis,-toolWidth*1.4)):b;
+    solid('box',add(a,scale(axis,width*.35)),tail,width*.74,width*.74,'slider');solids.at(-1).side=u;
+    if(!last&&!wristInput){solid('box',add(b,scale(axis,-width*.14)),add(b,scale(axis,width*.14)),width*1.05,width*1.05,'guide');solids.at(-1).side=u;}
+    return;
+   }
    if(model==='RRRP'&&i===2){
     const telescopeStart=solids.length;
     // Four walls leave a real open mouth; the narrower slider overlaps inside.
@@ -4729,7 +4806,7 @@ function mechanicalScene(e){
    }else if(!(model==='RRRP'&&i===3)){
     if(spherical&&i>=3)return;
     const direction=unit(sub(b,a)),length=norm(sub(b,a)),startTrim=k.jointAxes?.[i]?Math.min(width*.3,length*.15):0,endTrim=i===points.length-2?Math.min(toolWidth*1.4,length*.75):Math.min(width*.3,length*.15);
-    beam(add(a,scale(direction,startTrim)),add(b,scale(direction,-(spherical&&i===2?width*1.35:endTrim))),width*(i>2?.75:1.02),width*(i>2?.7:.88));
+    beam(add(a,scale(direction,startTrim)),add(b,scale(direction,-(spherical&&i===2?width*2.1:endTrim))),width*(i>2?.75:1.02),width*(i>2?.7:.88));
    }
   });
   // Coincident DH origins share a single housing; no fake zero-length link.
@@ -4738,15 +4815,17 @@ function mechanicalScene(e){
    // Three physical bearings on the existing concurrent axes: input housing,
    // open yoke with a transverse pivot, and output flange. No displaced DH origins.
    const C=points[3],a4=unit(V(jointRotationFrame(k,3).axis)),a5=unit(V(jointRotationFrame(k,4).axis)),a6=unit(V(jointRotationFrame(k,5).axis));
-   const r=Math.min(width*.9,norm(sub(tip,C))*.57),rear=add(C,scale(a4,-r*1.1)),begin=solids.length;
-   const forearm=unit(sub(C,points[2]));beam(add(C,scale(forearm,-width*1.4)),rear,width*.7,width*.65);
+   const r=Math.min(width*1.12,norm(sub(tip,C))*.6),rear=add(C,scale(a4,-r*1.55)),begin=solids.length;
+   const forearm=unit(sub(C,points[2])),mount=add(rear,scale(a4,-r*.4));beam(add(C,scale(forearm,-width*2.15)),mount,width*.7,width*.65);
+   solid('cylinder',mount,add(rear,scale(a4,-r*.2)),r*.5,r*.5,'link');
    solid('cylinder',add(rear,scale(a4,-r*.22)),add(rear,scale(a4,r*.28)),r*.88,r*.88,'revolute');
+   solid('cylinder',add(rear,scale(a4,r*.26)),add(rear,scale(a4,r*.34)),r*.91,r*.91,'hub');
    for(const sign of[-1,1]){
     const offset=scale(a5,sign*r*.83);
     solid('box',add(rear,offset),add(C,offset),r*.24,r*.75,'wrist');solids.at(-1).side=a5;
     solid('cylinder',add(C,scale(a5,sign*r*.65)),add(C,scale(a5,sign*r*1.02)),r*.36,r*.36,'hub');
    }
-   solid('cylinder',add(C,scale(a5,-r*.66)),add(C,scale(a5,r*.66)),r*.55,r*.55,'revolute');
+   solid('cylinder',add(C,scale(a5,-r*.66)),add(C,scale(a5,r*.66)),r*.4,r*.4,'revolute');
    const flange=add(tip,scale(a6,-toolWidth*1.45));
    solid('cylinder',add(C,scale(a6,r*.25)),flange,r*.43,r*.43,'revolute');
    solid('cylinder',add(flange,scale(a6,-r*.18)),flange,r*.6,r*.6,'hub');
@@ -4758,7 +4837,7 @@ function mechanicalScene(e){
      propias cotas mecánicas, mandan las suyas. */
   const labels=e.params?.dimensions||spatialDimensionLabels(model,points.length-1);
   points.slice(1).forEach((b,i)=>{if(labels[i])dim(points[i],b,labels[i],i===0?'left':'auto',/^q/.test(labels[i]))});
-  const R=k.pose,along=['RRRP','Spatial2R','Spatial3R','DhAssignment','SerialDH'].includes(model),u=along?unit(sub(tip,points.at(-2))):[R[0][2],R[1][2],R[2][2]],v=along?[R[0][1],R[1][1],R[2][1]]:[R[0][0],R[1][0],R[2][0]];
+  const R=k.pose,along=['RRRP','Spatial2R','Spatial3R','DhAssignment','SerialDH'].includes(model)||k.architectureId==='anthropomorphic3',u=along?unit(sub(tip,points.at(-2))):[R[0][2],R[1][2],R[2][2]],v=along?[R[0][1],R[1][1],R[2][1]]:[R[0][0],R[1][0],R[2][0]];
   gripper(tip,u,v,toolWidth);
   referencePoints=points;
  }
@@ -4770,10 +4849,10 @@ function mechanicalScene(e){
   const tramos=points.slice(1).map((v,i)=>norm(sub(v,points[i]))).filter(v=>v>.01);
   const span=Math.max(...tramos,1);
   const joints=[];
-  (k.jointAxes||[]).forEach((axis,i)=>{if(!axis)return;joints.push({c:points[i],axis:V(jointRotationFrame(k,i).axis),n:i+1})});
+  (k.jointAxes||[]).forEach((axis,i)=>{if(!axis&&k.jointTypes?.[i]!=='P')return;const R=i?k.cumulative[i-1]:identityMatrix(4);joints.push({c:points[i],axis:axis?V(jointRotationFrame(k,i).axis):[R[0][2],R[1][2],R[2][2]],n:i+1})});
   frames={base:[0,0,0],span,joints};
  }
- return{model,solids,dimensions,tip,referencePoints,frames,detail};
+ return{model,solids,dimensions:e.kind==='robot-identification'?[]:dimensions,tip,referencePoints,frames,detail};
 }
 /* Orthographic hidden-surface clipping. Depth is a plane over each projected
    convex face: only the portion physically behind another face is removed.
@@ -4834,13 +4913,20 @@ function mechanicalPlateSvg(e,{mobile=Boolean(window.matchMedia?.("(max-width:60
  }
  // Choose a fixed, legible camera, never a different physical joint posture.
  const bearing=Math.atan2(scene.tip[1],scene.tip[0]||1e-9),cameras=[];
- for(const turn of[-65,-45,-85,-25,45])for(const elev of[.45,.65]){
+ for(const turn of[-65,-45,-85,-25,45,85,125,-125])for(const elev of[.35,.55,.75]){
   const az=bearing+rad(turn),view=[Math.cos(az)*Math.cos(elev),Math.sin(az)*Math.cos(elev),Math.sin(elev)],right=[-Math.sin(az),Math.cos(az),0],up=cross(view,right),project=p=>[dot(p,right),-dot(p,up),dot(p,view)];
   let score=0;
   for(const d of scene.dimensions){const v=unit(sub(d.b,d.a)),ratio=Math.sqrt(Math.max(0,1-dot(v,view)**2));score+=Math.min(ratio,.85);if(ratio<.4)score-=8*(.4-ratio)}
   if(scene.frames)for(const j of scene.frames.joints){const ratio=Math.sqrt(Math.max(0,1-dot(j.axis,view)**2));if(ratio<.4)score-=6*(.4-ratio)}
   const pads=scene.solids.filter(s=>s.part==='pad');
-  if((scene.frames||detail)&&pads.length===2){const across=unit(sub(pads[1].b,pads[0].b)),opening=Math.sqrt(Math.max(0,1-dot(across,view)**2));score+=Math.min(opening,.85)*2;if(opening<.65)score-=12*(.65-opening)}
+  if(pads.length===2&&(scene.frames||detail||scene.model==='ArchitectureDH')){const across=unit(sub(pads[1].b,pads[0].b)),opening=Math.sqrt(Math.max(0,1-dot(across,view)**2));score+=Math.min(opening,.85)*2;if(opening<.65)score-=12*(.65-opening)}
+  const bearings=scene.solids.filter(s=>s.assembly==='wrist'&&s.part==='revolute');
+  const targets=[...bearings.map(s=>mul(add(s.a,s.b),.5)),scene.tip];
+  for(const point of targets){const P=project(point);for(const body of scene.solids.filter(s=>!s.assembly&&s.part==='link')){
+   const A=project(body.a),B=project(body.b),d=sub(B,A),t=Math.max(0,Math.min(1,((P[0]-A[0])*d[0]+(P[1]-A[1])*d[1])/(d[0]**2+d[1]**2||1))),Q=add(A,mul(d,t));
+   if(Q[2]>P[2]+.03&&Math.hypot(P[0]-Q[0],P[1]-Q[1])<body.width*.8)score-=8;
+  }}
+  for(let i=1;i<bearings.length;i++){const a=mul(add(bearings[i-1].a,bearings[i-1].b),.5),b=mul(add(bearings[i].a,bearings[i].b),.5),d=unit(sub(a,b));score+=Math.sqrt(Math.max(0,1-dot(d,view)**2))*1.5;}
   cameras.push({view,project,score:score-Math.abs(turn+65)*.002});
  }
  const {view,project}=cameras.sort((a,b)=>b.score-a.score)[0],faces=[],edges=[];
@@ -4924,12 +5010,8 @@ function mechanicalColourKey(e){
   ?' Las cotas en azul son variables articulares: cambian con la postura. Las grises son longitudes fijas del robot.'
   :'';}catch{return''}
 }
-function mechanicalDetailMarkup(e){
- const scene=mechanicalScene(e);if(!scene.detail)return '';
- return `<section class="mechanical-detail" aria-label="${scene.detail.title}"><h4>${scene.detail.title}</h4><p>Vista ampliada de la misma configuración.</p><div>${mechanicalPlateSvg(e,{modeled:true,detail:true})}</div></section>`;
-}
 function mechanicalReference(e){
- if(e.kind==='textbook-direct')return e.convention+mechanicalColourKey(e);
+ if(['textbook-direct','architecture-direct','robot-identification'].includes(e.kind))return e.convention+mechanicalColourKey(e);
  if(e.model==='SCARA_RRP')return mechanicalColourKey(e)+'Base: origen en el suelo y Z hacia arriba. X sigue el primer brazo cuando q₁=0; Y completa el sistema dextrógiro. q₁ y q₂ positivos son antihorarios vistos desde arriba; q₂ es relativo al primer brazo. q₃ es positivo hacia arriba y negativo hacia abajo; la cota |q₃| representa la distancia entre el brazo y E.';
  if(e.model==='Industrial6R'||e.model==='SerialDH')return'La tabla DH define el origen, los sentidos positivos y la configuración solicitada. La lámina representa sus longitudes; E es el extremo cuya posición se pide. No se obtienen ángulos midiendo la perspectiva.';
  return e.convention+mechanicalColourKey(e)+(e.model==='RRRP'?' L₃ mide la camisa fija; q₄ es la extensión adicional desde su boca hasta E.':'')+' El origen está en la base; Z apunta hacia arriba y X es la dirección del primer tramo cuando q₁=0. Y completa el sistema dextrógiro.';
@@ -4941,21 +5023,25 @@ function renderMechanicalWorksheet(e){
  for(const id of ['solution','showSolution'])document.getElementById(id).hidden=!revealed;
  if(!revealed)document.getElementById('solutionSteps').innerHTML='';
  document.getElementById('matrixBreakdownContent').innerHTML='';
- document.getElementById('exerciseVisualTitle').textContent='Mecanismo y dimensiones';document.getElementById('exerciseVisualKind').textContent='Cinemática directa';
- document.getElementById('exerciseVisualCaption').textContent='Configuración fija. Las cotas corresponden a los datos del ejercicio.';
+ document.getElementById('exerciseVisualTitle').textContent=e.kind==='robot-identification'?'Identifica el mecanismo':'Mecanismo y dimensiones';document.getElementById('exerciseVisualKind').textContent=e.kind==='robot-identification'?'Identificación':'Cinemática directa';
+ document.getElementById('exerciseVisualCaption').textContent=e.kind==='robot-identification'?'Observa el robot completo e identifica lo solicitado.':'Configuración fija. Las cotas corresponden a los datos del ejercicio.';
  document.getElementById('exerciseVisualDescription').textContent='Representación mecánica sin ejes ni marcas de rotación. Las longitudes y la referencia están declaradas.';
- host.innerHTML=`<div class="mechanical-paper">${mechanicalPlateSvg(e,{mobile:window.matchMedia('(max-width:600px)').matches,modeled:true})}</div>${mechanicalDetailMarkup(e)}<div class="mechanical-data"><strong>Datos</strong><div>${e.chips.map(t=>`<span>${traceHtmlEscape(t)}</span>`).join('')}</div></div><p class="mechanical-reference"><strong>Referencia del ejercicio.</strong> ${traceHtmlEscape(mechanicalReference(e))}</p>`;
+ host.innerHTML=`<div class="mechanical-paper">${mechanicalPlateSvg(e,{mobile:window.matchMedia('(max-width:600px)').matches,modeled:true})}</div>${e.chips.length?`<div class="mechanical-data"><strong>Datos</strong><div>${e.chips.map(t=>`<span>${traceHtmlEscape(t)}</span>`).join('')}</div></div>`:''}<p class="mechanical-reference"><strong>Referencia del ejercicio.</strong> ${traceHtmlEscape(mechanicalReference(e))}</p>`;
  const answer=document.getElementById('answerArea');if(answer.parentElement===root.parentElement)root.parentElement.insertBefore(root,answer);
 }
 /* Las tres barras de formato vivían apiladas encima del ejercicio, visibles
    todas a la vez. Ahora cada una acompaña al ejercicio que genera y solo se
    ve cuando ese ejercicio está en pantalla. A los tres tipos se sigue
    llegando por «Generar ejercicio» y por la práctica de su tema. */
-function renderMechanicalControls(){const host=document.getElementById('mechanicalFormats');if(host)host.hidden=examEnCurso()||exerciseVariantKind(appState.currentExercise)!=='mechanical'}
+function renderMechanicalControls(){
+ const host=document.getElementById('mechanicalFormats'),e=appState.currentExercise;if(host)host.hidden=examEnCurso()||exerciseVariantKind(e)!=='mechanical';
+ if(e?.kind==='robot-identification')document.getElementById('mechanicalModel').value='any';
+ if(e)document.getElementById('mechanicalTask').value=e.kind==='robot-identification'?'identify':e.visual==='dhAssignment'?'dh':'direct';
+}
 /* Pulsar «Nuevo ejercicio» repetía siempre el mismo mecanismo: solo cambiaban
    los números. Con «Cualquier modelo» se sortea uno, y nunca el que acaba de
    salir, para que dos pulsaciones seguidas no den la misma lámina. */
-const MECHANICAL_MODELS=Object.freeze(['scara','cylindrical','anthropomorphic']);
+const MECHANICAL_MODELS=Object.freeze(ROBOT_ARCHITECTURES.map(d=>d.id));
 let ultimoModeloMecanico=null;
 function pickMechanicalModel(elegido,previo=ultimoModeloMecanico){
  if(elegido&&elegido!=='any')return elegido;
@@ -4963,7 +5049,15 @@ function pickMechanicalModel(elegido,previo=ultimoModeloMecanico){
  return pick(otros.length?otros:MECHANICAL_MODELS);
 }
 function initMechanicalControls(){
- document.getElementById('newMechanical').onclick=()=>{if(examEnCurso())return;const model=pickMechanicalModel(document.getElementById('mechanicalModel').value),diff=Number(document.getElementById('difficulty').value);ultimoModeloMecanico=model;appState.practiceTopicKey='4.1';appState.currentExercise=model==='anthropomorphic'?plausibleSpatial(makeIndustrial6R)(diff):makeTextbookExercise(diff,model);document.getElementById('feedback').className='feedback';renderExercise()};renderMechanicalControls();
+ const modelSelect=document.getElementById('mechanicalModel');
+ modelSelect.innerHTML='<option value="any">Cualquier modelo · sortea uno distinto</option>'+ROBOT_ARCHITECTURES.map(d=>`<option value="${d.id}">${d.name} · ${d.types.length} GDL</option>`).join('');
+ document.getElementById('newMechanical').onclick=()=>{
+  if(examEnCurso())return;
+  const model=pickMechanicalModel(modelSelect.value),diff=Number(document.getElementById('difficulty').value),task=document.getElementById('mechanicalTask').value;
+  ultimoModeloMecanico=model;appState.practiceTopicKey=task==='dh'?'4.3':'4.1';appState.currentExercise=makeArchitectureExercise(diff,model,task);
+  if(task==='identify')modelSelect.value='any';
+  document.getElementById('feedback').className='feedback';renderExercise();
+ };renderMechanicalControls();
 }
 
 function cleanMechanismPoints(k,params={}){
@@ -6788,7 +6882,7 @@ function makeDhAssignment6R(diff){
     Con estos rangos casi siempre acierta al primer intento; el bucle solo
     cubre la minoría que cae por debajo. */
  for(let intento=0;intento<40;intento++){
-  H=pick([2,2.5,3]);L2=pick([2.5,3,3.5]);L3=pick([1.5,2,2.5]);L6=pick([.5,.6,.8]);
+  H=pick([1.5,1.8,2]);L2=pick([2.2,2.6,3]);L3=pick([1.8,2.2,2.6]);L6=pick([1.1,1.3,1.5]);
   q=[pick([0,30,45,60,-30,-45]),pick([0,30,45,60]),pick([-45,-30,0,30,45]),pick([-90,-45,0,45,90]),pick([-90,-45,45,90]),pick([-90,0,90])];
   filas=[{a:0,alpha:90,d:H,theta:q[0]},{a:L2,alpha:0,d:0,theta:q[1]},{a:L3,alpha:90,d:0,theta:q[2]},
    {a:0,alpha:-90,d:0,theta:q[3]},{a:0,alpha:90,d:0,theta:q[4]},{a:0,alpha:0,d:L6,theta:q[5]}];
@@ -7601,6 +7695,7 @@ function kinematicsCandidates(diff){
  if(diff>=2)lista.push({family:"3d",make:makeDhAssignment6R});
  const conceptuales=Math.max(1,Math.round(lista.length*(CONCEPT_SHARE[diff]??.3)));
  for(let i=0;i<conceptuales;i++)lista.push({family:"concepto",make:d=>makeChoice(4,d)});
+ lista.push({family:'3d',make:d=>makeArchitectureExercise(d,'any','dh')},{family:'3d',make:d=>makeArchitectureExercise(d,'any','direct')},{family:'concepto',make:d=>makeArchitectureExercise(d,'any','identify')});
  return lista;
 }
 function makeKinematicsExercise(diff){
@@ -7645,11 +7740,11 @@ function legacyTopicNumericGenerators(key,diff){
      desajuste y lanzaba sin que nadie lo recogiera: una de cada cuatro veces
      que tocaba ese generador, la práctica del tema se quedaba sin ejercicio.
      Aquí se piden solo las variantes que son de este tema. */
-  return[d=>makeTextbookExercise(d,"scara"),d=>makeTextbookExercise(d,"cylindrical"),d=>makeGeometric2R(d,pick(["point","point","length"])),make2R,makePlanar3R,...spatial.map(make=>plausibleSpatial(make))];
+  return[d=>makeArchitectureExercise(d,"any","direct"),d=>makeArchitectureExercise(d,"any","identify"),d=>makeTextbookExercise(d,"scara"),d=>makeTextbookExercise(d,"cylindrical"),d=>makeGeometric2R(d,pick(["point","point","length"])),make2R,makePlanar3R,...spatial.map(make=>plausibleSpatial(make))];
  }
  /* El tema enseña a asignar marcos y construir la tabla; practicarlo con un
     ejercicio de cinemática inversa plana no entrenaba esa destreza. */
- if(key==="4.3")return diff===1?[makeDhAssignment,d=>makeGeometric2R(d,"inverse")]:[makeDhAssignment,makeDhAssignment6R,d=>makeGeometric2R(d,"inverse")];
+ if(key==="4.3")return[makeDhAssignment,makeDhAssignment6R,d=>makeGeometric2R(d,'inverse'),...ROBOT_ARCHITECTURES.filter(d=>!d.id.startsWith("anthropomorphic")).map(def=>d=>makeArchitectureExercise(d,def.id,"dh"))];
  if(key==="4.2")return diff>=3?[plausibleSpatial(makeDh3R)]:[];
  if(key==="3.13")return[makeWorkspaceExercise];
  if(key.startsWith("3."))return topicChapter3Kinds(key,diff).map(kind=>d=>makeChapter3Kind(d,kind));
@@ -8358,6 +8453,8 @@ const SOLUTION_REASONING=Object.freeze({
 const SOLUTION_REASONING_CONCEPT=Object.freeze({idea:"Estas preguntas se resuelven por descarte razonado y no por reconocimiento: casi siempre hay una opción que es cierta en general pero que no responde al caso descrito. Conviene confrontar cada alternativa con el dato concreto del enunciado antes de elegir.",comprobacion:"La opción correcta debe seguir siéndolo si cambias los números del enunciado sin cambiar la situación que describe."});
 function solutionReasoning(exercise){
  if(!exercise)return null;
+ if(exercise.id?.startsWith('dh_architecture_'))return SOLUTION_REASONING.dh_assignment_3R;
+ if(exercise.kind==='architecture-direct')return SOLUTION_REASONING.forward_dh_3R;
  const propia=SOLUTION_REASONING[exercise.id];
  if(propia)return propia;
  return exercise.type==="choice"?SOLUTION_REASONING_CONCEPT:null;
@@ -8400,6 +8497,7 @@ function hasMechanicalWorkedSolution(e){return Boolean(isMechanicalWorksheet(e)|
    replace the verifier or round intermediate values used by the engine. */
 function mechanicalWorkedSolution(e){
  if(!hasMechanicalWorkedSolution(e))return'';
+ if(e.kind==='robot-identification')return `<div class="mechanical-worked" data-worked-solution="true"><h3>Solución paso a paso</h3>${e.steps.map((step,i)=>`<section class="worked-step"><h4>${i+1}. Leer el mecanismo</h4><p>${traceHtmlEscape(step)}</p></section>`).join('')}<p>Respuesta: <strong>${traceHtmlEscape(e.answer)}</strong></p></div>`;
  const k=e.kinematics||e.params.kinematics,p={...(k.geometry||{}),...e.params},model=k.model,parts=[];let stepNo=0;
  const f=x=>fmt(x,7),esc=traceHtmlEscape,eq=t=>`<div class="worked-equation">${esc(t)}</div>`;
  const step=(title,text,calcs=[])=>parts.push(`<section class="worked-step"><h4>${++stepNo}. ${esc(title)}</h4><p>${esc(text)}</p>${calcs.map(eq).join('')}</section>`);
@@ -8431,7 +8529,7 @@ function mechanicalWorkedSolution(e){
  if(!geometric||e.rows===4){
   const table=k.table||p.table;
   if(e.visual==='dhAssignment'){
-   step('Construir cada fila de la tabla DH','a mide la normal común; α la torsión entre ejes; d la distancia sobre el eje anterior; θ el giro alrededor de ese eje. Las articulaciones de este ejercicio son revolutas: los θ llevan los q dados.',(e.steps||[]).filter(x=>!x.startsWith('Comprobación:')));
+   step('Construir cada fila de la tabla DH','a mide la normal común; α la torsión entre ejes; d la distancia sobre el eje anterior; θ el giro alrededor de ese eje. En cada fila revoluta θ recibe el ángulo dado; en cada fila prismática d recibe la distancia dada. Los otros parámetros describen el montaje fijo.',(e.steps||[]).filter(x=>!x.startsWith('Comprobación:')));
    parts.push(`<div class="worked-dh">${dhTableMarkup(table)}</div>`);
   }
   step('Escribir las transformaciones en orden',table?'DH estándar: Aᵢ = Rz(θᵢ) Tz(dᵢ) Tx(aᵢ) Rx(αᵢ). Se multiplica desde la base hacia la herramienta.':'Se usan los movimientos locales definidos por el enunciado. Son factores de cinemática directa; no se presentan como una tabla DH.',table?['Aᵢ = [[cosθ, −senθ cosα, senθ senα, a cosθ], [senθ, cosθ cosα, −cosθ senα, a senθ], [0, senα, cosα, d], [0, 0, 0, 1]]']:model==='SCARA_RRPR'?[`A₁ = Tz(${p.l1}) Rz(${p.q1}°) Tx(${p.l2})`,`A₂ = Rz(${p.q2}°) Tx(${p.l3})`,`A₃ = Tz(−${p.q3})`,`A₄ = Rz(${p.q4}°)`]:[`A₁ = Tz(${p.l1}) Rz(${p.theta1}°)`,`A₂ = Tz(${p.d2})`,`A₃ = Tx(${p.d3})`,`A₄ = Rx(${p.theta4}°) Tx(${p.l4})`]);
@@ -10568,7 +10666,7 @@ function renderVisualPanelForExercise(exercise){
      vive en params —para que el banco de etapas no delate la respuesta—, así
      que se le pasa en una copia de solo lectura. */
   const plateExercise={...exercise,kinematics:exercise.params.kinematics};
-  document.getElementById("exerciseDhPlate").innerHTML=mechanicalPlateSvg(plateExercise,{modeled:true})+mechanicalDetailMarkup(plateExercise);
+  document.getElementById("exerciseDhPlate").innerHTML=mechanicalPlateSvg(plateExercise,{modeled:true});
   return;
  }
  if(!exercise||(!is2RExercise(exercise)&&!isSpatialExercise(exercise)&&!isWorkspaceExercise(exercise)&&exercise.visual!=="frames3d")){root.hidden=true;return}
@@ -13723,8 +13821,8 @@ function runSelfTests(){
     [makeGeometric2R(2,"inverse"),"planar"],
     [makeReflection(4,2,"vf"),"reflection"],
     [makeReflection(4,2,"open"),"reflection"],
-    [makeDhAssignment(2),null],
-    [makeDhAssignment6R(2),null],
+    [makeDhAssignment(2),"mechanical"],
+    [makeDhAssignment6R(2),"mechanical"],
     [makeWorkspaceExercise(2),null],
     [makeChoice(4,2),null],
     [makePlanar3R(2),null]

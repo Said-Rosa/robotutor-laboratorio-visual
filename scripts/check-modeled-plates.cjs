@@ -10,6 +10,7 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
  try{
   // The complete renderer must work without CDN/network access.
   await page.route('https://**/*',r=>r.abort());await page.goto(url);await page.waitForFunction(()=>window.RoboTutor);
+  await page.evaluate(async()=>{await Promise.all([...document.fonts].map(font=>font.load()))});
   await page.evaluate(()=>{let seed=340;Math.random=()=>((seed=(1664525*seed+1013904223)>>>0)/4294967296)});
   let checked=0;
   for(const width of [390,1280]){

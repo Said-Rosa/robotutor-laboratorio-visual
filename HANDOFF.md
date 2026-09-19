@@ -1,3 +1,9 @@
+# Revisión 3.41.1 · fuentes compatibles con la política de contenido
+
+Tras integrar el 3D (#21), Claude publicó la política CSP en #23 (3.41.0). La prueba real de las 18 láminas detectó once fuentes KaTeX todavía referidas a `fonts/` que no existen en el repositorio y que `font-src data:` bloquea. Se incorporan los WOFF2 originales de KaTeX 0.18.1 al HTML, igual que el resto de fuentes. No se relaja la política. La prueba de seguridad comprueba todas las declaraciones de fuentes; la de navegador exige cargarlas con la red bloqueada. El modelo 3D y las correcciones de Claude se conservan.
+
+---
+
 # Revisión 3.40.0 · modelado 3D de las láminas
 
 Parte de `main` fca0aa0. Destino: https://said-rosa.github.io/robotutor-laboratorio-visual/ .

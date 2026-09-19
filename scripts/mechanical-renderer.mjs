@@ -38,7 +38,7 @@ export function render(description,view,scale,rect){
   const camera=new OrthographicCamera(x/scale,(x+w)/scale,-y/scale,-(y+h)/scale,.01,radius*8);
   camera.position.copy(vec(view).multiplyScalar(radius*3));camera.up.set(0,0,1);camera.lookAt(0,0,0);
   const material=(color,metalness=.25,roughness=.34)=>{const m=new MeshStandardMaterial({color,metalness,roughness});materials.push(m);return m};
-  const palette={link:material('#a8b8ca'),revolute:material('#728ba3'),hub:material('#344d62',.48,.26),tool:material('#198c91',.32,.28),pad:material('#172d35',.02,.68),slider:material('#dae2e8',.65,.23),guide:material('#637b90')};
+  const palette={link:material('#a8b8ca'),revolute:material('#728ba3'),wrist:material('#90a8b9'),hub:material('#344d62',.48,.26),tool:material('#198c91',.32,.28),pad:material('#172d35',.02,.68),slider:material('#dae2e8',.65,.23),guide:material('#637b90')};
   for(const solid of description.solids){
    const a=vec(solid.a),b=vec(solid.b),axis=b.clone().sub(a).normalize(),length=a.distanceTo(b);
    const geometry=solid.kind==='cylinder'?new CylinderGeometry(solid.width,solid.width,length,64):roundedBeam(solid.width,solid.height,length);
@@ -75,7 +75,7 @@ export function render(description,view,scale,rect){
   const texture=new CanvasTexture(canvas);textures.push(texture);
   const shadowMaterial=new MeshBasicMaterial({map:texture,transparent:true,depthWrite:false,toneMapped:false});materials.push(shadowMaterial);
   const footRadius=description.solids[0].width,shadowGeometry=new PlaneGeometry(footRadius*4.5,footRadius*4.5);geometries.push(shadowGeometry);
-  const contact=new Mesh(shadowGeometry,shadowMaterial);contact.position.set(0,0,floor+.003);scene.add(contact);
+  const contact=new Mesh(shadowGeometry,shadowMaterial);contact.position.set(0,0,floor+.003);if(!description.detailView)scene.add(contact);
   renderer.render(scene,camera);
   const image=renderer.domElement.toDataURL('image/png');
   cache.set(key,image);while(cache.size>8)cache.delete(cache.keys().next().value);

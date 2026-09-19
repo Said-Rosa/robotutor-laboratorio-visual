@@ -22,9 +22,10 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
      const target=document.getElementById(e.visual==='dhAssignment'?'exerciseDhPanel':'workspaceActivity'),svg=target.querySelector('.mechanical-plate-svg'),image=svg?.querySelector('[data-modeled-3d]');
      if(!svg||!image)return {modeled:false};
      const box=svg.viewBox.baseVal;
-     return {modeled:!!image.getAttribute('href').startsWith('data:image/png;base64,'),aligned:Math.abs(+image.getAttribute('width')-box.width)<.01&&Math.abs(+image.getAttribute('x')-box.x)<.01,overflow:document.documentElement.scrollWidth>innerWidth+1,axes:svg.querySelectorAll('[data-base-axis]').length,dh:e.visual==='dhAssignment',labels:[...svg.querySelectorAll('[data-dimension-label]')].length};
+     const detail=target.querySelector('.mechanical-detail'),needsDetail=!!mechanicalScene({...e,kinematics:e.kinematics||e.params.kinematics}).detail;
+     return {modeled:!!image.getAttribute('href').startsWith('data:image/png;base64,'),aligned:Math.abs(+image.getAttribute('width')-box.width)<.01&&Math.abs(+image.getAttribute('x')-box.x)<.01,overflow:document.documentElement.scrollWidth>innerWidth+1,axes:svg.querySelectorAll('[data-base-axis]').length,dh:e.visual==='dhAssignment',labels:[...svg.querySelectorAll('[data-dimension-label]')].length,numbered:!!target.querySelector('[data-joint-label]'),detail:!!detail?.querySelector('[data-modeled-3d]'),needsDetail,detailAxes:detail?.querySelectorAll('[data-joint-axis],[data-base-axis]').length||0};
     },name);
-    assert.equal(state.modeled,true,name+': missing offline WebGL image');assert.equal(state.aligned,true);assert.equal(state.overflow,false);assert.equal(state.axes,state.dh?3:0);assert.ok(state.labels>=2);checked++;
+    assert.equal(state.modeled,true,name+': missing offline WebGL image');assert.equal(state.aligned,true);assert.equal(state.overflow,false);assert.equal(state.axes,state.dh?3:0);assert.ok(state.labels>=2);assert.equal(state.numbered,false);assert.equal(state.detail,state.needsDetail);assert.equal(state.detailAxes,0);checked++;
    }
   }
   // Repeat renders reuse an image; an unavailable renderer retains the technical plate.

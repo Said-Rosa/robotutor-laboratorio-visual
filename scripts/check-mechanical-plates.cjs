@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict');
 const {cargar}=require('./sandbox.cjs');
-const P=cargar(['mechanicalVisibility','mechanicalScene','mechanicalPlateSvg','makeRrrp','makeDhAssignment','makeDhAssignment6R','makeTextbookExercise','makeScara','makeIndustrial6R','makeSpatial2R','makeSpatial3R','KinematicsEngine']);
+const P=cargar(['mechanicalVisibility','mechanicalScene','mechanicalPlateSvg','jointRotationFrame','makeRrrp','makeDhAssignment','makeDhAssignment6R','makeTextbookExercise','makeScara','makeIndustrial6R','makeSpatial2R','makeSpatial3R','KinematicsEngine']);
 const square=(x0,y0,x1,y1,z)=>[[x0,y0,z],[x1,y0,z],[x1,y1,z],[x0,y1,z]];
 const area=p=>Math.abs(p.reduce((s,a,i)=>{const b=p[(i+1)%p.length];return s+a[0]*b[1]-a[1]*b[0]},0))/2;
 // A nearer face clips only the covered portion, including rear contour edges.
@@ -17,6 +17,15 @@ for(const generate of generators)for(let i=0;i<8;i++){
  const e=generate();if(e.visual==='dhAssignment')e.kinematics=e.params.kinematics;const before=JSON.stringify(e.kinematics),scene=P.mechanicalScene(e),svg=P.mechanicalPlateSvg(e,{mobile:i%2===0});count++;
  assert.equal(JSON.stringify(e.kinematics),before);assert.deepEqual(Array.from(scene.tip),Object.values(e.kinematics.positions.at(-1)));
  assert.doesNotMatch(svg,/NaN|Infinity/);assert.match(svg,/data-visible-edge/);assert.match(svg,/data-endpoint-label="true" data-anchor-x=/);
+ assert.doesNotMatch(svg,/data-joint-label/,'the mechanism must remain unnumbered');
+ if(scene.detail){const enlarged=P.mechanicalPlateSvg(e,{detail:true});assert.doesNotMatch(enlarged,/NaN|Infinity|data-base-axis|data-joint-axis|data-dimension-label/);assert.match(enlarged,/data-endpoint-label/)}
+ if(scene.detail?.wrist){
+  const bearings=scene.solids.filter(s=>s.part==='revolute'&&s.assembly==='wrist');assert.equal(bearings.length,3,'the three wrist bearings must be distinct physical solids');assert.equal(scene.solids.filter(s=>s.part==='wrist').length,2,'the yoke has two cheeks');
+  for(const [i,bearing] of bearings.entries()){
+   const joint=P.jointRotationFrame(e.kinematics,i+3).axis,axis=Array.isArray(joint)?joint:[joint.x,joint.y,joint.z],C=scene.detail.origin;
+   for(const point of [bearing.a,bearing.b]){const v=point.map((x,j)=>x-C[j]),along=v.reduce((sum,x,j)=>sum+x*axis[j],0);assert.ok(Math.hypot(...v.map((x,j)=>x-along*axis[j]))<1e-8,'wrist bearings must lie on the actual concurrent DH axes')}
+  }
+ }
  for(const d of scene.dimensions)assert.ok(svg.includes(`data-dimension-label="${d.label}"`),e.model+': missing '+d.label);
  if(e.model==='RRRP'){assert.match(svg,/data-dimension-label="q₄" data-dimension-variable="1"/);assert.equal(scene.dimensions.at(-1).variable,true)}
  if(e.visual==='dhAssignment'){assert.equal((svg.match(/data-joint-axis=/g)||[]).length,e.rows);assert.equal((svg.match(/data-base-axis=/g)||[]).length,3);if(e.rows===3)assert.ok(e.kinematics.positions.slice(1).every(p=>p.z>.3))}else assert.doesNotMatch(svg,/data-base-axis=|data-joint-axis=/);

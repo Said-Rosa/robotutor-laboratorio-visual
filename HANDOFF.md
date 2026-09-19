@@ -1,3 +1,17 @@
+# Revisión 3.42.0 · muñeca sin numeración y detalle mecánico
+
+Parte de `main` a3de312 (3.41.1). Publicar en la misma GitHub Pages.
+
+- Petición explícita: quitar la numeración del mecanismo. Desaparecen los rótulos 1–6; se mantienen cotas de longitud y, en asignación DH, marco base y sentidos positivos de los ejes. Se actualizan la leyenda, descripción y pruebas de ese contrato.
+- La muñeca esférica deja de compartir una sola carcasa: alojamiento de entrada, horquilla abierta con dos mejillas, pivote transversal y acople de salida. Los tres cojinetes están sobre las rectas DH originales y sus orígenes siguen concurrentes. No se cambian tablas, posturas ni resultados.
+- Se ofrece debajo una ampliación fija de la muñeca/pinza en los modelos concurrentes. No contiene números, marcos locales ni desarrollo de la respuesta.
+- RRRP: cuello de transición en la unión al cojinete, camisa hueca de cuatro paredes y borde de salida con apertura definida. La ampliación muestra exclusivamente el extremo de la camisa, corredera y pinza, también en posturas plegadas. El TCP sigue entre las puntas y q4 conserva su significado.
+- El renderizador incluye el material de la horquilla y omite la sombra de pedestal en las ampliaciones. Se conserva alternativa SVG y caché limitada.
+
+Validación: pruebas geométricas de ejes concurrentes y TCP, 72 láminas, 480 ejercicios DH; 18 casos WebGL sin red a 390/1280 px incluyendo ampliaciones sin numeración y sin desbordamiento. Capturas reales de posturas extendidas/plegadas revisadas. Se conserva la política de contenido y las fuentes integradas de las revisiones anteriores.
+
+---
+
 # Revisión 3.41.1 · fuentes compatibles con la política de contenido
 
 Tras integrar el 3D (#21), Claude publicó la política CSP en #23 (3.41.0). La prueba real de las 18 láminas detectó once fuentes KaTeX todavía referidas a `fonts/` que no existen en el repositorio y que `font-src data:` bloquea. Se incorporan los WOFF2 originales de KaTeX 0.18.1 al HTML, igual que el resto de fuentes. No se relaja la política. La prueba de seguridad comprueba todas las declaraciones de fuentes; la de navegador exige cargarlas con la red bloqueada. El modelo 3D y las correcciones de Claude se conservan.

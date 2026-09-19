@@ -46,7 +46,7 @@ for(const nivel of P.DIFFICULTY_LEVELS)for(let i=0;i<SORTEOS;i++){
  assert.equal(P.exerciseTopicKey(e3),'4.3',donde3);
  const svg3=P.mechanicalPlateSvg({...e3,kinematics:e3.params.kinematics}),r3=rotulosDe(svg3);
  assert.equal((svg3.match(/data-joint-axis="/g)||[]).length,3,donde3+': debe haber un eje dibujado por articulación');
- for(const n of ['1','2','3'])assert.ok(r3.includes(n),donde3+': falta la articulación '+n);
+ assert.ok(!r3.some(n=>/^[1-6]$/.test(n)),donde3+': el mecanismo debe estar sin numerar');
  cotasPresentes(r3,e3.params.dimensions,donde3);
  laminaHonesta(r3,donde3);
 
@@ -66,7 +66,7 @@ for(const nivel of P.DIFFICULTY_LEVELS)for(let i=0;i<SORTEOS;i++){
  assert.ok(P.spatialPostureIsPlausible(k),donde6+': la postura dibujada se hunde bajo el suelo');
  const svg6=P.mechanicalPlateSvg({...e6,kinematics:k}),r6=rotulosDe(svg6);
  assert.equal((svg6.match(/data-joint-axis="/g)||[]).length,6,donde6+': debe haber un eje dibujado por articulación');
- for(const n of ['4','5','6'])assert.ok(r6.includes(n),donde6+': falta el número del eje '+n+' · '+JSON.stringify(r6));
+ assert.ok(!r6.some(n=>/^[1-6]$/.test(n)),donde6+': el mecanismo debe estar sin numerar');
  cotasPresentes(r6,['H','L₂','L₃','L₆'],donde6);
  laminaHonesta(r6,donde6);
 

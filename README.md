@@ -47,4 +47,11 @@ La geometría y las cotas se definen en `mechanicalScene` / `mechanicalPlateSvg`
 
 Al modificar ese motor: `npm ci && npm run build:plates`. El comando actualiza exclusivamente el bloque delimitado `ROBOTUTOR_MECHANICAL_3D` en el HTML y conserva la licencia MIT de Three.js. El CI comprueba que el bloque incorporado coincide con su fuente. No requiere CDN al mostrar las láminas.
 
-Prueba opcional con Playwright y Chromium instalados: `node scripts/check-modeled-plates.cjs`. También admite `PLAYWRIGHT_MODULE` (ruta a Playwright) y `CHROME_PATH` (ejecutable de Chrome). Comprueba 18 láminas sin acceso a la red en escritorio/móvil y la alternativa SVG.
+Prueba opcional con Playwright y Chromium instalados: `node scripts/check-modeled-plates.cjs`. También admite `PLAYWRIGHT_MODULE` (ruta a Playwright) y `CHROME_PATH` (ejecutable de Chrome). Comprueba 72 láminas sin acceso a la red en escritorio/móvil y la alternativa SVG.
+
+
+## Robots para practicar
+
+En el capítulo 4, las fichas mecánicas permiten elegir identificación, construcción de tabla DH o cálculo de posición. El selector incluye nueve variantes de 3 a 6 GDL: cartesianos, cilíndricos, polar, SCARA y antropomórficos, con muñecas de dos o tres ejes según el modelo. La identificación pide familia, secuencia R/P o movilidad y muestra únicamente el robot completo; las respuestas y el desarrollo se abren después del intento en práctica.
+
+`node scripts/check-architectures.cjs` verifica las posiciones con expresiones analíticas independientes, la movilidad, las articulaciones dibujadas y las respuestas de esas variantes. Se ejecuta también en CI.

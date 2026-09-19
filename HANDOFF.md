@@ -261,3 +261,14 @@ La forma de usarlo en un cambio grande es comparar contra `main`: se ejecuta la 
 ## Nota sobre las cuentas de GitHub
 
 Codex y Claude operan con la misma cuenta (`Said-Rosa`), así que GitHub no permite «solicitar cambios» de forma  formal en el PR del otro: las revisiones van como comentarios. Si interesa la señal formal de aprobación, habría que dar a uno de los dos una cuenta propia.
+
+
+## 3.43.0 · Vista única y variedad de arquitecturas (Codex)
+
+Petición actual del usuario: poder identificar el robot a partir de una única figura, como en el parcial, sin depender de la ampliación de la muñeca introducida en 3.42. Se retira esa segunda lámina de las fichas. La muñeca esférica mantiene sus ejes concurrentes, pero gana separación física entre el alojamiento de entrada, la horquilla y el acople de salida. La cámara evita ocultar el extremo detrás de los brazos. No hay números sobre las articulaciones.
+
+`ROBOT_ARCHITECTURES` y `makeArchitectureExercise` añaden PPP, PPPRR, PPPRRR, RPP, RPPRRR, RRP, RRPR, RRR y 6R. La escena interpreta los tipos R/P: cojinetes para giro y camisas cuadradas con carros para desplazamiento. El SCARA conserva sus brazos horizontales y distingue su último giro del desplazamiento vertical. Todos usan el mismo motor DH; los generadores previos siguen en el banco.
+
+Tres actividades en el selector del capítulo 4: identificar (familia, secuencia o movilidad), construir tabla DH y calcular posición. Las preguntas de identificación no muestran cotas, ejes, nombre del robot ni número de GDL antes de responder. DH conserva la base y los sentidos de los ejes para fijar la convención; se declara el cierre del marco final. Las soluciones completas continúan apareciendo después del intento y permanecen bloqueadas en examen.
+
+Validación nueva: 324 casos de arquitectura con fórmulas independientes para PPP, RPP, RRP y SCARA, movilidad de 3–6 ejes, coincidencia del TCP con la pinza y reglas R/P. El chequeo opcional de navegador cubre ahora 72 láminas antiguas y nuevas, sin red, a 390/1280 px, y exige una sola imagen. Se mantienen las suites previas de geometría, ejercicios, seguridad y autopruebas.

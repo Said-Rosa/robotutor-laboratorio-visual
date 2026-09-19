@@ -71,6 +71,11 @@ for(const m of source.matchAll(/url\(\s*["']?([a-zA-Z][a-zA-Z0-9+.-]*:)/g)){
  if(!['data:','blob:'].includes(m[1]))externos.push(`css url(${m[1]}…)`);
 }
 assert.deepEqual(externos,[],'la página carga recursos externos:\n  '+externos.join('\n  '));
+// Relative font URLs are also incompatible with font-src data: and a standalone HTML.
+for(const font of source.matchAll(/@font-face\s*\{([^}]+)\}/gi)){
+ const urls=[...font[1].matchAll(/url\(\s*["']?([^\s)"']+)/g)].map(m=>m[1]);
+ assert.ok(urls.length&&urls.every(url=>url.startsWith('data:font/')),'fuente sin incorporar al HTML: '+font[1].slice(0,100));
+}
 
 /* ---- ninguna vía de salida a la red ----
    El escrutinio se hace por separado. En el código de la aplicación se puede

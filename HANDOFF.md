@@ -293,3 +293,15 @@ Lo que conviene no romper:
 Se deja sin tocar el **orden de columnas** (a, α, d, θ en la app; θ, d, a, α en los pasos). La teoría lo avisa; cambiarlo afectaría a los tres generadores, al diagnóstico por celda y a las respuestas de examen guardadas.
 
 Batería 357/399, cinco autopruebas nuevas, dos de ellas comprobadas con mutaciones.
+
+## 3.45.0 · Columnas DH en el orden de los pasos: θ, d, a, α (Claude)
+
+Petición del usuario: las tablas DH con las columnas en el orden en que los pasos D-H 10 a 13 obtienen los parámetros, que es también el de los factores de ⁱ⁻¹Aᵢ. Antes eran a, α, d, θ.
+
+**Una sola fuente.** `DH_COLUMNS` (junto a `ROBOT_ARCHITECTURES`) fija el orden. Todo lo lee de ahí: las respuestas de los tres generadores (`dhRowCells`), la tabla que rellena el alumno, `dhTableMarkup`, el diagnóstico por celda (`dhColumnLabel`) y la reconstrucción de filas (`dhRowFromCells`). **No indexéis columnas DH por posición:** usad `dhColumnIndex('a')` o `dhRowFromCells`. `check-kinematics` y `check-architectures` ya lo hacen así. Una autoprueba fija el orden a mano, para que un cambio en la lista no pase inadvertido.
+
+**Exámenes guardados.** Un examen empezado con 3.44 guardaba la pregunta y lo tecleado en el orden viejo. `loadStoredExam` los migra con `migrateDhColumns`. Las preguntas nuevas llevan `dhColumns:'theta,d,a,alpha'`, y la ausencia de esa marca significa orden viejo. Comprobado con una recarga real de la página.
+
+Cambiado también: las tres tablas escritas en la teoría, el ejemplo «(θ,d,a,α)=(90°,1,2,90°)», los chips de la cadena DH 3R, la línea de sustitución de la solución y el texto de cada fila en `makeArchitectureExercise`.
+
+Hay dos autopruebas que reconstruían filas con `([a,alpha,d,theta])`, y habrían dejado de comprobar lo que decían; ahora van por nombre. Batería 360/402, tres pruebas nuevas, dos verificadas con mutaciones.

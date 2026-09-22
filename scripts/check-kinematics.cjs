@@ -16,7 +16,7 @@
 const assert=require('node:assert/strict');
 const {cargar,RUTA_POR_DEFECTO}=require('./sandbox.cjs');
 
-const P=cargar(['makeDhAssignment','makeDhAssignment6R','KinematicsEngine','exerciseTopicKey',
+const P=cargar(['makeDhAssignment','makeDhAssignment6R','dhColumnIndex','dhRowFromCells','KinematicsEngine','exerciseTopicKey',
   'DIFFICULTY_LEVELS','spatialPostureIsPlausible','kinematicsCandidates','topicNumericGenerators','mechanicalPlateSvg',
   'buildPedagogyTrace','solutionReasoningMarkup'],process.argv[2]||RUTA_POR_DEFECTO);
 
@@ -58,9 +58,11 @@ for(const nivel of P.DIFFICULTY_LEVELS)for(let i=0;i<SORTEOS;i++){
  /* Muñeca esférica: los tres últimos ejes se cortan en un punto, así que sus
     orígenes coinciden y entre ellos no hay distancia que recorrer. */
  assert.ok(dist(pos[3],pos[4])<1e-9&&dist(pos[4],pos[5])<1e-9,donde6+': los ejes de la muñeca no concurren');
+ /* Las columnas se buscan por nombre: el orden lo fija la aplicación. */
+ const colA=P.dhColumnIndex('a'),colD=P.dhColumnIndex('d');
  for(const fila of [3,4]){
-  assert.equal(e6.answer[fila][0],0,donde6+': a'+(fila+1)+' debería ser 0 en una muñeca concurrente');
-  assert.equal(e6.answer[fila][2],0,donde6+': d'+(fila+1)+' debería ser 0 en una muñeca concurrente');
+  assert.equal(e6.answer[fila][colA],0,donde6+': a'+(fila+1)+' debería ser 0 en una muñeca concurrente');
+  assert.equal(e6.answer[fila][colD],0,donde6+': d'+(fila+1)+' debería ser 0 en una muñeca concurrente');
  }
  assert.ok(Math.abs(dist(pos[5],pos[6])-e6.params.L6)<1e-9,donde6+': la herramienta no mide L6');
  assert.ok(P.spatialPostureIsPlausible(k),donde6+': la postura dibujada se hunde bajo el suelo');
@@ -73,7 +75,7 @@ for(const nivel of P.DIFFICULTY_LEVELS)for(let i=0;i<SORTEOS;i++){
  for(const par of [[e3,donde3],[e6,donde6]]){
   const e=par[0],donde=par[1];
   /* La tabla que se pide debe reproducir la cadena dibujada. */
-  const filas=e.answer.map(f=>({a:f[0],alpha:f[1],d:f[2],theta:f[3]}));
+  const filas=e.answer.map(P.dhRowFromCells);
   const extremo=P.KinematicsEngine.serialDH(filas).positions.at(-1),dibujado=e.params.kinematics.positions.at(-1);
   for(const eje of ['x','y','z'])assert.ok(Math.abs(extremo[eje]-dibujado[eje])<1e-9,donde+': la tabla esperada no reproduce la lámina ('+eje+')');
   /* El banco de trabajo por etapas delataría la respuesta: no debe abrirse. */

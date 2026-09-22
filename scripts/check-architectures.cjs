@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict');
 const {cargar}=require('./sandbox.cjs');
-const P=cargar(['ROBOT_ARCHITECTURES','makeArchitectureExercise','mechanicalScene','mechanicalPlateSvg','mechanicalWorkedSolution','exerciseTopicKey','solutionReasoning','choiceFailureReason']);
+const P=cargar(['ROBOT_ARCHITECTURES','makeArchitectureExercise','dhRowCells','mechanicalScene','mechanicalPlateSvg','mechanicalWorkedSolution','exerciseTopicKey','solutionReasoning','choiceFailureReason']);
 let seed=343;const old=Math.random;Math.random=()=>((seed=(1664525*seed+1013904223)>>>0)/4294967296);
 const sin=x=>Math.sin(x*Math.PI/180),cos=x=>Math.cos(x*Math.PI/180),close=(a,b)=>assert.ok(Math.abs(a-b)<1e-8,`${a} != ${b}`);
 function rank(a){a=a.map(r=>[...r]);let r=0;for(let c=0;c<a[0].length&&r<a.length;c++){let p=r;for(let i=r+1;i<a.length;i++)if(Math.abs(a[i][c])>Math.abs(a[p][c]))p=i;if(Math.abs(a[p][c])<1e-7)continue;[a[r],a[p]]=[a[p],a[r]];const v=a[r][c];a[r]=a[r].map(x=>x/v);for(let i=r+1;i<a.length;i++){const f=a[i][c];a[i]=a[i].map((x,j)=>x-f*a[r][j])}r++}return r}
@@ -25,7 +25,7 @@ try{for(const def of P.ROBOT_ARCHITECTURES){let maxMobility=0;
   if(task==='identify'){
    assert.ok(e.options.includes(e.answer));assert.equal(e.chips.length,0);assert.equal(scene.dimensions.length,0);assert.equal(scene.frames,null);assert.ok(!e.statement.includes(def.types));
    for(const o of e.options.filter(o=>o!==e.answer))assert.ok(P.choiceFailureReason(e,o).length>25);
-  }else if(task==='dh')assert.deepEqual(JSON.parse(JSON.stringify(e.answer)),JSON.parse(JSON.stringify(t.map(r=>[r.a,r.alpha,r.d,r.theta]))));else e.answer.forEach((r,i)=>close(r[0],[end.x,end.y,end.z][i]));
+  }else if(task==='dh')assert.deepEqual(JSON.parse(JSON.stringify(e.answer)),JSON.parse(JSON.stringify(t.map(P.dhRowCells))));else e.answer.forEach((r,i)=>close(r[0],[end.x,end.y,end.z][i]));
   if(sample===0){const svg=P.mechanicalPlateSvg({...e,kinematics:k});assert.doesNotMatch(svg,/data-joint-label|NaN|Infinity/);assert.equal((svg.match(/data-base-axis=/g)||[]).length,task==='dh'?3:0);}
  }
  assert.equal(maxMobility,def.types.length,def.id+': independent motion count');

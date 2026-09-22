@@ -272,3 +272,24 @@ Petición actual del usuario: poder identificar el robot a partir de una única 
 Tres actividades en el selector del capítulo 4: identificar (familia, secuencia o movilidad), construir tabla DH y calcular posición. Las preguntas de identificación no muestran cotas, ejes, nombre del robot ni número de GDL antes de responder. DH conserva la base y los sentidos de los ejes para fijar la convención; se declara el cierre del marco final. Las soluciones completas continúan apareciendo después del intento y permanecen bloqueadas en examen.
 
 Validación nueva: 324 casos de arquitectura con fórmulas independientes para PPP, RPP, RRP y SCARA, movilidad de 3–6 ejes, coincidencia del TCP con la pinza y reglas R/P. El chequeo opcional de navegador cubre ahora 72 láminas antiguas y nuevas, sin red, a 390/1280 px, y exige una sola imagen. Se mantienen las suites previas de geometría, ejercicios, seguridad y autopruebas.
+
+## 3.44.0 · De la tabla DH a T y los dieciséis pasos (Claude)
+
+Petición del usuario: que la tabla DH siga con ⁰A₁, ¹A₂, … y que la teoría recoja los dieciséis pasos D-H del libro (*Fundamentos de robótica*, §4.1.2).
+
+**Ejercicio.** Los ejercicios `kind:'dh-assignment'` —3R, 6R y todas las arquitecturas de `makeArchitectureExercise(…,'dh')`— terminaban en la tabla; las matrices solo existían en la solución, para leerlas. Ahora el banco de etapas les pide ⁰A₁ … ⁿ⁻¹Aₙ (D-H 14) y una etapa final T (D-H 15); al acertar T el mensaje da la lectura de D-H 16. El trazo es propio (`dhMatrixTrace`), y el banco lo pide con `stageTrace(e)` en lugar de leer `pedagogyTrace`.
+
+Lo que conviene no romper:
+
+- **El banco se abre después de la tabla** (`dhMatrixStagesUnlocked`: `practiceSolved || solutionSeen`). Cada ⁱ⁻¹Aᵢ contiene su fila de la tabla; abrirlo antes regalaría la respuesta. Se respeta así vuestro «never expose a solved trace».
+- **`pedagogyTrace` de estos ejercicios sigue siendo la tabla.** Una autoprueba lo vigila.
+- **`firstCapturedStageDifference` devuelve `null` en los DH.** El caso real es el SCARA: su tabla es 4×4, el trazo general la toma por una matriz con una etapa, y sin la guarda un fallo en ⁰A₁ se citaba como fallo de la tabla.
+- En examen el banco DH se oculta.
+
+**Solución detallada.** Solo en `visual:'dhAssignment'`: títulos con su paso («Paso D-H 14 · Sustituir la fila 2»), notación ⁱ⁻¹Aᵢ y ⁰Aᵢ, y los productos se aplazan hasta tener todas las matrices, como en el libro (D-H 14 completo, luego D-H 15). El resto de ejercicios queda idéntico. **`check-worked-solutions.cjs` cambia en una línea:** el recuento de las 16 entradas por producto acepta `T₀i[r,c]` y `⁰Aᵢ[r,c]`; el recuento en sí no se relaja.
+
+**Teoría.** En «Asignación de marcos DH» la lista de seis pasos pasa a ser la tabla de los dieciséis, en cuatro bloques y redactada con palabras propias. Las dos ideas de la lista antigua que el libro no trae —dibujar en postura de referencia y declarar la relación q↔θ/d— se conservan. Los temas se citan por su nombre: la aplicación renumera al mostrar, y «4.2» en el código es «4.3» en pantalla.
+
+Se deja sin tocar el **orden de columnas** (a, α, d, θ en la app; θ, d, a, α en los pasos). La teoría lo avisa; cambiarlo afectaría a los tres generadores, al diagnóstico por celda y a las respuestas de examen guardadas.
+
+Batería 357/399, cinco autopruebas nuevas, dos de ellas comprobadas con mutaciones.

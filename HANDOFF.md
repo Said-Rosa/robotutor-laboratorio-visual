@@ -1,3 +1,85 @@
+# Estado actual · 22 de septiembre de 2026
+
+Esta sección describe el proyecto **tal como está hoy**. Todo lo que sigue a «Historial» es el registro de cómo se llegó aquí; si algo de abajo contradice a esta sección, manda esta.
+
+## Versión y publicación
+
+- **3.45.0**, en `main` (`072a8d8`), publicada en https://said-rosa.github.io/robotutor-laboratorio-visual/ .
+- **GitHub Pages es el único destino.** Las copias de `chatgpt.site` y de Sites que aparecen en el historial ya no se actualizan.
+
+## Cómo se trabaja
+
+- `robotutor.html` es la única fuente. `docs/index.html` lo regenera `build-pages.yml` en cada push a `main`, que el robot de Actions sube directamente a `main`. **No se edita a mano.**
+- El bloque 3D de las láminas se genera con `npm ci && npm run build:plates` a partir de `scripts/mechanical-renderer.mjs`. El CI comprueba que el bloque del HTML está al día.
+- Para cada cambio: actualizar desde `main`, trabajar en una rama propia, abrir un PR, esperar el CI en verde y fusionar.
+- Los dos agentes usan la misma cuenta (`Said-Rosa`): las revisiones entre nosotros van como comentarios.
+
+## Protección de `main`
+
+Regla de repositorio **«Proteger main»**, sin excepciones para nadie: **no se puede borrar la rama ni reescribir su historia** (force-push bloqueado). Sobre las ramas de trabajo no hay restricciones.
+
+**No exige PR ni CI en verde, y no es un olvido.** `build-pages.yml` empuja a `main`, y la excepción que permitiría a ese robot saltarse la regla solo existe en organizaciones, no en repositorios personales. Con la exigencia puesta, la página dejaría de actualizarse sin avisar. La salida sería convertir `build-pages.yml` en una comprobación que falle si `docs/index.html` no está al día, en vez de corregirlo empujando. **Es una decisión pendiente del usuario.**
+
+## Finales de línea
+
+`.gitattributes` fija **LF** para todo. Sin eso, una copia en Windows guardaba el HTML con CRLF, y `npm run build:plates && git diff --exit-code` veía el fichero entero como modificado aunque nadie hubiera tocado el renderizador.
+
+## Seguridad
+
+- La página no pide nada a la red: KaTeX, sus fuentes y three.js van dentro del HTML. La **política de contenido** va en un `meta`, con `connect-src 'none'`, `font-src data:`, `img-src` sin destinos externos y sin `unsafe-eval`. Añadir un recurso externo la rompe, y `check-security` lo detecta.
+- `feedback(tipo, texto)` **escapa el texto por defecto**. Usad `{html:true}` solo con marcado escrito por nosotros; nunca con texto que venga de un archivo o del alumno.
+- Al importar un progreso, `validateProgressData` reconstruye sobre un objeto por defecto. Una autoprueba exige que ninguna cadena de un archivo hostil sobreviva.
+
+## Comprobaciones
+
+En el CI de cada PR: `check-source`, `check-worked-solutions`, `check-mechanical-plates`, `check-architectures`, `check-kinematics`, `check-selftests`, `check-exercises` y `check-security`, más el build en sus dos modos y `check-source`/`check-security` sobre cada uno.
+
+- **Autopruebas: 360/402 sin navegador.** Las 42 restantes necesitan DOM real y están listadas en `check-selftests.cjs`; si añadís una que lo necesite, añadidla ahí con su nombre exacto.
+- En un cambio grande, **comparad contra `main`**: ejecutad la batería en las dos versiones y restad los fallos. Lo que solo aparezca en vuestra rama es vuestro.
+- `check-modeled-plates.cjs` necesita `playwright` y **no está en el CI**; en una copia sin él falla igual en `main`.
+
+## Convenciones que no se deben romper
+
+- **Claves de tema ≠ números en pantalla.** El código usa los números del fuente (`claveOriginal`); `applyTopicOrder` renumera al mostrar. En el capítulo 4:
+
+  | Fuente | En pantalla | Tema |
+  |---|---|---|
+  | 4.5 | 4.1 | Cadena cinemática y producto de transformaciones |
+  | 4.1 | 4.2 | Cinemática directa |
+  | 4.2 | 4.3 | Denavit–Hartenberg |
+  | 4.3 | 4.4 | Asignación de marcos DH |
+  | 4.6 | 4.5 | Denavit–Hartenberg: algoritmo auditable |
+  | 4.8 | 4.6 | DH estándar y modificado |
+  | 4.4 | 4.7 | Cinemática inversa |
+  | 4.7 | 4.8 | Cinemática inversa: ramas, límites y robustez |
+
+  **En textos para el alumno, citad los temas por su nombre**, no por número.
+- **Columnas DH: θ, d, a, α.** El orden lo fija `DH_COLUMNS`. No indexéis columnas DH por posición: usad `dhRowCells`, `dhRowFromCells` o `dhColumnIndex('a')`.
+- **Ejercicios de asignación DH** (`kind:'dh-assignment'`): `kinematics` va solo en `params`, y su `pedagogyTrace` es la tabla. El banco de matrices ⁰A₁ … T usa su propio trazo (`stageTrace`) y **solo se abre con la tabla resuelta o la solución vista**, porque cada ⁱ⁻¹Aᵢ contiene su fila. En examen no aparece.
+- **Exámenes guardados.** `loadStoredExam` restaura las preguntas tal como se guardaron. Si cambiáis la forma de una pregunta (orden de celdas, forma de la respuesta), hay que migrarla ahí, como hace `migrateDhColumns`.
+- **Orden de declaración.** `loadProgress()` se ejecuta en la línea ~3.850, antes de muchas `const`. Lo que se llame durante la carga no puede leerlas: por ejemplo, `EXAM_FORMATS` dentro de `validateProgressData` rompería el arranque.
+- **Fórmulas en plantillas `String.raw`.** Escribid `$$ {}^{i-1}A_i`, con un espacio: `$${` abre una interpolación de JavaScript y la página deja de cargar.
+
+## Pendiente
+
+Comprobado sobre `main` el 22 de septiembre:
+
+- **15 familias sin desarrollo escrito.** Las 10 cadenas narrativas del capítulo 3 (temas 3.11 y 3.12: `narrative_point`, `narrative_inversePoint`, `narrative_fixed`, `narrative_mobile`, `narrative_mixed` y sus variantes `_symbolic_`) y 5 variantes simbólicas del espacio de trabajo de tres eslabones (3.13: `workspace_symbolic_three_*`). Al fallarlas, el botón dice «Sin desarrollo escrito».
+- **2 temas sin práctica:** 3.1 «Sistemas de referencia y posición» y 3.5 «Ejemplo completo y controles» (claves del fuente).
+- **La cadena tabla → matrices → T no se califica.** Desde 3.44 el banco de matrices es práctica opcional. Queda por decidir si debe ser un paso obligatorio y calificado.
+- **`industrial6R`** conserva la muñeca desplazada de lado respecto del antebrazo (§10). Revisable.
+- **PR #22 abierto por error.** Es el primer intento de la tanda de seguridad, que chocaba con todo el fichero; lo sustituyó el #23, ya fusionado. Hay que cerrarlo sin fusionar.
+- **26 ramas remotas ya fusionadas** siguen existiendo. Se pueden borrar; `codex/geometria-y-notacion` se conservó a propósito (§5) hasta que Codex confirme que no le falta nada.
+- **Exigir PR y CI en `main`:** ver «Protección de `main`».
+
+---
+
+# Historial
+
+Lo que sigue es el registro en el orden en que se escribió: primero las revisiones de Codex, de la más reciente a la más antigua; después el diario de Claude, en orden cronológico.
+
+---
+
 # Revisión 3.42.0 · muñeca sin numeración y detalle mecánico
 
 Parte de `main` a3de312 (3.41.1). Publicar en la misma GitHub Pages.
@@ -103,7 +185,7 @@ Se comparó la fuente inicial con la copia local: la única diferencia era el sc
 
 Mantener `robotutor.html` como única fuente. Antes de comenzar otro cambio, actualizar desde `main`; trabajar en una rama propia y revisar el PR antes de fusionar, como establece el README. No editar `docs/index.html` a mano.
 
-La publicación habitual en https://robotutor-laboratorio-visual.rainy-jay-3988.chatgpt.site usa una copia de la misma fuente validada y un servicio separado de GitHub Pages. Una fusión de Claude en GitHub no actualiza por sí sola ese servicio: Codex debe recuperar esos cambios antes de su siguiente publicación. No hay sincronización permanente ni comunicación directa entre agentes configurada por este PR.
+*(Superado desde 3.38.0: el único destino es GitHub Pages.)* La publicación habitual en https://robotutor-laboratorio-visual.rainy-jay-3988.chatgpt.site usa una copia de la misma fuente validada y un servicio separado de GitHub Pages. Una fusión de Claude en GitHub no actualiza por sí sola ese servicio: Codex debe recuperar esos cambios antes de su siguiente publicación. No hay sincronización permanente ni comunicación directa entre agentes configurada por este PR.
 
 ---
 
@@ -111,7 +193,7 @@ La publicación habitual en https://robotutor-laboratorio-visual.rainy-jay-3988.
 
 Añadido por Claude el 8 de septiembre de 2026, sabiendo que Codex no estaría disponible durante cinco días. Esta sección lista lo que se hizo en su ausencia y lo que conviene que revise al volver.
 
-**Actualizado el 17 de septiembre de 2026: todo lo de abajo ya está fusionado en `main` y publicado.** La versión en vivo es la **v3.37.0** en https://said-rosa.github.io/robotutor-laboratorio-visual/. Cuando se escribió esta sección nada estaba fusionado; esa frase quedó obsoleta y se corrige aquí para que no engañe.
+**Actualizado el 17 de septiembre de 2026: todo lo de abajo ya está fusionado en `main` y publicado.** La versión en vivo era entonces la **v3.37.0**; la actual está en «Estado actual». Cuando se escribió esta sección nada estaba fusionado; esa frase quedó obsoleta y se corrige aquí para que no engañe.
 
 ## 1 · PR #1 · Tres arreglos aplicados sobre esta misma rama
 
@@ -191,11 +273,11 @@ El cambio con más criterio pedagógico del lote, y el que más conviene que rev
 
 **Lo que se hizo:**
 
-- Generador `makeDhAssignment`: brazo articulado de 3 ejes, tabla canónica `[{a:0,α:90,d:H,θ:q₁},{a:L₂,α:0,d:0,θ:q₂},{a:L₃,α:0,d:0,θ:q₃}]`. Respuesta de tipo `matrix` con `matrixLayout:"dh"`, que `renderExercise` pinta como tabla con cabeceras `i · aᵢ(m) · αᵢ(°) · dᵢ(m) · θᵢ(°)`. Las celdas conservan la clase `.cell` y el orden por filas, así que la calificación no se tocó.
+- Generador `makeDhAssignment`: brazo articulado de 3 ejes, tabla canónica `[{a:0,α:90,d:H,θ:q₁},{a:L₂,α:0,d:0,θ:q₂},{a:L₃,α:0,d:0,θ:q₃}]`. Respuesta de tipo `matrix` con `matrixLayout:"dh"`, que `renderExercise` pinta como tabla con cabeceras `i · aᵢ(m) · αᵢ(°) · dᵢ(m) · θᵢ(°)` *(desde 3.45.0, θ · d · a · α)*. Las celdas conservan la clase `.cell` y el orden por filas, así que la calificación no se tocó.
 - Modo `bare` en `cleanMechanismSvg`: fuera la leyenda `d₁, a₂, a₃, d₄, a₅=0, d₆` —que **era la respuesta**— y fuera el panel de marcos ya asignados. Quedan el mecanismo, las articulaciones numeradas, la recta del eje de giro de cada una, cotas con nombre mecánico neutro (H, L₂, L₃) y el marco base, dibujado al pie del robot y más grande, porque aquí no es una referencia: es el único dato.
 - `diagnoseCell` nombra el parámetro: «**α2**: esperado 0, ingresado 90» en vez de «Celda (2,2)». Confundir aᵢ con dᵢ es el error que el ejercicio persigue.
 - La convención va fijada en el enunciado (`DH_ASSIGN_CONVENTION`). **Decisión deliberada:** una asignación DH no es única, y sin fijar z₀ y el apoyo de xᵢ el programa marcaría como error tablas perfectamente válidas.
-- `kinematics` se guarda **solo en `params`**, no en el ejercicio, para que `buildPedagogyTrace` devuelva `source:"verified-output"` y el banco de trabajo por etapas no se muestre. Si aparece, delata la respuesta.
+- `kinematics` se guarda **solo en `params`**, no en el ejercicio, para que `buildPedagogyTrace` devuelva `source:"verified-output"` y el banco de trabajo por etapas no se muestre. Si aparece, delata la respuesta. *(Desde 3.44.0 se abre, con trazo propio, solo después de resolver la tabla.)*
 - El tema 4.3 gana un ejemplo resuelto espacial. El único que había era un 2R plano, donde todos los ejes salen del papel y nunca aparece una torsión.
 
 **Dos autopruebas se rompieron al añadir el generador, sin que fallara ninguna comprobación real.** Exigían un mínimo de muestras de un sorteo aleatorio, y un generador más diluye ese sorteo: `conBloque` bajaba de >15 a 10–14. Se midió en cinco desplazamientos de la secuencia para confirmar que las aserciones de fondo siempre pasaban, y se reescribieron de forma determinista (llamando a los generadores por nombre y consultando `topicChoicePool` / `topicNumericGenerators` directamente), el mismo tratamiento que ya se dio a la de SO(3) en el #3.
@@ -206,7 +288,7 @@ El cambio con más criterio pedagógico del lote, y el que más conviene que rev
 
 El brazo de **seis ejes con muñeca esférica**. Las torsiones α₄ y α₅ dependen de detalles del dibujo que un esquema no fija sin ambigüedad, y prefiero resolver eso antes que soltar un ejercicio capaz de marcar como error una tabla correcta. **Si tienes criterio sobre cómo fijar esa muñeca sin sobrecargar la lámina, es el mejor sitio donde ayudar.**
 
-Queda también la variante encadenada que describió el usuario: tabla DH + matriz homogénea + coordenadas del efector final en un mismo ejercicio, usando el banco de trabajo por etapas como paso obligatorio y calificado.
+Queda también la variante encadenada que describió el usuario: tabla DH + matriz homogénea + coordenadas del efector final en un mismo ejercicio, usando el banco de trabajo por etapas como paso obligatorio y calificado. *(3.44.0 añadió la cadena como práctica opcional; sigue sin calificarse.)*
 
 ## 10 · PR #13 · Muñeca esférica de seis ejes
 
@@ -256,12 +338,26 @@ La forma de usarlo en un cambio grande es comparar contra `main`: se ejecuta la 
 ## 15 · Versión
 
 
-`APP_VERSION` se quedó en 3.34.0 durante los PR #8, #9 y #10, y se subió a 3.35.0 al ponerlo al día. Desde entonces: **3.36.0** con el PR #14 y **3.37.0** con el #16.
+`APP_VERSION` se quedó en 3.34.0 durante los PR #8, #9 y #10, y se subió a 3.35.0 al ponerlo al día. Desde entonces: **3.36.0** con el PR #14 y **3.37.0** con el #16. Las versiones posteriores tienen su propia entrada; la vigente está en «Estado actual».
 
 ## Nota sobre las cuentas de GitHub
 
 Codex y Claude operan con la misma cuenta (`Said-Rosa`), así que GitHub no permite «solicitar cambios» de forma  formal en el PR del otro: las revisiones van como comentarios. Si interesa la señal formal de aprobación, habría que dar a uno de los dos una cuenta propia.
 
+
+## 3.41.0 · Política de contenido y la única entrada de texto ajeno (Claude)
+
+PR #23. El primer intento, el #22, chocaba con todo el fichero tras los PR #19 a #21, y los cambios se rehicieron sobre `main`. El #22 quedó abierto por error (ver «Pendiente»).
+
+El modelo de amenaza es estrecho: sin servidor, sin cuentas y sin base de datos, el progreso vive en el `localStorage` de cada alumno. Lo que sí podía pasar es que entrara texto de fuera y se interpretara como marcado. Había una vía, y se reprodujo antes de tocar nada: al importar un progreso mal formado, el mensaje de `JSON.parse` —V8 copia dentro un trozo literal del archivo, con sus `<` y `>`— acababa en `innerHTML`. Ahora `feedback` escapa por defecto y solo la pista pide `{html:true}`.
+
+- El formato de examen era la única cadena del archivo que se guardaba tal cual. Se limpia a `[a-z0-9_-]`. **No se compara contra `EXAM_FORMATS` porque se declara después de `loadProgress()`**: leerla ahí rompía el arranque.
+- Un archivo de más de 2 MB se rechaza antes de analizarse.
+- Política de contenido por `meta` y `referrer: no-referrer`. `frame-ancestors` necesitaría una cabecera HTTP, que GitHub Pages no permite.
+- `check-security.cjs` distingue el código de la aplicación de los paquetes embebidos: en KaTeX, `fetch` es también el nombre de un método de su analizador.
+- En el mismo PR entró `.gitattributes` (LF). Después se creó la regla «Proteger main». Ambas cosas se explican en «Estado actual».
+
+Codex completó el trabajo en 3.41.1, incrustando las fuentes de KaTeX que `font-src data:` bloqueaba.
 
 ## 3.43.0 · Vista única y variedad de arquitecturas (Codex)
 
@@ -290,7 +386,7 @@ Lo que conviene no romper:
 
 **Teoría.** En «Asignación de marcos DH» la lista de seis pasos pasa a ser la tabla de los dieciséis, en cuatro bloques y redactada con palabras propias. Las dos ideas de la lista antigua que el libro no trae —dibujar en postura de referencia y declarar la relación q↔θ/d— se conservan. Los temas se citan por su nombre: la aplicación renumera al mostrar, y «4.2» en el código es «4.3» en pantalla.
 
-Se deja sin tocar el **orden de columnas** (a, α, d, θ en la app; θ, d, a, α en los pasos). La teoría lo avisa; cambiarlo afectaría a los tres generadores, al diagnóstico por celda y a las respuestas de examen guardadas.
+Se dejó sin tocar el **orden de columnas** (a, α, d, θ en la app; θ, d, a, α en los pasos). *Resuelto en 3.45.0: el usuario pidió el orden de los pasos.*
 
 Batería 357/399, cinco autopruebas nuevas, dos de ellas comprobadas con mutaciones.
 

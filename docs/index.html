@@ -2840,7 +2840,7 @@ const roadmap = [
    en este punto y renombra el archivo en consecuencia.
    Ojo: `progress.version` es otra cosa — numera el esquema de datos guardados en
    localStorage y avanza solo cuando cambia la forma de ese objeto. */
-const APP_VERSION="3.46.0";
+const APP_VERSION="3.47.0";
 const APP_STAGE="láminas claras · verdadero/falso y respuestas abiertas";
 /* Los cuatro niveles del curso. Toda comprobación de dificultad debe leer de aquí:
    el selector, las preferencias guardadas, la política pedagógica y los bancos. */
@@ -6117,6 +6117,33 @@ function nsPolyText(poly){if(!poly.size)return'0';return [...poly].map(([key,f])
  const magnitude=f[0]<0n?-f[0]:f[0],coef=f[1]===1n?String(magnitude):`(${magnitude}/${f[1]})`;
  return(f[0]<0n?'-':'+')+((magnitude===1n&&f[1]===1n&&factors.length)?'':coef+(factors.length?'*':''))+factors.join('*');
  }).join('').replace(/^\+/,'')}
+/* La versión simbólica sigue los mismos pasos. Las matrices se escriben con la
+   sintaxis de las casillas —alpha, phi, theta y cos(…)—, porque es así como
+   hay que teclear la respuesta; los nombres de cada operación, en cambio, van
+   con los símbolos del enunciado. */
+function nsMatrixText(M){return M.map(fila=>"[ "+fila.map(nsPolyText).join("   ")+" ]").join("\n")}
+function narrativeSymbolicStepName(step){
+ return step.type==="trans"?`T(${step.vector.join(", ")})`:`R${step.frame==="fijo"?AXIS_FIXED_NAME[step.axis]:AXIS_MOBILE_NAME[step.axis]}(${bookSymbol(step.angle)})`;
+}
+function narrativeSymbolicWorkedSteps(sequence,target,point,fields,answer){
+ const izquierda=[],derecha=[];
+ for(const step of sequence){const nombre=narrativeSymbolicStepName(step);if(step.frame==="fijo")izquierda.unshift(nombre);else derecha.push(nombre)}
+ const angulos=[...new Set(sequence.filter(step=>step.type==="rot").map(step=>step.angle))];
+ const casillas=fields.map(f=>`${f.label} = ${answer[f.key]}`).join("\n");
+ const pasos=[
+  `Escribe cada operación como una matriz 4×4 simbólica, con la sintaxis de las casillas${angulos.length?` (${angulos.map(a=>`${bookSymbol(a)} se escribe ${a}`).join(", ")})`:""}.\n${sequence.map((step,i)=>`${i+1}. ${narrativeSymbolicStepName(step)} =\n${nsMatrixText(nsStepMatrix(step))}`).join("\n\n")}`,
+  `Decide el lado de cada operación: si el eje o el vector pertenece al sistema fijo OXYZ, se premultiplica; si pertenece al sistema móvil, se postmultiplica.\n${sequence.map((step,i)=>`${i+1}. ${narrativeSymbolicStepName(step)}: ${step.frame==="fijo"?"del sistema fijo, se premultiplica":"del sistema móvil, se postmultiplica"}`).join("\n")}`,
+  `Colocando cada una por su lado, el producto queda:\nT = ${izquierda.concat(derecha).join(" · ")||"I"}`];
+ if(target==="matrix")pasos.push(`Desarrollando el producto y agrupando cada entrada, T queda así, casilla a casilla:\n${casillas}`);
+ else{
+  pasos.push(`Primero T, desarrollando el producto:\n${nsMatrixText(nsCompose(sequence))}`);
+  pasos.push(target==="point"
+   ?`T lleva coordenadas del sistema final al fijo: [x, y, z, 1]ᵀ = T · [${point.join(", ")}, 1]ᵀ. Fila a fila:\n${casillas}`
+   :`Para ir del fijo al sistema final hace falta T⁻¹, que tiene Rᵀ en el bloque de giro y −Rᵀp en la columna de traslación: [u, v, w, 1]ᵀ = T⁻¹ · [${point.join(", ")}, 1]ᵀ. Fila a fila:\n${casillas}`);
+ }
+ pasos.push("Comprueba el resultado con casos particulares antes de darlo por bueno. Con todos los ángulos a cero y los vectores de traslación nulos, T tiene que ser la identidad. Con un único giro distinto de cero, tiene que quedar la matriz de ese giro.");
+ return pasos;
+}
 function makeNarrativeSymbolic(diff,{frameMode=pick(['fixed','mobile','mixed']),target='matrix'}={}){
  const count=diff<=2?3:diff===3?4:5,raw=narrativeChainSteps(diff,frameMode,count),symbols=[];let angle=0,translation=0;const usedAngles={};
  const sequence=raw.map(step=>{if(step.type==='rot'){const base={x:'alpha',y:'phi',z:'theta'}[step.axis],index=(usedAngles[base]||0)+1;usedAngles[base]=index;const name=base+(index>1?index:'');angle++;symbols.push(name);return{type:'rot',axis:step.axis,frame:step.frame,angle:name}}
@@ -6128,7 +6155,7 @@ function makeNarrativeSymbolic(diff,{frameMode=pick(['fixed','mobile','mixed']),
  const request=point?`Un punto P tiene coordenadas (${point.join(', ')}) en ${target==='point'?'el sistema final O′UVW':'OXYZ'}. Determina sus coordenadas en ${target==='point'?'OXYZ':'el sistema final O′UVW'} en función de los símbolos del enunciado.`:'Obtén la matriz homogénea 4×4 del sistema final O′UVW respecto de OXYZ, en función de los símbolos del enunciado.';
  return{id:'narrative_symbolic_'+(point?target:frameMode),kind:'narrative',chapter:3,type:'symbolic',difficulty:diff,title:`Tipo parcial · simbólico · ${count} matrices${point?' · punto':''}`,
  statement:`<p>Inicialmente, el sistema móvil O′UVW coincide con el sistema fijo OXYZ. Se realizan, en el orden indicado, ${text}.</p><p><strong>${request}</strong></p><p>No se asignan valores a los ángulos, desplazamientos ni coordenadas. Son parámetros reales independientes; las longitudes usan la misma unidad. Los sistemas son dextrógiros y los giros positivos siguen la regla de la mano derecha.</p>`,
- symbols,symbolFields:fields,answer,rows:result.length,cols:result[0].length,chips:[],hints:[],steps:[],commonErrors:[],concepts:['composición simbólica','cambio de coordenadas'],narrativeData:{sequence,count,frameMode,target,point}};
+ symbols,symbolFields:fields,answer,rows:result.length,cols:result[0].length,chips:[],hints:[],steps:narrativeSymbolicWorkedSteps(sequence,target,point,fields,answer),commonErrors:[...narrativeCommonErrors(target),'dar por buena una expresión sin probarla en un caso particular'],concepts:['composición simbólica','cambio de coordenadas'],narrativeData:{sequence,count,frameMode,target,point}};
 }
 function nsInputs(exercise){const rows=[...new Set(exercise.symbolFields.map(f=>f.row))];return`<div class="ws-symbolic-answer ns-answer"><p>Variables: <strong>${exercise.symbols.join(', ')}</strong>.</p>${rows.map(row=>`<fieldset><legend>${exercise.symbolEngine==='trig'?'Expresión '+row:exercise.cols===1?'Coordenada '+row:'Fila '+row}</legend><div class="ns-fields">${exercise.symbolFields.filter(f=>f.row===row).map(f=>`<label for="wsAnswer-${f.key}">${f.label}<input id="wsAnswer-${f.key}" data-ws-answer="${f.key}" type="text" autocomplete="off" spellcheck="false" placeholder="Tu expresión" aria-describedby="wsSyntax"><span data-ws-status="${f.key}"></span></label>`).join('')}</div></fieldset>`).join('')}<p id="wsSyntax">Admite +, −, *, paréntesis, potencias de 0 a 4, división por números, ${exercise.symbolEngine==='trig'?'sin(q1), sen(q1), cos(q1+q2) y los símbolos del enunciado. Puedes escribir q₁, q₂, L₁ y L₂.':'sin(alpha), sen(alpha), cos(phi) y sumas de ángulos. Puedes escribir α, φ, θ, subíndices como α₂ (alpha2) y p_u.'} Se aceptan formas factorizadas o desarrolladas e identidades trigonométricas en esta notación; no uses valores aproximados.</p><button type="button" class="btn soft" id="wsClearExpressions">Limpiar expresiones</button></div>`}
 
@@ -6156,6 +6183,43 @@ function narrativeStepText(step,index){
  const axis=step.frame==="fijo"?`O${AXIS_FIXED_NAME[step.axis]}`:`O′${AXIS_MOBILE_NAME[step.axis]}`;
  return`un giro de ${bookSymbol({x:"alpha",y:"phi",z:"theta"}[step.axis])} = ${angleLabel(step.deg)} alrededor del eje ${axis} del ${reference.slice(3)}`;
 }
+/* ---------- SOLUCIÓN ESCRITA DE LAS CADENAS «TIPO PARCIAL» ----------
+   Estas cadenas se entregaban sin desarrollo: al fallarlas, la aplicación solo
+   podía decir «Sin desarrollo escrito». Sus pasos tienen la misma forma que los
+   de las cadenas 3.6 y 3.7, así que la solución se escribe con las mismas
+   piezas —la matriz de cada operación, el lado por el que entra y el producto—
+   y añade lo que aquí se pide de más: el acumulado tras cada operación y,
+   cuando la incógnita es un punto, el cambio de coordenadas.
+   La primera línea de cada paso se inserta como HTML: ningún texto de aquí
+   puede llevar el signo menor que. */
+function narrativeStepName(step){
+ return step.type==="trans"?`T(${step.vector.join(", ")})`:`R${step.frame==="fijo"?AXIS_FIXED_NAME[step.axis]:AXIS_MOBILE_NAME[step.axis]}(${angleLabel(step.deg)})`;
+}
+function narrativeWorkedSteps(sequence,target,point){
+ const {T,factors,cumulative}=composeChain(sequence);
+ const punto=v=>`[${v.map(x=>fmt(x)).join(", ")}, 1]ᵀ`;
+ const pasos=[
+  `Escribe cada operación como una matriz 4×4 independiente. Un giro solo ocupa el bloque 3×3; una traslación, solo la cuarta columna.\n${factors.map((M,i)=>`${i+1}. ${narrativeStepName(sequence[i])} =\n${mtxt(M)}`).join("\n\n")}`,
+  `Decide el lado de cada operación: si el eje o el vector pertenece al sistema fijo OXYZ, se premultiplica; si pertenece al sistema móvil, se postmultiplica.\n${chainSideBreakdown(sequence)}`,
+  `Colocando cada una por su lado, el producto queda:\nT = ${chainProductText(sequence)}`,
+  `Acumula en el orden en que ocurren las operaciones. Cada resultado intermedio es la posición del sistema móvil en ese instante, y sirve para localizar un error sin rehacerlo todo.\n${cumulative.map((M,i)=>`Tras la operación ${i+1}:\n${mtxt(M)}`).join("\n\n")}`,
+  matrixStructureCheck(4)];
+ if(target==="matrix")pasos.push(`Resultado:\n${mtxt(T)}`);
+ else if(target==="point"){
+  const P=mul(T,point.map(v=>[v]).concat([[1]])).slice(0,3).map(r=>r[0]);
+  pasos.push(`T lleva coordenadas del sistema final O′UVW al fijo OXYZ, así que basta con multiplicarla por el punto en homogéneas.\n[x, y, z, 1]ᵀ = T · ${punto(point)} = ${punto(P)}`);
+ }else{
+  const Ti=invT(T),P=mul(Ti,point.map(v=>[v]).concat([[1]])).slice(0,3).map(r=>r[0]);
+  pasos.push(`Para ir de OXYZ al sistema final hace falta la inversa. No se invierte la 4×4 como una matriz cualquiera: con R el bloque 3×3 de T y p su cuarta columna, la inversa tiene Rᵀ en el bloque de giro y −Rᵀp en la columna de traslación.\nT⁻¹ =\n${mtxt(Ti)}`,
+   `Se multiplica por el punto en homogéneas:\n[u, v, w, 1]ᵀ = T⁻¹ · ${punto(point)} = ${punto(P)}`);
+ }
+ return pasos;
+}
+function narrativeCommonErrors(target){
+ const comunes=["postmultiplicar una operación que el enunciado refiere al sistema fijo","escribir el producto en el orden en que se lee el enunciado"];
+ return target==="inversePoint"?[...comunes,"usar T en vez de T⁻¹ para pasar de OXYZ al sistema final","invertir la 4×4 como una matriz cualquiera en lugar de usar Rᵀ y −Rᵀp"]
+  :target==="point"?[...comunes,"olvidar el 1 de las coordenadas homogéneas del punto"]:comunes;
+}
 function makeNarrativeTransform(diff,{frameMode=pick(["fixed","mobile","mixed"]),target="matrix",count=diff<=2?3:diff===3?4:5}={}){
  if(!["matrix","point","inversePoint"].includes(target))throw new Error("Incógnita no válida.");
  const sequence=narrativeChainSteps(diff,frameMode,count),T=composeChain(sequence).T;
@@ -6172,7 +6236,7 @@ function makeNarrativeTransform(diff,{frameMode=pick(["fixed","mobile","mixed"])
   title:`Tipo parcial · ${count} matrices${target==="matrix"?"":" · coordenadas de un punto"}`,
   statement:`<p>Inicialmente, el sistema móvil O′UVW coincide con el sistema fijo OXYZ. Se realizan, en el orden indicado, ${narrative}.</p><p><strong>${request}</strong></p><p>Todos los sistemas son dextrógiros; los giros positivos siguen la regla de la mano derecha. Las traslaciones y coordenadas están expresadas en centímetros.</p>`,
   rows:target==="matrix"?4:3,cols:target==="matrix"?4:1,answer,tolerance:.002,
-  chips:[],hints:[],steps:[],commonErrors:[],concepts:["composición de transformaciones",target==="matrix"?"marco fijo y móvil":"cambio de coordenadas"],
+  chips:[],hints:[],steps:narrativeWorkedSteps(sequence,target,point),commonErrors:narrativeCommonErrors(target),concepts:["composición de transformaciones",target==="matrix"?"marco fijo y móvil":"cambio de coordenadas"],
   narrativeData:{sequence,frameMode,target,count,point}};
 }
 
@@ -8694,6 +8758,8 @@ const SOLUTION_REASONING=Object.freeze({
  "forward_spatial_3R":{idea:"La cadena se separa en dos problemas más simples: las elevaciones determinan la distancia horizontal y la altura, y el acimut solo gira ese perfil alrededor del eje vertical. Esa separación evita arrastrar los tres ángulos a la vez.",comprobacion:"La raíz de x²+y² debe coincidir con la distancia horizontal calculada antes de proyectar."},
  "forward_scara_rrp":{idea:"El SCARA está diseñado precisamente para desacoplar: las dos revolutas resuelven el plano XY como un 2R corriente y la prismática solo mueve la altura. Por eso su cinemática directa nunca mezcla las tres variables.",comprobacion:"Cambia el valor de la prismática: las coordenadas x e y deben quedar exactamente igual."},
  "dh_assignment_6R":{idea:"Las tres primeras filas son las del brazo antropomórfico de siempre. Lo que cambia es la muñeca: cuando tres ejes se cortan en un mismo punto no queda ninguna normal común que recorrer, así que sus filas solo pueden aportar torsión. Por eso a y d se anulan ahí y toda la información se concentra en αᵢ, cuyo signo depende del sentido en que se tome cada eje.",comprobacion:"Multiplica las seis Aᵢ y mira dónde cae el extremo. Si has puesto L₆ en a₆ en vez de en d₆, la herramienta sale perpendicular al último eje en lugar de prolongarlo, y el punto final se desvía justo esa longitud."},
+ "narrative":{idea:"Cada operación es una matriz homogénea, y el orden del producto lo decide a qué sistema pertenece el eje o el vector que nombra el enunciado: las del sistema fijo se premultiplican y las del sistema móvil se postmultiplican. Cuando la incógnita es un punto, T lleva de las coordenadas del sistema final a las del fijo, y su inversa hace el camino contrario.",comprobacion:"El bloque de rotación del resultado tiene que ser ortonormal con determinante +1, y aplicar las operaciones una a una sobre un vector conocido debe dar lo mismo que multiplicarlo por la matriz final."},
+ "workspace_symbolic_three":{idea:"Con giros completos, el extremo barre una corona centrada en la base. El radio exterior es la suma de las longitudes, y el interior depende de si un eslabón es más largo que la suma de los demás. Si una articulación queda fija, los eslabones que une se comportan como uno solo, cuya longitud da el teorema del coseno.",comprobacion:"Sustituye longitudes que cumplan la condición del enunciado: los radios tienen que salir positivos, el interior menor que el exterior, y la superficie igual a π por la diferencia de sus cuadrados."},
  "dh_chain":{idea:"Es la cinemática directa entera, en el orden de los dieciséis pasos. La tabla sale de asignar los marcos (D-H 1 a 13); cada fila se sustituye en ⁱ⁻¹Aᵢ = Rz(θᵢ)·Tz(dᵢ)·Tx(aᵢ)·Rx(αᵢ) (D-H 14) y T es el producto de esas matrices en orden desde la base (D-H 15). La posición no se calcula aparte: es la cuarta columna de T (D-H 16).",comprobacion:"La posición de T tiene que caer en el extremo E dibujado en la lámina, y el bloque de rotación de T debe tener columnas unitarias, perpendiculares entre sí y determinante +1."},
  "dh_assignment_3R":{idea:"La tabla no se lee del dibujo: se construye eligiendo primero los ejes. El eje de cada articulación fija zᵢ₋₁, y el reparto entre aᵢ y dᵢ sale de sobre qué eje se mide cada distancia: dᵢ recorre zᵢ₋₁ y aᵢ recorre xᵢ. La torsión αᵢ solo aparece donde dos ejes consecutivos dejan de ser paralelos.",comprobacion:"Sustituye la tabla en el producto de las Aᵢ y comprueba que el extremo cae donde lo dibuja la lámina. Una tabla con la altura en la columna equivocada suele dar el mismo alcance pero a otra altura."},
  "forward_dh_3R":{idea:"La tabla DH es un contrato: cada fila describe una transformación con cuatro parámetros en un orden fijo. Construir cada matriz por separado y acumularlas en el orden de la cadena es lo que impide perderse cuando hay muchos eslabones.",comprobacion:"La posición del extremo es la cuarta columna de la última acumulada, y su última fila debe seguir siendo [0,0,0,1]."},
@@ -8717,6 +8783,8 @@ const SOLUTION_REASONING_CONCEPT=Object.freeze({idea:"Estas preguntas se resuelv
 function solutionReasoning(exercise){
  if(!exercise)return null;
  if(exercise.kind==='dh-chain')return SOLUTION_REASONING.dh_chain;
+ if(isNarrativeExercise(exercise))return SOLUTION_REASONING.narrative;
+ if(String(exercise.id||'').startsWith('workspace_symbolic_three_'))return SOLUTION_REASONING.workspace_symbolic_three;
  if(exercise.id?.startsWith('dh_architecture_'))return SOLUTION_REASONING.dh_assignment_3R;
  if(exercise.kind==='architecture-direct')return SOLUTION_REASONING.forward_dh_3R;
  const propia=SOLUTION_REASONING[exercise.id];
@@ -14114,6 +14182,60 @@ function runSelfTests(){
    if(!DIFFICULTY_LEVELS.map(String).includes(limpio.preferences.difficulty))return false;
    return ["degrees","radians"].includes(limpio.preferences.angleUnit);
   }],
+  ["La solución de las cadenas tipo parcial llega al mismo resultado por otro camino",()=>{
+   /* La solución enseña la regla «fijo premultiplica, móvil postmultiplica».
+      Aquí se comprueba sin usarla: cada operación se aplica en coordenadas del
+      mundo. Un giro sobre un eje móvil es un giro alrededor de ese eje ya
+      movido, que pasa por el origen actual (fórmula de Rodrigues); una
+      traslación móvil es la del vector girado con el sistema. */
+   const giro=(u,deg)=>{const c=Math.cos(rad(deg)),s=Math.sin(rad(deg)),v=1-c,[x,y,z]=u;
+    return[[c+x*x*v,x*y*v-z*s,x*z*v+y*s,0],[y*x*v+z*s,c+y*y*v,y*z*v-x*s,0],[z*x*v-y*s,z*y*v+x*s,c+z*z*v,0],[0,0,0,1]]};
+   const mover=v=>translation4(v[0],v[1],v[2]),ejes={x:[1,0,0],y:[0,1,0],z:[0,0,1]},col={x:0,y:1,z:2};
+   const porElMundo=secuencia=>secuencia.reduce((T,paso)=>{
+    if(paso.frame==="fijo")return mul(paso.type==="rot"?giro(ejes[paso.axis],paso.deg):mover(paso.vector),T);
+    const R=T.slice(0,3).map(f=>f.slice(0,3)),o=[T[0][3],T[1][3],T[2][3]];
+    if(paso.type==="trans")return mul(mover(R.map(f=>f[0]*paso.vector[0]+f[1]*paso.vector[1]+f[2]*paso.vector[2])),T);
+    const u=R.map(f=>f[col[paso.axis]]);
+    return mul(mul(mul(mover(o),giro(u,paso.deg)),mover(o.map(x=>-x))),T);
+   },identityMatrix(4));
+   for(const target of ["matrix","point","inversePoint"])for(const frameMode of ["fixed","mobile","mixed"])for(let i=0;i<4;i++){
+    const e=makeNarrativeTransform(3,{frameMode,target}),{sequence,point}=e.narrativeData,T=porElMundo(sequence);
+    const esperado=target==="matrix"?T:mul(target==="point"?T:invT(T),point.map(v=>[v]).concat([[1]])).slice(0,3);
+    if(!eq(e.answer,esperado,1e-9))return false;
+    /* y la solución escrita termina en esa respuesta */
+    const final=target==="matrix"?mtxt(e.answer):`[${e.answer.map(f=>fmt(f[0])).join(", ")}, 1]ᵀ`;
+    if(e.steps.length<6||!String(e.steps.at(-1)).endsWith(final))return false;
+    if(e.steps.some(t=>String(t).split("\n")[0].includes("<")))return false;
+   }
+   return true;
+  }],
+  ["La solución de las cadenas simbólicas enseña cada factor y da cada casilla",()=>{
+   for(const target of ["matrix","point","inversePoint"])for(let i=0;i<3;i++){
+    const e=makeNarrativeSymbolic(3,{target}),texto=e.steps.join("\n"),n=e.narrativeData.sequence.length;
+    if(!e.symbolFields.every(f=>texto.includes(`${f.label} = ${e.answer[f.key]}`)))return false;
+    for(let k=1;k<=n;k++)if(!texto.includes(`\n${k}. `))return false;
+    if(target!=="matrix"&&!texto.includes("Primero T"))return false;
+   }
+   return true;
+  }],
+  ["La comprobación del área de trabajo simbólica coincide con el brazo muestreado",()=>{
+   /* Los radios que imprime la comprobación se contrastan con la distancia
+      real del extremo, barriendo las articulaciones: si el desarrollo
+      equivocara el signo del teorema del coseno, no cuadraría. */
+   for(const variante of ["dominant1","dominant2","dominant3","disk","locked"]){
+    const e=makeWorkspaceThreeSymbolic(2,variante),p=e.params,texto=String(e.steps.at(-1));
+    const leer=nombre=>Number((texto.match(new RegExp(nombre+" = (-?[\\d.]+)"))||[])[1]);
+    const rmin=leer("r mín"),rmax=leer("r máx"),A=leer("A");
+    let menor=Infinity,mayor=0;
+    for(let q2=0;q2<360;q2+=2)for(let q3=variante==="locked"?p.q3Fixed:0;q3<360;q3+=variante==="locked"?360:2){
+     const a=rad(q2),b=rad(q2+q3),x=p.L1+p.L2*Math.cos(a)+p.L3*Math.cos(b),y=p.L2*Math.sin(a)+p.L3*Math.sin(b),r=Math.hypot(x,y);
+     menor=Math.min(menor,r);mayor=Math.max(mayor,r);
+    }
+    if(!(Math.abs(rmax-mayor)<.02&&Math.abs(rmin-menor)<.1))return false;
+    if(Math.abs(A-Math.PI*(rmax**2-rmin**2))>.01)return false;
+   }
+   return true;
+  }],
   ["El problema completo DH apila tabla, T y posición",()=>{
    /* La respuesta se comprueba contra el motor, no contra sí misma: la tabla
       contra la geometría, T contra el producto acumulado y la posición contra
@@ -16171,6 +16293,37 @@ function makeWorkspaceThree(diff,variant='area'){
  }
  return workspaceBase('workspace_three_'+variant,{area:'Tres eslabones · superficie',radii:'Tres eslabones · radios',membership:'Tres eslabones · punto alcanzable',locked:'Tres eslabones · última articulación fija',limited:'Tres eslabones · límite en la última articulación'}[variant],intro+question,params,{...fields,chips:[],hints:[],steps:[],commonErrors:[]});
 }
+/* Desarrollo escrito de la deducción simbólica. La comprobación final
+   sustituye las longitudes de ejemplo del propio ejercicio, que cumplen su
+   condición, para que el alumno vea los radios en números. */
+function workspaceThreeSymbolicSteps(variant,answer,p){
+ const casillas=`r mín = ${answer.rmin}\nr máx = ${answer.rmax}\nA = ${answer.area}`;
+ const f=x=>fmt(x,3);
+ if(variant==='locked'){
+  const s=Math.sqrt(p.L2**2+p.L3**2+2*p.L2*p.L3*Math.cos(rad(p.q3Fixed)));
+  return[
+   "Con q₃ fijo, los eslabones 2 y 3 forman un solo sólido: la distancia s de la segunda articulación a E ya no cambia.",
+   `q₃ se mide respecto al eslabón 2, así que el ángulo interior del triángulo que forman es π − θ. El teorema del coseno da ese lado:\ns = sqrt(L2² + L3² − 2·L2·L3·cos(π − θ)) = sqrt(L2^2+L3^2+2*L2*L3*cos(theta))`,
+   "Queda un brazo de dos eslabones, L1 y s, con los dos giros completos. Estirado alcanza L1 + s; como L1 es mayor que s, plegado se queda a L1 − s de la base.\nr máx = L1 + s\nr mín = L1 − s",
+   "La región es la corona entre esos dos radios, y la diferencia de cuadrados se simplifica:\nA = π·((L1 + s)² − (L1 − s)²) = 4·π·L1·s",
+   `Casillas:\n${casillas}`,
+   `Comprobación con L1 = ${f(p.L1)}, L2 = ${f(p.L2)}, L3 = ${f(p.L3)} y θ = ${f(p.q3Fixed)}°:\ns = ${f(s)}\nr mín = ${f(p.L1-s)} · r máx = ${f(p.L1+s)}\nA = ${f(4*Math.PI*p.L1*s)}`];
+ }
+ const suma=p.L1+p.L2+p.L3;
+ if(variant==='disk')return[
+  "Con los tres eslabones alineados en el mismo sentido, E llega lo más lejos posible:\nr máx = L1 + L2 + L3",
+  "Ningún eslabón supera la suma de los otros dos, así que siempre existe una postura que cierra el triángulo y devuelve E a la base: no hay hueco central.\nr mín = 0",
+  "Con los giros completos, E barre todas las direcciones hasta r máx: la región es un disco.\nA = π·(L1 + L2 + L3)²",
+  `Casillas:\n${casillas}`,
+  `Comprobación con L1 = ${f(p.L1)}, L2 = ${f(p.L2)} y L3 = ${f(p.L3)}:\nr mín = 0 · r máx = ${f(suma)}\nA = ${f(Math.PI*suma**2)}`];
+ const d=Number(variant.slice(-1)),otros=[1,2,3].filter(i=>i!==d),Ld=p['L'+d],resto=p['L'+otros[0]]+p['L'+otros[1]];
+ return[
+  "Con los tres eslabones alineados en el mismo sentido, E llega lo más lejos posible:\nr máx = L1 + L2 + L3",
+  `L${d} es más largo que la suma de los otros dos, así que por mucho que se plieguen no pueden devolver E a la base. Lo más cerca que queda es con L${d} en un sentido y los otros dos en el contrario:\nr mín = L${d} − L${otros[0]} − L${otros[1]}`,
+  "Con los giros completos, E barre todas las direcciones entre esos dos radios: la región es una corona.\nA = π·(r máx² − r mín²)",
+  `Casillas:\n${casillas}`,
+  `Comprobación con L1 = ${f(p.L1)}, L2 = ${f(p.L2)} y L3 = ${f(p.L3)}:\nr mín = ${f(Ld-resto)} · r máx = ${f(suma)}\nA = ${f(Math.PI*(suma**2-(Ld-resto)**2))}`];
+}
 function makeWorkspaceThreeSymbolic(diff,variant='dominant1'){
  const dominant=Number(variant.slice(-1)),names=['L1','L2','L3'],sum='L1+L2+L3';
  let min='0',max=sum,area=`pi*(${sum})^2`,condition='Cada longitud es menor que la suma de las otras dos.',p={L1:3,L2:4,L3:5},restriction='Los tres giros son completos e independientes.';
@@ -16181,7 +16334,7 @@ function makeWorkspaceThreeSymbolic(diff,variant='dominant1'){
  }
  return{id:'workspace_symbolic_three_'+variant,chapter:3,kind:'workspace',type:'symbolic',visual:'workspace2d',difficulty:diff,title:'Tres eslabones · deducción simbólica',
  statement:`Un brazo planar tiene longitudes L1, L2 y L3 positivas, sin valores asignados. ${condition} Los ángulos q₂ y q₃ se miden respecto al eslabón anterior. ${restriction} Considera eslabones sin grosor, sin obstáculos ni autocolisiones. Deduce los radios interior y exterior y la superficie de la región alcanzable por E. Expresa el resultado con los símbolos del enunciado. El esquema no está a escala.`,
- symbols:variant==='locked'?[...names,'theta']:names,symbolFields:[{key:'rmin',label:'Radio interior r mín'},{key:'rmax',label:'Radio exterior r máx'},{key:'area',label:'Superficie A'}],answer:{rmin:min,rmax:max,area},params:{...p,symbolic:true,symbolicKind:'three',ask:'simbolico',workspaceVariant:variant},chips:[],hints:[],steps:[],commonErrors:[],concepts:['área de trabajo','método geométrico']};
+ symbols:variant==='locked'?[...names,'theta']:names,symbolFields:[{key:'rmin',label:'Radio interior r mín'},{key:'rmax',label:'Radio exterior r máx'},{key:'area',label:'Superficie A'}],answer:{rmin:min,rmax:max,area},params:{...p,symbolic:true,symbolicKind:'three',ask:'simbolico',workspaceVariant:variant},chips:[],hints:[],steps:workspaceThreeSymbolicSteps(variant,{rmin:min,rmax:max,area},p),commonErrors:variant==='locked'?['tratar θ como una articulación libre','usar cos(θ) con el signo del ángulo interior en el teorema del coseno']:variant==='disk'?['suponer un hueco central cuando ningún eslabón domina']:['restar solo uno de los eslabones cortos al calcular el radio interior','calcular el área como π·r máx² sin descontar el hueco'],concepts:['área de trabajo','método geométrico']};
 }
 /* A fixed statement diagram: actual link lengths, no solved workspace boundary. */
 function wsThreeDiagram(exercise){

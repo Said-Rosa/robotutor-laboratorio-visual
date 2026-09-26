@@ -27,7 +27,7 @@ const {cargar,RUTA_POR_DEFECTO}=require('./sandbox.cjs');
 const P=cargar(['DIFFICULTY_LEVELS','chapters','makeFoundationExercise','makeChapter3','makeChapter5',
  'makeKinematicsExercise','makeTopicExercise','topicPracticeAvailability','topicByKey','composeExam',
  'exerciseFamily','familyIds','buildPedagogyTrace','solutionStepsMarkup','solutionProcedureMarkup',
- 'solutionReasoningMarkup','exerciseTopicKey'],process.argv[2]||RUTA_POR_DEFECTO);
+ 'solutionReasoningMarkup','exerciseTopicKey','solutionHasContent'],process.argv[2]||RUTA_POR_DEFECTO);
 
 const SORTEOS=Number(process.env.SORTEOS||90);
 const problemas=new Map();
@@ -58,6 +58,11 @@ function revisa(e,donde){
  try{P.buildPedagogyTrace(e)}catch(err){anota(donde,'buildPedagogyTrace falla · '+err.message)}
  try{P.solutionStepsMarkup(e);P.solutionProcedureMarkup(e);P.solutionReasoningMarkup(e)}
  catch(err){anota(donde,'la solución falla · '+err.message)}
+ /* Al fallar un ejercicio, el botón de solución solo puede decir «Sin
+    desarrollo escrito» si la familia no lo tiene. Quedaban quince familias
+    así en el capítulo 3; ninguna nueva debería volver a llegar sin él. */
+ try{if(!P.solutionHasContent({...e,attempted:true}))anota(donde,'sin desarrollo escrito ('+(e.id||e.kind)+')')}
+ catch(err){anota(donde,'solutionHasContent falla · '+err.message)}
 }
 
 // ---- 1. la rotación de cada capítulo ----

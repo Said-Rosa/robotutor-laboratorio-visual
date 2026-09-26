@@ -4,7 +4,7 @@ Esta sección describe el proyecto **tal como está hoy**. Todo lo que sigue a �
 
 ## Versión y publicación
 
-- **3.46.0**, publicada en https://said-rosa.github.io/robotutor-laboratorio-visual/ .
+- **3.47.0**, publicada en https://said-rosa.github.io/robotutor-laboratorio-visual/ .
 - **GitHub Pages es el único destino.** Las copias de `chatgpt.site` y de Sites que aparecen en el historial ya no se actualizan.
 
 ## Cómo se trabaja
@@ -34,7 +34,8 @@ Regla de repositorio **«Proteger main»**, sin excepciones para nadie: **no se 
 
 En el CI de cada PR: `check-source`, `check-worked-solutions`, `check-mechanical-plates`, `check-architectures`, `check-kinematics`, `check-selftests`, `check-exercises` y `check-security`, más el build en sus dos modos y `check-source`/`check-security` sobre cada uno.
 
-- **Autopruebas: 366/408 sin navegador.** Las 42 restantes necesitan DOM real y están listadas en `check-selftests.cjs`; si añadís una que lo necesite, añadidla ahí con su nombre exacto.
+- **Autopruebas: 369/411 sin navegador.** Las 42 restantes necesitan DOM real y están listadas en `check-selftests.cjs`; si añadís una que lo necesite, añadidla ahí con su nombre exacto.
+- **Todo ejercicio practicable tiene desarrollo escrito**, y `check-exercises` falla si llega uno sin él: el botón de solución no debería volver a decir «Sin desarrollo escrito».
 - En un cambio grande, **comparad contra `main`**: ejecutad la batería en las dos versiones y restad los fallos. Lo que solo aparezca en vuestra rama es vuestro.
 - `check-modeled-plates.cjs` necesita `playwright` y **no está en el CI**; en una copia sin él falla igual en `main`.
 
@@ -64,9 +65,8 @@ En el CI de cada PR: `check-source`, `check-worked-solutions`, `check-mechanical
 
 ## Pendiente
 
-Comprobado sobre `main` el 22 de septiembre:
+Comprobado sobre `main` el 26 de septiembre:
 
-- **15 familias sin desarrollo escrito.** Las 10 cadenas narrativas del capítulo 3 (temas 3.11 y 3.12: `narrative_point`, `narrative_inversePoint`, `narrative_fixed`, `narrative_mobile`, `narrative_mixed` y sus variantes `_symbolic_`) y 5 variantes simbólicas del espacio de trabajo de tres eslabones (3.13: `workspace_symbolic_three_*`). Al fallarlas, el botón dice «Sin desarrollo escrito».
 - **2 temas sin práctica:** 3.1 «Sistemas de referencia y posición» y 3.5 «Ejemplo completo y controles» (claves del fuente).
 - **`industrial6R`** conserva la muñeca desplazada de lado respecto del antebrazo (§10). Revisable.
 - **PR #22 abierto por error.** Es el primer intento de la tanda de seguridad, que chocaba con todo el fichero; lo sustituyó el #23, ya fusionado. Hay que cerrarlo sin fusionar.
@@ -413,3 +413,15 @@ Petición del usuario: el ejercicio de examen entero —tabla DH, matriz T y pos
 - La solución escrita reutiliza la de la tabla DH y cierra con «Paso D-H 16 · Leer T y la posición». `check-worked-solutions` incluye ahora el problema completo (40 soluciones).
 
 Comprobado en la página real: selector, tabla con un error y el resto coherente (6/10, celdas en ámbar, solución abierta), examen respondido solo con la tabla (0,4 puntos), informe, historial y recarga. Seis autopruebas nuevas; tres verificadas con mutaciones.
+
+## 3.47.0 · Desarrollo escrito para las 15 familias que no lo tenían (Claude)
+
+Petición del usuario. Al fallar una de estas familias, el botón de solución decía «Sin desarrollo escrito». Ahora ninguna familia practicable queda así, y `check-exercises` lo exige de aquí en adelante.
+
+- **Cadenas «tipo parcial», numéricas** (`narrative_fixed`, `_mobile`, `_mixed`, `_point`, `_inversePoint`). La solución se escribe con las mismas piezas que las cadenas 3.6 y 3.7 (`chainSideBreakdown`, `chainProductText`) y añade la matriz de cada operación, el acumulado tras cada una y, si se pide un punto, el cambio de coordenadas, con T⁻¹ construida con Rᵀ y −Rᵀp.
+- **Cadenas simbólicas** (`narrative_symbolic_*`). Las mismas etapas, con las matrices escritas en la sintaxis de las casillas (alpha, cos(…)), porque es así como se teclea la respuesta. Cierra con una comprobación por casos particulares.
+- **Área de trabajo simbólica de tres eslabones** (`workspace_symbolic_three_*`): radio exterior, interior (eslabón dominante o disco), la reducción a un 2R con el teorema del coseno cuando q₃ está bloqueado, y una comprobación con las longitudes de ejemplo del propio ejercicio.
+- Dos explicaciones «por qué se resuelve así» nuevas (`narrative`, `workspace_symbolic_three`).
+- **La primera línea de cada paso se inserta como HTML**: estos textos evitan el signo menor que.
+
+Las autopruebas contrastan lo escrito con algo independiente. Las cadenas se recalculan aplicando cada operación en coordenadas del mundo, con Rodrigues para los giros sobre ejes móviles y sin usar la regla fijo/móvil. Los radios del área de trabajo se contrastan barriendo las articulaciones del brazo. No se evalúan expresiones con `Function`, porque la política de contenido lo prohíbe. Tres autopruebas nuevas; tres mutaciones detectadas (el signo del teorema del coseno, la regla fijo/móvil y las casillas).

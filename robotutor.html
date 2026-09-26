@@ -694,6 +694,10 @@
     .reflection-formats{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:14px;margin:12px 0;border:1px solid var(--line);border-radius:12px;background:var(--soft)}
     #openAnswer{display:block;width:100%;min-height:170px;resize:vertical;padding:14px;border:1px solid var(--line);border-radius:12px;color:var(--text);background:var(--card);font:inherit;line-height:1.6}#openNotice{font-size:.9rem;line-height:1.6}#openReview{padding:18px;border:1px solid var(--line);border-radius:12px;margin-top:18px;background:var(--soft)}
     .dh-table-wrap{overflow-x:auto;margin:10px 0}
+    .dh-chain-part{margin:14px 0 4px}
+    .dh-chain-part h4{margin:0 0 6px;font-size:.95rem}
+    .dh-chain-part h4 small{font-weight:600;color:var(--muted)}
+    .cell.carry{border-color:var(--orange);box-shadow:0 0 0 1px var(--orange) inset}
     /* Es una tabla de texto: el mínimo general de 600 px obligaría a desplazar
        de lado para leer cada paso en un móvil. */
     .dh-algorithm{min-width:0}
@@ -889,7 +893,7 @@ var RoboTutorMechanical3D=(()=>{var Ka=Object.defineProperty;var Bh=Object.getOw
         <div class="statement" id="statement"></div>
         <div class="chips" id="chips"></div>
         <div class="exercise-variants" id="exerciseVariants">
-          <section id="mechanicalFormats" class="reflection-formats" hidden aria-label="Robots para identificación y cinemática"><label for="mechanicalModel">Robot para practicar</label><select id="mechanicalModel"><option value="any" selected>Cualquier modelo · sortea uno distinto</option><option value="scara">SCARA · 4 articulaciones</option><option value="cylindrical">Cilíndrico · 4 articulaciones</option><option value="anthropomorphic">Antropomórfico · 6 articulaciones</option></select><label for="mechanicalTask">Actividad</label><select id="mechanicalTask"><option value="identify">Identificar el robot</option><option value="dh">Construir la tabla DH</option><option value="direct" selected>Calcular la posición</option></select><button id="newMechanical" class="btn soft" type="button">Nuevo ejercicio</button></section>
+          <section id="mechanicalFormats" class="reflection-formats" hidden aria-label="Robots para identificación y cinemática"><label for="mechanicalModel">Robot para practicar</label><select id="mechanicalModel"><option value="any" selected>Cualquier modelo · sortea uno distinto</option><option value="scara">SCARA · 4 articulaciones</option><option value="cylindrical">Cilíndrico · 4 articulaciones</option><option value="anthropomorphic">Antropomórfico · 6 articulaciones</option></select><label for="mechanicalTask">Actividad</label><select id="mechanicalTask"><option value="identify">Identificar el robot</option><option value="dh">Construir la tabla DH</option><option value="chain">Problema completo · tabla, T y posición</option><option value="direct" selected>Calcular la posición</option></select><button id="newMechanical" class="btn soft" type="button">Nuevo ejercicio</button></section>
           <section id="planarGeometryFormat" class="reflection-formats" hidden aria-label="Método geométrico planar"><strong>Planar 2R · método geométrico</strong><button id="newPlanarNumeric" class="btn soft" type="button">Con datos numéricos</button><button id="newPlanarSymbolic" class="btn soft" type="button">Deducir ecuaciones</button></section>
           <section id="reflectionFormats" class="reflection-formats" hidden aria-label="Preguntas de teoría"><strong>Preguntas de teoría</strong><button id="newVF" class="btn soft" type="button">Verdadero / Falso</button><button id="newOpen" class="btn soft" type="button">Pregunta abierta</button></section>
         </div>
@@ -2836,7 +2840,7 @@ const roadmap = [
    en este punto y renombra el archivo en consecuencia.
    Ojo: `progress.version` es otra cosa — numera el esquema de datos guardados en
    localStorage y avanza solo cuando cambia la forma de ese objeto. */
-const APP_VERSION="3.45.0";
+const APP_VERSION="3.46.0";
 const APP_STAGE="láminas claras · verdadero/falso y respuestas abiertas";
 /* Los cuatro niveles del curso. Toda comprobación de dificultad debe leer de aquí:
    el selector, las preferencias guardadas, la política pedagógica y los bancos. */
@@ -3919,6 +3923,11 @@ function validateProgressData(data){
    capitulos:Array.isArray(fila.capitulos)?fila.capitulos.map(finiteCount).filter(Boolean):[],
    dificultad:finiteCount(fila.dificultad)||1,preguntas:finiteCount(fila.preguntas),
    aciertos:Math.min(finiteCount(fila.preguntas),finiteCount(fila.aciertos)),
+   /* Puntos por partes, desde 3.46. Una fila anterior no los trae y vale sus
+      aciertos; un valor fuera de rango se acota, porque nunca baja de los
+      aciertos ni pasa del número de preguntas. */
+   puntos:(()=>{const total=finiteCount(fila.preguntas),ac=Math.min(total,finiteCount(fila.aciertos)),v=Number(fila.puntos);
+    return Number.isFinite(v)?Math.round(Math.min(total,Math.max(ac,v))*100)/100:ac})(),
    segundos:finiteCount(fila.segundos),porTiempo:fila.porTiempo===true,
    temas:(()=>{const salida={};for(const [clave,par] of Object.entries(fila.temas||{})){
     if(!Array.isArray(par)||par.length<2)continue;
@@ -4704,6 +4713,106 @@ function dhRowCells(row){return DH_COLUMNS.map(c=>row[c.key])}
 function dhRowFromCells(cells){return Object.fromEntries(DH_COLUMNS.map((c,i)=>[c.key,cells[i]]))}
 function dhColumnIndex(key){return DH_COLUMNS.findIndex(c=>c.key===key)}
 function dhColumnLabel(col){return DH_COLUMNS[col]?.symbol||"?"}
+/* ---------- PROBLEMA COMPLETO DH · tabla, T y posición ----------
+   El ejercicio de examen habitual no termina en la tabla: pide también la
+   matriz de la cadena y dónde queda el efector. Aquí va entero, en una sola
+   pregunta calificada por partes.
+   La respuesta es una matriz de cuatro columnas con tres bloques apilados: las
+   n filas de la tabla, las cuatro de T y la posición en homogéneas [x y z 1],
+   que es justo la cuarta columna de T. Así la entrada, el guardado del examen,
+   su recuperación y la corrección celda a celda funcionan sin cambios; lo
+   propio de este ejercicio es cómo se pinta y cómo se puntúa.
+   Su matrixLayout no es "dh", así que migrateDhColumns no lo toca: permutaría
+   también las filas de T y de la posición. */
+const DH_CHAIN_PARTS=Object.freeze([
+ Object.freeze({key:"tabla",nombre:"Tabla DH",pasos:"D-H 1 a 13",peso:4}),
+ Object.freeze({key:"T",nombre:"Matriz T",pasos:"D-H 14 y 15",peso:4}),
+ Object.freeze({key:"p",nombre:"Posición del efector",pasos:"D-H 16",peso:2})
+]);
+function isDhChainExercise(e){return Boolean(e?.type==="matrix"&&e.matrixLayout==="dhChain"&&Number.isInteger(e.params?.chainRows))}
+function dhChainBlocks(e){const n=e.params.chainRows;return{tabla:[0,n],T:[n,n+4],p:[n+4,n+5]}}
+/* A mano, la T de un brazo de seis ejes es un ejercicio de resistencia más que
+   de método: el tamaño del robot sube con el nivel. */
+function dhChainModel(diff,previo=null){
+ const limite=diff<=2?3:diff===3?4:6,validos=ROBOT_ARCHITECTURES.filter(d=>d.types.length<=limite),otros=validos.filter(d=>d.id!==previo);
+ return pick(otros.length?otros:validos).id;
+}
+function dhChainExercise(base,k,def){
+ const n=base.rows,T=k.cumulative.at(-1).map(fila=>fila.map(Number)),p=[T[0][3],T[1][3],T[2][3],1];
+ const puntos=DH_CHAIN_PARTS.map(x=>`${x.nombre} ${x.peso}`).join(" · ");
+ const statement=base.statement.replace("Asigna los marcos y completa la tabla DH del robot mostrado.",
+  `Asigna los marcos y resuelve la cinemática directa del robot mostrado en tres partes: <strong>1)</strong> la tabla DH; <strong>2)</strong> la matriz T=⁰A${dhIndexDigits(n,DH_SUBINDICES)}, que lleva de la base al efector en la postura dada; <strong>3)</strong> la posición del efector E respecto de la base. Puntuación sobre 10: ${puntos}. Un error de la tabla no se cobra dos veces: T y la posición se corrigen también contra lo que hayas escrito antes.`);
+ if(statement===base.statement)throw Error("cambió el enunciado de la tabla DH: revisa dhChainExercise");
+ return{...base,id:`dh_chain_${def.id}`,kind:"dh-chain",matrixLayout:"dhChain",
+  title:"Problema completo: tabla DH, T y posición",
+  rows:n+5,cols:4,answer:[...base.answer.map(f=>[...f]),...T,p],
+  params:{...base.params,chainRows:n},statement,
+  hints:[...base.hints,"Cada fila de la tabla da una ⁱ⁻¹Aᵢ; T es su producto en orden desde la base.","La posición no se calcula aparte: es la cuarta columna de T."],
+  concepts:[...base.concepts,"cinemática directa","matriz de transformación homogénea"],
+  commonErrors:[...base.commonErrors,"multiplicar las matrices en orden inverso","olvidar la fila [0 0 0 1] de T"]};
+}
+/* Nota por partes. `a` es la matriz leída: una celda vacía o ilegible llega
+   como NaN, y del disco como null. */
+function dhChainGrade(e,a){
+ const bloques=dhChainBlocks(e),tol=baseTolerance(e);
+ const trozo=(m,[i,j])=>Array.isArray(m)?m.slice(i,j):[];
+ /* null−0 vale 0: sin esta guarda, una celda en blanco cuyo valor correcto es
+    0 contaría como acertada después de recargar un examen. */
+ const completo=m=>m.length>0&&m.every(f=>Array.isArray(f)&&f.length===4&&f.every(v=>typeof v==="number"&&Number.isFinite(v)));
+ const igual=(m,ref)=>completo(m)&&m.length===ref.length&&eq(m,ref,tol);
+ const dado={},esperado={};
+ for(const x of DH_CHAIN_PARTS){dado[x.key]=trozo(a,bloques[x.key]);esperado[x.key]=trozo(e.answer,bloques[x.key])}
+ /* «Sin responder» mira solo lo que escribe el alumno: el 1 de la posición
+    viene dado, y la última fila de T puede venir rellena según el nivel. */
+ const editables=(clave,m)=>clave==="p"?m.map(f=>Array.isArray(f)?f.slice(0,3):[]):clave==="T"?m.slice(0,3):m;
+ const partes={};
+ for(const x of DH_CHAIN_PARTS)partes[x.key]={ok:igual(dado[x.key],esperado[x.key]),arrastre:false,
+  vacia:!editables(x.key,dado[x.key]).some(f=>Array.isArray(f)&&f.some(v=>typeof v==="number"&&Number.isFinite(v)))};
+ /* Arrastre: con la tabla mal, una T que es exactamente la de esa tabla está
+    bien hecha; y una posición que es la cuarta columna de la T escrita está
+    bien leída. El error se cobra una vez, en la parte donde se cometió. */
+ if(!partes.tabla.ok&&!partes.T.ok&&completo(dado.tabla)){
+  try{
+   const suya=KinematicsEngine.serialDH(dado.tabla.map(dhRowFromCells)).cumulative.at(-1);
+   if(igual(dado.T,suya))partes.T.arrastre=true;
+  }catch(err){}
+ }
+ if(!partes.p.ok&&completo(dado.T)&&igual(dado.p,[[dado.T[0][3],dado.T[1][3],dado.T[2][3],1]]))partes.p.arrastre=true;
+ const total=DH_CHAIN_PARTS.reduce((suma,x)=>suma+x.peso,0);
+ const puntos=DH_CHAIN_PARTS.reduce((suma,x)=>suma+(partes[x.key].ok||partes[x.key].arrastre?x.peso:0),0);
+ return{partes,puntos,total,nota:puntos/total};
+}
+function dhChainPartVerdict(clave,parte){
+ if(parte.ok)return"bien";
+ if(parte.arrastre)return clave==="T"?"bien por arrastre (es la T de tu tabla)":"bien por arrastre (es la cuarta columna de tu T)";
+ return parte.vacia?"sin responder":"por revisar";
+}
+function dhChainSummary(g){
+ return`Nota por partes: ${fmt(g.puntos,2)}/${g.total}. `+DH_CHAIN_PARTS.map(x=>`${x.nombre}: ${dhChainPartVerdict(x.key,g.partes[x.key])}`).join(" · ")+".";
+}
+function dhChainCellName(e,row,col){
+ const n=e.params.chainRows;
+ if(row<n)return`${dhColumnLabel(col)}${row+1}`;
+ if(row<n+4)return`T(${row-n+1},${col+1})`;
+ return["x","y","z","1"][col]||"?";
+}
+/* Nota de una pregunta de examen entre 0 y 1. Todas valen 0 o 1 salvo las que
+   se califican por partes. */
+function examQuestionScore(pregunta,valor){
+ if(isDhChainExercise(pregunta))return Array.isArray(valor)?dhChainGrade(pregunta,valor).nota:0;
+ return answerIsCorrect(pregunta,valor)?1:0;
+}
+function dhChainAnswerMarkup(e){
+ const n=e.params.chainRows,celda=i=>matrixInputMarkup(e,i),[pt,pT,pp]=DH_CHAIN_PARTS;
+ const rejilla=(desde,cuantas)=>`<div class="matrix-wrap"><span class="bracket left"></span><div class="matrix" style="--cols:4;grid-template-columns:repeat(var(--cols),minmax(0,1fr))">${Array.from({length:cuantas},(_,i)=>celda(desde+i)).join("")}</div><span class="bracket right"></span></div>`;
+ const tabla=`<div class="dh-table-wrap"><table class="dh-table"><thead><tr><th>i</th>${DH_COLUMNS.map(c=>`<th>${c.symbol}<sub>i</sub> (${c.angle?"°":"m"})</th>`).join("")}</tr></thead><tbody>${Array.from({length:n},(_,r)=>`<tr><th scope="row">${r+1}</th>${Array.from({length:4},(_,c)=>`<td>${celda(r*4+c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+ const parte=(x,titulo,cuerpo,nota="")=>`<section class="dh-chain-part" data-dh-part="${x.key}"><h4>${titulo} <small>${x.pasos} · ${x.peso} puntos</small></h4>${cuerpo}${nota}</section>`;
+ return`<label>Resuelve las tres partes:</label>
+  ${parte(pt,"1 · Tabla DH",tabla)}
+  ${parte(pT,`2 · Matriz T = ⁰A${dhIndexDigits(n,DH_SUBINDICES)}`,rejilla(n*4,16))}
+  ${parte(pp,"3 · Posición del efector",rejilla((n+4)*4,4),'<p class="cell-hint">En homogéneas, [x y z 1]: la cuarta columna de T. El 1 ya viene puesto.</p>')}
+  <p class="cell-hint">Admite decimales y expresiones como pi/2 o sin(30). Los ángulos van en grados.${examEnCurso()?" Las respuestas se guardan automáticamente.":""}</p>`;
+}
 /* Un examen guardado antes del cambio trae la respuesta y lo tecleado con el
    orden viejo. Sin migrarlo, al reanudarlo cada valor caería bajo otra
    cabecera y la corrección compararía columnas distintas. */
@@ -4737,6 +4846,7 @@ function chooseRobotArchitecture(id='any'){
  const selected=definition||pick(ROBOT_ARCHITECTURES.filter(d=>d.id!==lastArchitecture));lastArchitecture=selected.id;return selected;
 }
 function makeArchitectureExercise(diff,id='any',task='dh',question=null){
+ if(task==='chain'&&id==='any')id=dhChainModel(diff);
  const def=chooseRobotArchitecture(id),n=def.types.length,sub=i=>'₁₂₃₄₅₆'[i];
  let rows,k,params={},dimensions=[],description='';
  const row=(a,alpha,d,theta)=>({a,alpha,d,theta}),q=()=>pick([-45,-30,30,45,60]),length=()=>pick([2.5,3,3.5]);
@@ -4776,6 +4886,7 @@ function makeArchitectureExercise(diff,id='any',task='dh',question=null){
   const rationale={clave:`La cadena tiene ${n} articulaciones independientes, en orden ${sequence}. Sus tres primeras articulaciones y la orientación de sus ejes corresponden a la arquitectura ${family}. La apertura de la pinza no se cuenta.`,fallos:Object.fromEntries(options.filter(o=>o!==correct).map(o=>[o,ask==='mobility'?`El valor ${o} no corresponde al número de articulaciones independientes: la cadena contiene ${n}. Cuenta los carros y los cojinetes desde la base; excluye los dedos.`:ask==='sequence'?`La secuencia ${o} no coincide con los movimientos físicos del dibujo: desde la base la cadena es ${sequence}. Un cojinete gira; un carro se desplaza dentro de una guía.`:`${o} no corresponde al montaje de las tres primeras articulaciones; en esta figura forman un robot ${family}. La muñeca modifica la orientación de la herramienta, no la familia de posicionamiento.`]))};
   return{...base,id:`forward_identify_${def.id}_${ask}`,kind:'robot-identification',visual:'spatialRobot',geometryTopic:'4.1',matrixLayout:undefined,kinematics:k,type:'choice',rows:undefined,cols:undefined,title:'Reconocer el robot de la figura',statement:ask==='sequence'?'Identifica la secuencia de articulaciones desde la base hasta la herramienta. R significa revoluta y P prismática. No incluyas la apertura de los dedos.':ask==='mobility'?'¿Cuántos grados de libertad independientes tiene la cadena mecánica del robot? Considera cada articulación actuada y excluye la apertura de la pinza.':'Identifica la arquitectura que forman las tres primeras articulaciones del robot; no incluyas la muñeca ni la apertura de la pinza.',answer:ask==='sequence'?sequence:ask==='mobility'?String(n):family,options:shuffle(options),rationale,chips:[],convention:'Observa la estructura completa. La pinza se considera una herramienta fija para contar la movilidad del brazo.',identify:{ask,sequence,family,dof:n},steps:[`Desde la base: ${def.types.split('').map((t,i)=>`${i+1}: ${t==='R'?'giro en cojinete':'traslación en guía'}`).join('; ')}.`,`Cada articulación es independiente: ${n} coordenadas articulares. La pinza no añade otra a esta cadena.`,`La arquitectura de posicionamiento es ${family}; secuencia completa ${sequence}.`]};
  }
+ if(task==='chain')return dhChainExercise(base,k,def);
  if(task==='direct')return{...base,id:`forward_architecture_${def.id}`,kind:'architecture-direct',visual:'spatialRobot',geometryTopic:'4.1',matrixLayout:undefined,kinematics:k,title:'Cinemática directa · '+def.name,type:'matrix',rows:3,cols:1,answer:k.pose.slice(0,3).map(r=>[r[3]]),statement:`Determina la posición [X; Y; Z] de E respecto de la base. ${description} Usa la tabla DH dada.${dhTableMarkup(rows)}`,convention:'La tabla DH fija la geometría y los sentidos. E señala el punto cuya posición se pide.'};
  return base;
 }
@@ -5104,7 +5215,7 @@ function renderMechanicalWorksheet(e){
 function renderMechanicalControls(){
  const host=document.getElementById('mechanicalFormats'),e=appState.currentExercise;if(host)host.hidden=examEnCurso()||exerciseVariantKind(e)!=='mechanical';
  if(e?.kind==='robot-identification')document.getElementById('mechanicalModel').value='any';
- if(e)document.getElementById('mechanicalTask').value=e.kind==='robot-identification'?'identify':e.visual==='dhAssignment'?'dh':'direct';
+ if(e)document.getElementById('mechanicalTask').value=e.kind==='robot-identification'?'identify':e.kind==='dh-chain'?'chain':e.visual==='dhAssignment'?'dh':'direct';
 }
 /* Pulsar «Nuevo ejercicio» repetía siempre el mismo mecanismo: solo cambiaban
    los números. Con «Cualquier modelo» se sortea uno, y nunca el que acaba de
@@ -5121,8 +5232,9 @@ function initMechanicalControls(){
  modelSelect.innerHTML='<option value="any">Cualquier modelo · sortea uno distinto</option>'+ROBOT_ARCHITECTURES.map(d=>`<option value="${d.id}">${d.name} · ${d.types.length} GDL</option>`).join('');
  document.getElementById('newMechanical').onclick=()=>{
   if(examEnCurso())return;
-  const model=pickMechanicalModel(modelSelect.value),diff=Number(document.getElementById('difficulty').value),task=document.getElementById('mechanicalTask').value;
-  ultimoModeloMecanico=model;appState.practiceTopicKey=task==='dh'?'4.3':'4.1';appState.currentExercise=makeArchitectureExercise(diff,model,task);
+  const diff=Number(document.getElementById('difficulty').value),task=document.getElementById('mechanicalTask').value;
+  const model=task==='chain'&&modelSelect.value==='any'?dhChainModel(diff,ultimoModeloMecanico):pickMechanicalModel(modelSelect.value);
+  ultimoModeloMecanico=model;appState.practiceTopicKey=task==='dh'||task==='chain'?'4.3':'4.1';appState.currentExercise=makeArchitectureExercise(diff,model,task);
   if(task==='identify')modelSelect.value='any';
   document.getElementById('feedback').className='feedback';renderExercise();
  };renderMechanicalControls();
@@ -7764,7 +7876,7 @@ function kinematicsCandidates(diff){
  if(diff>=2)lista.push({family:"3d",make:makeDhAssignment6R});
  const conceptuales=Math.max(1,Math.round(lista.length*(CONCEPT_SHARE[diff]??.3)));
  for(let i=0;i<conceptuales;i++)lista.push({family:"concepto",make:d=>makeChoice(4,d)});
- lista.push({family:'3d',make:d=>makeArchitectureExercise(d,'any','dh')},{family:'3d',make:d=>makeArchitectureExercise(d,'any','direct')},{family:'concepto',make:d=>makeArchitectureExercise(d,'any','identify')});
+ lista.push({family:'3d',make:d=>makeArchitectureExercise(d,'any','chain')},{family:'3d',make:d=>makeArchitectureExercise(d,'any','dh')},{family:'3d',make:d=>makeArchitectureExercise(d,'any','direct')},{family:'concepto',make:d=>makeArchitectureExercise(d,'any','identify')});
  return lista;
 }
 function makeKinematicsExercise(diff){
@@ -7813,7 +7925,7 @@ function legacyTopicNumericGenerators(key,diff){
  }
  /* El tema enseña a asignar marcos y construir la tabla; practicarlo con un
     ejercicio de cinemática inversa plana no entrenaba esa destreza. */
- if(key==="4.3")return[makeDhAssignment,makeDhAssignment6R,d=>makeGeometric2R(d,'inverse'),...ROBOT_ARCHITECTURES.filter(d=>!d.id.startsWith("anthropomorphic")).map(def=>d=>makeArchitectureExercise(d,def.id,"dh"))];
+ if(key==="4.3")return[makeDhAssignment,makeDhAssignment6R,d=>makeArchitectureExercise(d,"any","chain"),d=>makeGeometric2R(d,'inverse'),...ROBOT_ARCHITECTURES.filter(d=>!d.id.startsWith("anthropomorphic")).map(def=>d=>makeArchitectureExercise(d,def.id,"dh"))];
  if(key==="4.2")return diff>=3?[plausibleSpatial(makeDh3R)]:[];
  if(key==="3.13")return[makeWorkspaceExercise];
  if(key.startsWith("3."))return topicChapter3Kinds(key,diff).map(kind=>d=>makeChapter3Kind(d,kind));
@@ -7939,6 +8051,14 @@ function quickToolPolicy(exercise){
 }
 function isHomogeneousResponse(exercise){return Boolean(exercise?.type==="matrix"&&exercise.rows===4&&exercise.cols===4&&["homogeneous_transform","inverse_homogeneous_transform"].includes(exercise.id))}
 function matrixCellPolicy(exercise,row,col){
+ /* En el problema completo, el 1 de la posición homogénea viene dado; la
+    última fila de T se ofrece como en las demás matrices homogéneas. */
+ if(isDhChainExercise(exercise)){
+  const n=exercise.params.chainRows;
+  if(row===n+4&&col===3)return{value:"1",locked:true,preset:true};
+  if(row===n+3&&exercise.difficulty<3)return{value:col===3?"1":"0",locked:exercise.difficulty===1,preset:true};
+  return{value:"",locked:false,preset:false};
+ }
  if(!isHomogeneousResponse(exercise)||row!==3||exercise.difficulty>=3)return{value:"",locked:false,preset:false};
  return{value:col===3?"1":"0",locked:exercise.difficulty===1,preset:true};
 }
@@ -8236,7 +8356,7 @@ function firstObservableDifference(exercise,entered,ok){
   if(alterno)return{kind:"bad",title:"Patrón de error identificado",message:`${alterno.message} Esperado ${fmt(exercise.answer,5)} e ingresado ${fmt(entered,5)}.`};
   return{kind:"bad",title:"Salida final incompatible",message:`${scalarDifferenceCause(exercise,entered)}. Esperado ${fmt(exercise.answer,5)} e ingresado ${fmt(entered,5)}.${exercise.pedagogyTrace?.source==="kinematics"?" Si completas las Aᵢ en «Resolver por etapas», RoboTutor podrá localizar el origen matricial.":" Como no se registraron matrices Aᵢ, no es posible atribuir honestamente el error a una transformación concreta."}`};
  }
- for(let r=0;r<exercise.rows;r++)for(let c=0;c<exercise.cols;c++){const expected=exercise.answer[r][c],value=entered[r][c],tol=cellTolerance(exercise,expected);if(Math.abs(value-expected)>tol){const cause=classifyCellCause(expected,value,r,c,entered,exercise.answer,exercise),component=exercise.cols===1?["x","y","z","w"][r]||String(r+1):null,originNote=exercise.pedagogyTrace?.source==="kinematics"?" Completa las etapas Aᵢ para obtener un diagnóstico del origen.":" No se dispone de transformaciones intermedias para atribuir el origen.";return{kind:"bad",title:exercise.cols===1?`Primera diferencia: componente ${component}`:exercise.matrixLayout==="dh"?`Primera diferencia: ${dhColumnLabel(c)}${r+1}`:`Primera diferencia: celda (${r+1},${c+1})`,message:`${cause}. Esperado ${fmt(expected,5)} e ingresado ${fmt(value,5)}.${exercise.cols===1?originNote:""}`,row:r,col:c}}}
+ for(let r=0;r<exercise.rows;r++)for(let c=0;c<exercise.cols;c++){const expected=exercise.answer[r][c],value=entered[r][c],tol=cellTolerance(exercise,expected);if(Math.abs(value-expected)>tol){const cause=classifyCellCause(expected,value,r,c,entered,exercise.answer,exercise),component=exercise.cols===1?["x","y","z","w"][r]||String(r+1):null,originNote=exercise.pedagogyTrace?.source==="kinematics"?" Completa las etapas Aᵢ para obtener un diagnóstico del origen.":" No se dispone de transformaciones intermedias para atribuir el origen.";return{kind:"bad",title:exercise.cols===1?`Primera diferencia: componente ${component}`:isDhChainExercise(exercise)?`Primera diferencia: ${dhChainCellName(exercise,r,c)}`:exercise.matrixLayout==="dh"?`Primera diferencia: ${dhColumnLabel(c)}${r+1}`:`Primera diferencia: celda (${r+1},${c+1})`,message:`${cause}. Esperado ${fmt(expected,5)} e ingresado ${fmt(value,5)}.${exercise.cols===1?originNote:""}`,row:r,col:c}}}
  return{kind:"bad",title:"Diferencia numérica",message:"La respuesta no superó la tolerancia configurada; revisa redondeo y unidades."};
 }
 function traceSequenceLatex(trace){
@@ -8574,6 +8694,7 @@ const SOLUTION_REASONING=Object.freeze({
  "forward_spatial_3R":{idea:"La cadena se separa en dos problemas más simples: las elevaciones determinan la distancia horizontal y la altura, y el acimut solo gira ese perfil alrededor del eje vertical. Esa separación evita arrastrar los tres ángulos a la vez.",comprobacion:"La raíz de x²+y² debe coincidir con la distancia horizontal calculada antes de proyectar."},
  "forward_scara_rrp":{idea:"El SCARA está diseñado precisamente para desacoplar: las dos revolutas resuelven el plano XY como un 2R corriente y la prismática solo mueve la altura. Por eso su cinemática directa nunca mezcla las tres variables.",comprobacion:"Cambia el valor de la prismática: las coordenadas x e y deben quedar exactamente igual."},
  "dh_assignment_6R":{idea:"Las tres primeras filas son las del brazo antropomórfico de siempre. Lo que cambia es la muñeca: cuando tres ejes se cortan en un mismo punto no queda ninguna normal común que recorrer, así que sus filas solo pueden aportar torsión. Por eso a y d se anulan ahí y toda la información se concentra en αᵢ, cuyo signo depende del sentido en que se tome cada eje.",comprobacion:"Multiplica las seis Aᵢ y mira dónde cae el extremo. Si has puesto L₆ en a₆ en vez de en d₆, la herramienta sale perpendicular al último eje en lugar de prolongarlo, y el punto final se desvía justo esa longitud."},
+ "dh_chain":{idea:"Es la cinemática directa entera, en el orden de los dieciséis pasos. La tabla sale de asignar los marcos (D-H 1 a 13); cada fila se sustituye en ⁱ⁻¹Aᵢ = Rz(θᵢ)·Tz(dᵢ)·Tx(aᵢ)·Rx(αᵢ) (D-H 14) y T es el producto de esas matrices en orden desde la base (D-H 15). La posición no se calcula aparte: es la cuarta columna de T (D-H 16).",comprobacion:"La posición de T tiene que caer en el extremo E dibujado en la lámina, y el bloque de rotación de T debe tener columnas unitarias, perpendiculares entre sí y determinante +1."},
  "dh_assignment_3R":{idea:"La tabla no se lee del dibujo: se construye eligiendo primero los ejes. El eje de cada articulación fija zᵢ₋₁, y el reparto entre aᵢ y dᵢ sale de sobre qué eje se mide cada distancia: dᵢ recorre zᵢ₋₁ y aᵢ recorre xᵢ. La torsión αᵢ solo aparece donde dos ejes consecutivos dejan de ser paralelos.",comprobacion:"Sustituye la tabla en el producto de las Aᵢ y comprueba que el extremo cae donde lo dibuja la lámina. Una tabla con la altura en la columna equivocada suele dar el mismo alcance pero a otra altura."},
  "forward_dh_3R":{idea:"La tabla DH es un contrato: cada fila describe una transformación con cuatro parámetros en un orden fijo. Construir cada matriz por separado y acumularlas en el orden de la cadena es lo que impide perderse cuando hay muchos eslabones.",comprobacion:"La posición del extremo es la cuarta columna de la última acumulada, y su última fila debe seguir siendo [0,0,0,1]."},
  "forward_rrrp":{idea:"La articulación prismática se desplaza sobre un eje que las rotaciones anteriores ya han orientado, así que no puede tratarse como un movimiento en el sistema fijo. Tiene que entrar en la cadena en su posición, después de los giros.",comprobacion:"Con las tres rotaciones a cero, la extensión de la prismática debe sumarse íntegramente sobre el eje X del sistema base."},
@@ -8595,6 +8716,7 @@ const SOLUTION_REASONING=Object.freeze({
 const SOLUTION_REASONING_CONCEPT=Object.freeze({idea:"Estas preguntas se resuelven por descarte razonado y no por reconocimiento: casi siempre hay una opción que es cierta en general pero que no responde al caso descrito. Conviene confrontar cada alternativa con el dato concreto del enunciado antes de elegir.",comprobacion:"La opción correcta debe seguir siéndolo si cambias los números del enunciado sin cambiar la situación que describe."});
 function solutionReasoning(exercise){
  if(!exercise)return null;
+ if(exercise.kind==='dh-chain')return SOLUTION_REASONING.dh_chain;
  if(exercise.id?.startsWith('dh_architecture_'))return SOLUTION_REASONING.dh_assignment_3R;
  if(exercise.kind==='architecture-direct')return SOLUTION_REASONING.forward_dh_3R;
  const propia=SOLUTION_REASONING[exercise.id];
@@ -8700,6 +8822,11 @@ function mechanicalWorkedSolution(e){
   productos.forEach(multiplicar=>multiplicar());
  }
  const tcp=k.positions.at(-1);
+ if(isDhChainExercise(e)){
+  const T=k.cumulative.at(-1),bloque=m=>m.map(fila=>'[ '+fila.map(f).join(' ; ')+' ]').join('\n');
+  step('Paso D-H 16 · Leer T y la posición','T es la respuesta de la parte 2. Sus tres primeras columnas dan la orientación del efector y la cuarta, su posición respecto de la base: esa es la parte 3, escrita en homogéneas.',[`X = ${f(tcp.x)}`,`Y = ${f(tcp.y)}`,`Z = ${f(tcp.z)}`,'Parte 1: la tabla DH de arriba.',`Parte 2: T =\n${bloque(T)}`,`Parte 3: [x y z 1] = [ ${f(tcp.x)} ; ${f(tcp.y)} ; ${f(tcp.z)} ; 1 ]`]);
+  return`<div class="mechanical-worked" data-worked-solution="true"><h3>Solución paso a paso</h3>${parts.join('')}</div>`;
+ }
  step(e.matrixLayout==='dh'?'Paso D-H 16 · Leer T y comprobar la tabla':'Leer y comprobar el resultado',e.matrixLayout==='dh'?'T reúne la orientación del extremo —sus tres primeras columnas— y su posición respecto de la base —la cuarta—. La tabla es la respuesta pedida; que T lleve el extremo a la postura de la lámina es su comprobación.':'La cuarta columna da X, Y y Z. Entrega solo la coordenada o la matriz que pide el enunciado. Las cifras mostradas están redondeadas a siete decimales; el cálculo conserva la precisión interna.',[`X = ${f(tcp.x)}`,`Y = ${f(tcp.y)}`,`Z = ${f(tcp.z)}`,`Respuesta solicitada: ${Array.isArray(e.answer)?e.answer.map(r=>'[ '+r.map(f).join(' ; ')+' ]').join('\n'):f(e.answer)}`]);
  return`<div class="mechanical-worked" data-worked-solution="true"><h3>Solución paso a paso</h3>${parts.join('')}</div>`;
 }
@@ -8804,6 +8931,7 @@ function renderExercise(){
  activeAnswerInput=null;
  if(exercise.type==="open"){area.innerHTML=openAnswerMarkup(exercise)}
  else if(exercise.type==="symbolic"){area.innerHTML=wsSymbolicInputs(exercise)}
+ else if(isDhChainExercise(exercise)){area.innerHTML=dhChainAnswerMarkup(exercise)}
  else if(exercise.type==="matrix"&&exercise.matrixLayout==="dh"){
   /* Una tabla DH no es una matriz: sin cabeceras no se sabe qué columna es aᵢ
      y cuál αᵢ. Las celdas conservan el mismo orden y la misma clase que en el
@@ -8862,7 +8990,7 @@ function diagnoseCell(expected,entered,row,col,matrix){
  /* En una tabla DH la coordenada de la celda no dice nada: lo que enseña es
     el nombre del parámetro equivocado, porque confundir aᵢ con dᵢ es
     precisamente el error que se está corrigiendo. */
- const donde=exercise?.matrixLayout==="dh"?`${dhColumnLabel(col)}${row+1}`:`Celda (${row+1},${col+1})`;
+ const donde=isDhChainExercise(exercise)?dhChainCellName(exercise,row,col):exercise?.matrixLayout==="dh"?`${dhColumnLabel(col)}${row+1}`:`Celda (${row+1},${col+1})`;
  return{error,cause,text:`${donde}: ${cause}; esperado ${fmt(expected,5)}, ingresado ${fmt(entered,5)}, error ${fmt(error,5)}.`};
 }
 /* Único juez de si una respuesta es correcta. Lo usan la práctica y el examen:
@@ -8873,6 +9001,7 @@ function answerIsCorrect(exercise,a){
  if(exercise.type==="choice")return a===exercise.answer;
  if(exercise.type==="number")return Number.isFinite(a)&&Math.abs(a-exercise.answer)<=baseTolerance(exercise);
  if(!Array.isArray(a))return false;
+ if(isDhChainExercise(exercise))return dhChainGrade(exercise,a).nota===1;
  return eq(a,exercise.answer,baseTolerance(exercise));
 }
 /* Un pulso, no una sacudida: señala sin reprender. */
@@ -8915,6 +9044,16 @@ function check(){
    c.title=isStatementOnlyExercise(exercise)?(cellOk?"Correcta":"Revisa esta respuesta"):cellOk?`Correcta: ${fmt(a[i][j],6)}`:`Esperado: ${fmt(exercise.answer[i][j],6)} | Ingresado: ${fmt(a[i][j],6)} | Error: ${fmt(d,6)}`;
    if(!isStatementOnlyExercise(exercise)&&!cellOk&&diffs.length<3)diffs.push(diagnoseCell(exercise.answer[i][j],a[i][j],i,j,a).text);
   });
+  /* Una parte bien por arrastre no se pinta en rojo: difiere de la solución,
+     pero es coherente con lo que el alumno escribió antes. */
+  if(isDhChainExercise(exercise)){
+   const g=dhChainGrade(exercise,a),bloques=dhChainBlocks(exercise),celdas=[...document.querySelectorAll("#answerArea .cell")];
+   for(const x of DH_CHAIN_PARTS){
+    if(!g.partes[x.key].arrastre)continue;
+    const [desde,hasta]=bloques[x.key];
+    celdas.slice(desde*4,hasta*4).forEach(c=>{if(!c.classList.contains("bad"))return;c.classList.replace("bad","carry");c.setAttribute("aria-invalid","false");c.title="Coherente con lo que escribiste antes (arrastre). "+c.title});
+   }
+  }
   exercise.lastDiffs=diffs;
   pulseWrongCells();
  }
@@ -8940,7 +9079,7 @@ function check(){
  if(!ok&&!isStatementOnlyExercise(exercise)&&exercise.type!=="choice"&&exercise.type!=="symbolic")exercise.answerRevealed=true;
  exercise.attempted=true;exercise.lastAttempt={ok,entered:Array.isArray(a)?a.map(row=>Array.isArray(row)?[...row]:row):a,diagnostic:firstObservableDifference(exercise,a,ok)};renderMatrixBreakdown(exercise);
  if(wsIsExercise(exercise))renderWsActivity(exercise);
- if(!ok&&hasMechanicalWorkedSolution(exercise)){revealMechanicalWorkedSolution(exercise);feedback("bad","La respuesta no es correcta. Debajo tienes el desarrollo completo, paso a paso.")}
+ if(!ok&&hasMechanicalWorkedSolution(exercise)){revealMechanicalWorkedSolution(exercise);feedback("bad",(isDhChainExercise(exercise)?dhChainSummary(dhChainGrade(exercise,a))+" ":"La respuesta no es correcta. ")+"Debajo tienes el desarrollo completo, paso a paso.")}
  if(isDhTableExercise(exercise))renderStageWorkbench(exercise);
  save();
 }
@@ -9373,7 +9512,11 @@ function captureExamAnswer(){
  const textos=celdas.map(c=>String(c.value));
  if(!celdas.some(c=>!c.readOnly&&String(c.value).trim())){ex.respuestas[ex.actual]=null;return true}
  let valor=null;
- try{valor=Array.from({length:pregunta.rows},(_,i)=>Array.from({length:pregunta.cols},(_,j)=>new Parser(textos[i*pregunta.cols+j]||"",unidad).parse()))}
+ /* El problema completo DH se puntúa por partes: una celda vacía no puede
+    anular la respuesta entera, porque quien deja T en blanco conserva la nota
+    de su tabla. Cada celda ilegible queda como NaN y la juzga su parte. */
+ if(isDhChainExercise(pregunta))valor=Array.from({length:pregunta.rows},(_,i)=>Array.from({length:pregunta.cols},(_,j)=>{try{return new Parser(textos[i*pregunta.cols+j]||"",unidad).parse()}catch(err){return NaN}}));
+ else try{valor=Array.from({length:pregunta.rows},(_,i)=>Array.from({length:pregunta.cols},(_,j)=>new Parser(textos[i*pregunta.cols+j]||"",unidad).parse()))}
  catch(err){valor=null}
  ex.respuestas[ex.actual]={crudo:textos,valor};
  return true;
@@ -9498,22 +9641,25 @@ function submitExam({porTiempo=false,capturar=true}={}){
  const temas={};
  const detalle=ex.preguntas.map((pregunta,i)=>{
   const respuesta=ex.respuestas[i];
-  const acierto=respuesta?answerIsCorrect(pregunta,respuesta.valor):false;
+  /* Casi todas las preguntas valen 0 o 1; el problema completo DH puntúa por
+     partes. `acierto` sigue significando «entera y bien», para que las
+     estadísticas por tema y la racha no cambien de sentido. */
+  const nota=respuesta?examQuestionScore(pregunta,respuesta.valor):0,acierto=nota===1;
   const clave=recordTopicResult(pregunta,acierto,{examen:true});
   /* el examen cuenta como práctica: son intentos reales sobre el temario */
   progress.attempts++;
   if(progress.chapters[pregunta.chapter])progress.chapters[pregunta.chapter][1]++;
   if(acierto){progress.correct++;if(progress.chapters[pregunta.chapter])progress.chapters[pregunta.chapter][0]++}
   if(clave){const par=temas[clave]||(temas[clave]=[0,0]);par[1]++;if(acierto)par[0]++}
-  return{indice:i,pregunta,respuesta,acierto,clave,respondida:Boolean(respuesta),
+  return{indice:i,pregunta,respuesta,acierto,nota,clave,respondida:Boolean(respuesta),
    ms:Array.isArray(ex.tiempos)?(ex.tiempos[i]||0):0};
  });
- const aciertos=detalle.filter(d=>d.acierto).length;
- ex.resultado={detalle,aciertos,total:ex.preguntas.length,segundos,temas,porTiempo,
+ const aciertos=detalle.filter(d=>d.acierto).length,puntos=Math.round(detalle.reduce((suma,d)=>suma+d.nota,0)*100)/100;
+ ex.resultado={detalle,aciertos,puntos,total:ex.preguntas.length,segundos,temas,porTiempo,
   tiempos:Array.isArray(ex.tiempos)?[...ex.tiempos]:ex.preguntas.map(()=>0)};
  if(!Array.isArray(progress.exams))progress.exams=[];
  progress.exams.push({t:Date.now(),formato:ex.formato,capitulos:[...ex.capitulos],
-  dificultad:ex.dificultad,preguntas:ex.preguntas.length,aciertos,segundos,porTiempo,temas});
+  dificultad:ex.dificultad,preguntas:ex.preguntas.length,aciertos,puntos,segundos,porTiempo,temas});
  if(progress.exams.length>EXAM_HISTORY_MAX)progress.exams=progress.exams.slice(-EXAM_HISTORY_MAX);
  save();
  discardStoredExam();
@@ -13968,6 +14114,74 @@ function runSelfTests(){
    if(!DIFFICULTY_LEVELS.map(String).includes(limpio.preferences.difficulty))return false;
    return ["degrees","radians"].includes(limpio.preferences.angleUnit);
   }],
+  ["El problema completo DH apila tabla, T y posición",()=>{
+   /* La respuesta se comprueba contra el motor, no contra sí misma: la tabla
+      contra la geometría, T contra el producto acumulado y la posición contra
+      el extremo de la cadena. */
+   return ROBOT_ARCHITECTURES.every(def=>{
+    const e=makeArchitectureExercise(4,def.id,"chain"),k=e.params.kinematics,n=e.params.chainRows,pos=k.positions.at(-1);
+    if(!isDhChainExercise(e)||e.rows!==n+5||e.cols!==4||n!==def.types.length)return false;
+    if(!eq(e.answer.slice(0,n),k.table.map(dhRowCells),1e-12))return false;
+    if(!eq(e.answer.slice(n,n+4),k.cumulative.at(-1),1e-12))return false;
+    return eq([e.answer[n+4]],[[pos.x,pos.y,pos.z,1]],1e-9)&&exerciseTopicKey(e)==="4.3";
+   });
+  }],
+  ["El problema completo DH se califica por partes y con arrastre",()=>{
+   const e=makeArchitectureExercise(2,"anthropomorphic3","chain"),n=e.params.chainRows,copia=()=>e.answer.map(f=>[...f]);
+   if(dhChainGrade(e,copia()).nota!==1)return false;
+   /* Tabla con un error y el resto hecho con esa tabla: el error se cobra una
+      vez, en la tabla. */
+   const a=copia();a[1][2]+=0.5;
+   const T=KinematicsEngine.serialDH(a.slice(0,n).map(dhRowFromCells)).cumulative.at(-1);
+   for(let i=0;i<4;i++)a[n+i]=[...T[i]];a[n+4]=[T[0][3],T[1][3],T[2][3],1];
+   const g=dhChainGrade(e,a);
+   if(g.puntos!==6||g.partes.tabla.ok||!g.partes.T.arrastre||!g.partes.p.arrastre)return false;
+   /* T copiada de la solución con una tabla distinta no es arrastre: está bien
+      sin más, y la posición también. */
+   const b=copia();b[1][2]+=0.5;
+   const gb=dhChainGrade(e,b);
+   if(gb.puntos!==6||!gb.partes.T.ok||gb.partes.T.arrastre)return false;
+   /* Solo la posición mal: pierde sus 2 puntos. */
+   const c=copia();c[n+4][0]+=1;
+   return dhChainGrade(e,c).puntos===8;
+  }],
+  ["Dejar en blanco los ceros de T no cuenta, ni antes ni después de recargar",()=>{
+   /* El atajo de no escribir los ceros: en la misma sesión esas celdas son NaN
+      y no cuentan, pero del disco vuelven como null, y null−0 vale 0. Sin una
+      guarda, la misma respuesta valdría más después de recargar el examen. */
+   const e=makeArchitectureExercise(2,"cartesian3","chain"),n=e.params.chainRows;
+   const conHuecos=vacio=>e.answer.map((f,i)=>i>=n&&i<n+4?f.map(v=>Math.abs(v)<1e-12?vacio:v):[...f]);
+   const huecos=conHuecos(null).slice(n,n+4).flat().filter(v=>v===null).length;
+   if(huecos<3)return false;
+   const enSesion=dhChainGrade(e,conHuecos(NaN)),recargado=dhChainGrade(e,JSON.parse(JSON.stringify(conHuecos(NaN))));
+   return !enSesion.partes.T.ok&&!recargado.partes.T.ok&&enSesion.puntos===recargado.puntos&&recargado.puntos===6;
+  }],
+  ["El examen puntúa por partes el problema completo y entero lo demás",()=>{
+   const e=makeArchitectureExercise(2,"polar3","chain"),n=e.params.chainRows;
+   const solo=e.answer.map((f,i)=>i<n?[...f]:f.map(()=>NaN));
+   /* En los niveles bajos la última fila de T viene rellena: sigue sin estar
+      respondida si el alumno no escribió nada más. */
+   solo[n+3]=[0,0,0,1];
+   const g=dhChainGrade(e,solo);
+   if(!g.partes.T.vacia||!g.partes.p.vacia||dhChainPartVerdict("T",g.partes.T)!=="sin responder")return false;
+   if(examQuestionScore(e,solo)!==.4||examQuestionScore(e,e.answer)!==1||examQuestionScore(e,null)!==0)return false;
+   const tabla=makeDhAssignment(2);
+   return examQuestionScore(tabla,tabla.answer)===1&&examQuestionScore(tabla,tabla.answer.map(f=>f.map(v=>v+1)))===0;
+  }],
+  ["El historial de exámenes guarda los puntos por partes, acotados",()=>{
+   const fila=extra=>({t:1,formato:"parcial",capitulos:[4],dificultad:2,preguntas:10,aciertos:6,segundos:60,porTiempo:false,temas:{},...extra});
+   const limpio=validateProgressData({exams:[fila({puntos:7.456}),fila({puntos:99}),fila({puntos:2}),fila({puntos:"x"}),fila({})]});
+   return limpio.exams.map(e=>e.puntos).join("|")==="7.46|10|6|6|6";
+  }],
+  ["El nivel limita el tamaño del robot del problema completo",()=>{
+   const limite={1:3,2:3,3:4,4:6},vistos={1:0,2:0,3:0,4:0};
+   for(const nivel of [1,2,3,4])for(let i=0;i<60;i++){
+    const filas=makeArchitectureExercise(nivel,"any","chain").params.chainRows;
+    if(filas>limite[nivel])return false;vistos[nivel]=Math.max(vistos[nivel],filas);
+   }
+   /* y en el nivel más alto aparecen de verdad robots mayores */
+   return vistos[4]>4;
+  }],
   ["Las tablas DH siguen el orden de los pasos: θ, d, a, α",()=>{
    /* Todo lo demás lee DH_COLUMNS, así que un cambio en esa lista se
       propagaría sin que nada fallara. Aquí el orden se escribe a mano. */
@@ -15372,7 +15586,7 @@ function renderExamHistory(){
  zona.innerHTML=`<h3>Exámenes anteriores</h3>`+lista.slice(0,8).map(e=>{
   const pct=Math.round(100*e.aciertos/e.preguntas);
   const fecha=new Date(e.t).toLocaleDateString("es",{day:"2-digit",month:"short"});
-  return`<div class="exam-history-row"><span>${fecha} · ${examFormat(e.formato).titulo} · cap. ${e.capitulos.join(", ")} · nivel ${e.dificultad}</span><span><strong>${e.aciertos}/${e.preguntas}</strong> · ${pct}% · ${formatClock(e.segundos*1000)}${e.porTiempo?" · sin tiempo":""}</span></div>`;
+  return`<div class="exam-history-row"><span>${fecha} · ${examFormat(e.formato).titulo} · cap. ${e.capitulos.join(", ")} · nivel ${e.dificultad}</span><span><strong>${e.aciertos}/${e.preguntas}</strong>${Number.isFinite(e.puntos)&&e.puntos!==e.aciertos?` · ${fmt(e.puntos,2)} pts`:""} · ${pct}% · ${formatClock(e.segundos*1000)}${e.porTiempo?" · sin tiempo":""}</span></div>`;
  }).join("");
 }
 function examAnswerText(pregunta,respuesta){
@@ -15381,6 +15595,10 @@ function examAnswerText(pregunta,respuesta){
  /* Desde que el examen se guarda en disco, `crudo` puede llegar con otra forma
     —un archivo de otra versión, una edición manual— y el informe no debe caerse
     por eso: lo peor que puede pasar es que una respuesta se lea rara. */
+ if(isDhChainExercise(pregunta)&&Array.isArray(respuesta.crudo)){
+  const b=dhChainBlocks(pregunta),filas=(i,j)=>Array.from({length:j-i},(_,k)=>`[ ${respuesta.crudo.slice((i+k)*4,(i+k)*4+4).map(t=>String(t==null?"":t).trim()||"·").join("  ")} ]`).join(" ");
+  return`Tabla: ${filas(...b.tabla)} · T: ${filas(...b.T)} · posición: ${filas(...b.p)}`;
+ }
  if(pregunta.type==="matrix"){
   const celdas=Array.isArray(respuesta.crudo)?respuesta.crudo:[respuesta.crudo];
   return`[ ${celdas.map(t=>String(t==null?"":t).trim()||"·").join("  ")} ]`;
@@ -15391,6 +15609,10 @@ function examSolutionText(pregunta){
  if(pregunta.type==="symbolic")return pregunta.symbolFields.map(f=>`${f.label}: ${pregunta.answer[f.key]}`).join("; ");
  if(pregunta.type==="choice")return String(pregunta.answer);
  if(pregunta.type==="number")return fmt(pregunta.answer,5);
+ if(isDhChainExercise(pregunta)){
+  const b=dhChainBlocks(pregunta),filas=(i,j)=>pregunta.answer.slice(i,j).map(fila=>`[ ${fila.map(v=>fmt(v,4)).join("  ")} ]`).join(" ");
+  return`Tabla: ${filas(...b.tabla)} · T: ${filas(...b.T)} · posición: ${filas(...b.p)}`;
+ }
  return(pregunta.answer||[]).map(fila=>`[ ${fila.map(v=>fmt(v,4)).join("  ")} ]`).join(" ");
 }
 function renderExamReport(){
@@ -15411,6 +15633,7 @@ function renderExamReport(){
   <div class="exam-score">
    <div class="stat"><b>${pct}%</b><small>Acierto</small></div>
    <div class="stat"><b>${r.aciertos}/${r.total}</b><small>Correctas</small></div>
+   ${Number.isFinite(r.puntos)&&r.puntos!==r.aciertos?`<div class="stat"><b>${fmt(r.puntos,2)}/${r.total}</b><small>Puntos por partes</small></div>`:""}
    <div class="stat"><b>${formatClock(r.segundos*1000)}</b><small>Tiempo</small></div>
    <div class="stat"><b>${(()=>{const c=r.detalle.filter(d=>d.ms>0);return c.length?formatClock(c.reduce((s,d)=>s+d.ms,0)/c.length):"—"})()}</b><small>Media por pregunta</small></div>
    <div class="stat"><b>${temas.length}</b><small>Temas tocados</small></div>
@@ -15444,6 +15667,7 @@ function renderExamReport(){
      return r.detalle.map(d=>`<div class="exam-q ${d.acierto?"good":"bad"}">
      <div class="exam-q-head"><span><strong>${d.indice+1}.</strong> ${traceHtmlEscape(d.pregunta.title||"Ejercicio")}</span><span class="exam-q-tiempo">${d.ms>0?formatClock(d.ms):"—"}${masLenta&&d===masLenta&&d.ms>0?" · la más lenta":""}</span><span class="exam-q-mark">${d.acierto?"✓ correcta":d.respondida?"✗ incorrecta":"✗ sin responder"}</span></div>
      <div class="statement">${d.pregunta.statement}</div>
+     ${isDhChainExercise(d.pregunta)?`<p class="exam-hint">${traceHtmlEscape(dhChainSummary(dhChainGrade(d.pregunta,Array.isArray(d.respuesta?.valor)?d.respuesta.valor:[])))}</p>`:""}
      <div class="exam-answers">
       <div><strong>Tu respuesta:</strong><br>${traceHtmlEscape(examAnswerText(d.pregunta,d.respuesta))}</div>
       <div><strong>Correcta:</strong><br>${traceHtmlEscape(examSolutionText(d.pregunta))}</div>

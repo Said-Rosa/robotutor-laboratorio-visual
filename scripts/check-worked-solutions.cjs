@@ -1,7 +1,7 @@
 const assert=require('node:assert/strict');const {cargar}=require('./sandbox.cjs');
-const P=cargar(['mechanicalWorkedSolution','mechanicalScene','makeSpatial2R','makeSpatial3R','makeRrrp','makeScara','makeTextbookExercise','makeIndustrial6R','makeDhAssignment','makeDhAssignment6R','KinematicsEngine']);
+const P=cargar(['mechanicalWorkedSolution','mechanicalScene','makeArchitectureExercise','makeSpatial2R','makeSpatial3R','makeRrrp','makeScara','makeTextbookExercise','makeIndustrial6R','makeDhAssignment','makeDhAssignment6R','KinematicsEngine']);
 let count=0;
-for(const gen of[P.makeSpatial2R,P.makeSpatial3R,P.makeRrrp,P.makeScara,d=>P.makeTextbookExercise(d,'scara'),d=>P.makeTextbookExercise(d,'cylindrical'),P.makeIndustrial6R,P.makeDhAssignment,P.makeDhAssignment6R])for(let i=0;i<4;i++){
+for(const gen of[P.makeSpatial2R,P.makeSpatial3R,P.makeRrrp,P.makeScara,d=>P.makeTextbookExercise(d,'scara'),d=>P.makeTextbookExercise(d,'cylindrical'),P.makeIndustrial6R,P.makeDhAssignment,P.makeDhAssignment6R,d=>P.makeArchitectureExercise(d,'any','chain')])for(let i=0;i<4;i++){
  const e=gen(i+1),k=e.kinematics||e.params.kinematics,html=P.mechanicalWorkedSolution(e),before=JSON.stringify(k),scene=P.mechanicalScene({...e,kinematics:k});
  assert.match(html,/Solución paso a paso/);assert.doesNotMatch(html,/undefined|NaN|Infinity/);assert.match(html,/revoluta tiene θ variable y d fijo/);assert.match(html,/prismática tiene d variable y θ fijo/);
  assert.equal(JSON.stringify(k),before);const pads=scene.solids.filter(s=>s.part==='pad');assert.equal(pads.length,2);for(let j=0;j<3;j++)assert.ok(Math.abs((pads[0].b[j]+pads[1].b[j])/2-scene.tip[j])<1e-9,'gripper tips must surround the actual TCP');

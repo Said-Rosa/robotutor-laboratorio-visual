@@ -1,10 +1,10 @@
-# Estado actual · 22 de septiembre de 2026
+# Estado actual · 26 de septiembre de 2026
 
 Esta sección describe el proyecto **tal como está hoy**. Todo lo que sigue a «Historial» es el registro de cómo se llegó aquí; si algo de abajo contradice a esta sección, manda esta.
 
 ## Versión y publicación
 
-- **3.45.0**, en `main` (`072a8d8`), publicada en https://said-rosa.github.io/robotutor-laboratorio-visual/ .
+- **3.46.0**, publicada en https://said-rosa.github.io/robotutor-laboratorio-visual/ .
 - **GitHub Pages es el único destino.** Las copias de `chatgpt.site` y de Sites que aparecen en el historial ya no se actualizan.
 
 ## Cómo se trabaja
@@ -34,7 +34,7 @@ Regla de repositorio **«Proteger main»**, sin excepciones para nadie: **no se 
 
 En el CI de cada PR: `check-source`, `check-worked-solutions`, `check-mechanical-plates`, `check-architectures`, `check-kinematics`, `check-selftests`, `check-exercises` y `check-security`, más el build en sus dos modos y `check-source`/`check-security` sobre cada uno.
 
-- **Autopruebas: 360/402 sin navegador.** Las 42 restantes necesitan DOM real y están listadas en `check-selftests.cjs`; si añadís una que lo necesite, añadidla ahí con su nombre exacto.
+- **Autopruebas: 366/408 sin navegador.** Las 42 restantes necesitan DOM real y están listadas en `check-selftests.cjs`; si añadís una que lo necesite, añadidla ahí con su nombre exacto.
 - En un cambio grande, **comparad contra `main`**: ejecutad la batería en las dos versiones y restad los fallos. Lo que solo aparezca en vuestra rama es vuestro.
 - `check-modeled-plates.cjs` necesita `playwright` y **no está en el CI**; en una copia sin él falla igual en `main`.
 
@@ -56,6 +56,8 @@ En el CI de cada PR: `check-source`, `check-worked-solutions`, `check-mechanical
   **En textos para el alumno, citad los temas por su nombre**, no por número.
 - **Columnas DH: θ, d, a, α.** El orden lo fija `DH_COLUMNS`. No indexéis columnas DH por posición: usad `dhRowCells`, `dhRowFromCells` o `dhColumnIndex('a')`.
 - **Ejercicios de asignación DH** (`kind:'dh-assignment'`): `kinematics` va solo en `params`, y su `pedagogyTrace` es la tabla. El banco de matrices ⁰A₁ … T usa su propio trazo (`stageTrace`) y **solo se abre con la tabla resuelta o la solución vista**, porque cada ⁱ⁻¹Aᵢ contiene su fila. En examen no aparece.
+- **Problema completo DH** (`kind:'dh-chain'`, `matrixLayout:'dhChain'`). Su respuesta es una matriz de (n+5)×4 con tres bloques: las n filas de la tabla, las 4 de T y la posición en homogéneas [x y z 1]. `dhChainGrade` la puntúa por partes (tabla 4, T 4, posición 2) **con arrastre**: una T que es la de la tabla escrita, o una posición que es la cuarta columna de la T escrita, puntúan aunque la tabla esté mal. En examen se captura celda a celda (vacía = `NaN`), y la guarda de valores finitos es imprescindible: del disco `NaN` vuelve como `null`, y `null−0` vale 0. No lleva banco de matrices, porque T es parte de la respuesta.
+- **Nota de examen.** `acierto` sigue siendo binario (entera y bien), así que las estadísticas por tema y la racha no cambian. Aparte, `examQuestionScore` da una nota de 0 a 1 por pregunta, y su suma se guarda como `puntos` en `progress.exams`. `validateProgressData` la acota entre los aciertos y el número de preguntas; las filas anteriores a 3.46 valen sus aciertos.
 - **Exámenes guardados.** `loadStoredExam` restaura las preguntas tal como se guardaron. Si cambiáis la forma de una pregunta (orden de celdas, forma de la respuesta), hay que migrarla ahí, como hace `migrateDhColumns`.
 - **Orden de declaración.** `loadProgress()` se ejecuta en la línea ~3.850, antes de muchas `const`. Lo que se llame durante la carga no puede leerlas: por ejemplo, `EXAM_FORMATS` dentro de `validateProgressData` rompería el arranque.
 - **Fórmulas en plantillas `String.raw`.** Escribid `$$ {}^{i-1}A_i`, con un espacio: `$${` abre una interpolación de JavaScript y la página deja de cargar.
@@ -66,7 +68,6 @@ Comprobado sobre `main` el 22 de septiembre:
 
 - **15 familias sin desarrollo escrito.** Las 10 cadenas narrativas del capítulo 3 (temas 3.11 y 3.12: `narrative_point`, `narrative_inversePoint`, `narrative_fixed`, `narrative_mobile`, `narrative_mixed` y sus variantes `_symbolic_`) y 5 variantes simbólicas del espacio de trabajo de tres eslabones (3.13: `workspace_symbolic_three_*`). Al fallarlas, el botón dice «Sin desarrollo escrito».
 - **2 temas sin práctica:** 3.1 «Sistemas de referencia y posición» y 3.5 «Ejemplo completo y controles» (claves del fuente).
-- **La cadena tabla → matrices → T no se califica.** Desde 3.44 el banco de matrices es práctica opcional. Queda por decidir si debe ser un paso obligatorio y calificado.
 - **`industrial6R`** conserva la muñeca desplazada de lado respecto del antebrazo (§10). Revisable.
 - **PR #22 abierto por error.** Es el primer intento de la tanda de seguridad, que chocaba con todo el fichero; lo sustituyó el #23, ya fusionado. Hay que cerrarlo sin fusionar.
 - **26 ramas remotas ya fusionadas** siguen existiendo. Se pueden borrar; `codex/geometria-y-notacion` se conservó a propósito (§5) hasta que Codex confirme que no le falta nada.
@@ -401,3 +402,14 @@ Petición del usuario: las tablas DH con las columnas en el orden en que los pas
 Cambiado también: las tres tablas escritas en la teoría, el ejemplo «(θ,d,a,α)=(90°,1,2,90°)», los chips de la cadena DH 3R, la línea de sustitución de la solución y el texto de cada fila en `makeArchitectureExercise`.
 
 Hay dos autopruebas que reconstruían filas con `([a,alpha,d,theta])`, y habrían dejado de comprobar lo que decían; ahora van por nombre. Batería 360/402, tres pruebas nuevas, dos verificadas con mutaciones.
+
+## 3.46.0 · Problema completo DH, calificado por partes (Claude)
+
+Petición del usuario: el ejercicio de examen entero —tabla DH, matriz T y posición del efector— como una sola pregunta calificada por partes, también en Examen. Hasta 3.45 solo se calificaba la tabla, y las matrices eran práctica opcional.
+
+- **Dónde aparece.** Cuarta opción del selector «Actividad» del capítulo 4 («Problema completo · tabla, T y posición»), práctica del tema «Asignación de marcos DH», y la rotación del capítulo, de donde salen también las preguntas de examen. El tamaño del robot sube con el nivel (`dhChainModel`): 3 ejes en los niveles 1 y 2, hasta 4 en el 3 y hasta 6 en el 4.
+- **Cómo se puntúa.** Tabla 4, T 4, posición 2, **con arrastre**: un error de la tabla se cobra una vez. En práctica, las celdas bien por arrastre se pintan en ámbar (`.cell.carry`), no en rojo, y el aviso da la nota por partes. El informe del examen añade «Puntos por partes» y el desglose de cada pregunta; el historial muestra los puntos cuando difieren de los aciertos.
+- **Dos trampas del examen, resueltas.** Una celda vacía anulaba la respuesta entera (`valor=null`): ahora esta pregunta se captura celda a celda. Y una celda en blanco cuyo valor correcto es 0 habría contado como acertada después de recargar (`null−0`); una autoprueba lo vigila.
+- La solución escrita reutiliza la de la tabla DH y cierra con «Paso D-H 16 · Leer T y la posición». `check-worked-solutions` incluye ahora el problema completo (40 soluciones).
+
+Comprobado en la página real: selector, tabla con un error y el resto coherente (6/10, celdas en ámbar, solución abierta), examen respondido solo con la tabla (0,4 puntos), informe, historial y recarga. Seis autopruebas nuevas; tres verificadas con mutaciones.

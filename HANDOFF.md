@@ -61,6 +61,8 @@ En el CI de cada PR: `check-source`, `check-worked-solutions`, `check-mechanical
 - **Nota de examen.** `acierto` sigue siendo binario (entera y bien), así que las estadísticas por tema y la racha no cambian. Aparte, `examQuestionScore` da una nota de 0 a 1 por pregunta, y su suma se guarda como `puntos` en `progress.exams`. `validateProgressData` la acota entre los aciertos y el número de preguntas; las filas anteriores a 3.46 valen sus aciertos.
 - **Exámenes guardados.** `loadStoredExam` restaura las preguntas tal como se guardaron. Si cambiáis la forma de una pregunta (orden de celdas, forma de la respuesta), hay que migrarla ahí, como hace `migrateDhColumns`.
 - **Orden de declaración.** `loadProgress()` se ejecuta en la línea ~3.850, antes de muchas `const`. Lo que se llame durante la carga no puede leerlas: por ejemplo, `EXAM_FORMATS` dentro de `validateProgressData` rompería el arranque.
+- **Pasos de las soluciones escritas.** `solutionStepsMarkup` inserta la primera línea de cada paso como HTML, y el resto va en un bloque de fórmula. No pongáis «<» en esos textos: un «0<θ<π» rompería el panel.
+- **Nada de `eval` ni `new Function`.** La política de contenido no lleva `unsafe-eval`, así que en el navegador fallarían, y `check-security` los rechaza. Si una prueba necesita evaluar una expresión, que lo haga en un script de `scripts/`, no dentro de la página.
 - **Fórmulas en plantillas `String.raw`.** Escribid `$$ {}^{i-1}A_i`, con un espacio: `$${` abre una interpolación de JavaScript y la página deja de cargar.
 
 ## Pendiente
@@ -70,8 +72,16 @@ Comprobado sobre `main` el 26 de septiembre:
 - **2 temas sin práctica:** 3.1 «Sistemas de referencia y posición» y 3.5 «Ejemplo completo y controles» (claves del fuente).
 - **`industrial6R`** conserva la muñeca desplazada de lado respecto del antebrazo (§10). Revisable.
 - **PR #22 abierto por error.** Es el primer intento de la tanda de seguridad, que chocaba con todo el fichero; lo sustituyó el #23, ya fusionado. Hay que cerrarlo sin fusionar.
-- **26 ramas remotas ya fusionadas** siguen existiendo. Se pueden borrar; `codex/geometria-y-notacion` se conservó a propósito (§5) hasta que Codex confirme que no le falta nada.
+- **Ramas antiguas.** Hay 27 ramas remotas ya fusionadas en `main` que se pueden borrar. Otras dos no están fusionadas y no deben borrarse a la ligera: `claude/endurecer-la-pagina`, la del PR #22, y `codex/geometria-y-notacion`, que se conserva a propósito (§5) hasta que Codex confirme que no le falta nada.
 - **Exigir PR y CI en `main`:** ver «Protección de `main`».
+
+**Decisiones abiertas del usuario** sobre el problema completo DH. El reparto de la nota (tabla 4, T 4, posición 2) está en `DH_CHAIN_PARTS`, y que una parte bien por arrastre reciba la nota entera está en `dhChainGrade`. Si su profesor puntúa de otra forma, cada cosa se cambia en una línea.
+
+**Propuestas del 26 de septiembre que el usuario aún no ha pedido**, en el orden en que se le recomendaron:
+
+- Repetición espaciada: que los ejercicios fallados vuelvan a salir a intervalos crecientes. Figura también en la pestaña «Mejoras futuras» de la app. El progreso ya guarda por tema la fecha y los últimos resultados, así que no hace falta servidor.
+- Ejecutar en el CI las 42 autopruebas que necesitan navegador. Hoy solo corren abriendo la página; `check-modeled-plates` ya usa `playwright` y podría servir de base.
+- Limpieza de ramas y cierre del PR #22 (ver arriba).
 
 ---
 

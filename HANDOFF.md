@@ -71,8 +71,7 @@ Comprobado sobre `main` el 26 de septiembre:
 
 - **2 temas sin práctica:** 3.1 «Sistemas de referencia y posición» y 3.5 «Ejemplo completo y controles» (claves del fuente).
 - **`industrial6R`** conserva la muñeca desplazada de lado respecto del antebrazo (§10). Revisable.
-- **PR #22 abierto por error.** Es el primer intento de la tanda de seguridad, que chocaba con todo el fichero; lo sustituyó el #23, ya fusionado. Hay que cerrarlo sin fusionar.
-- **Ramas antiguas.** Hay 27 ramas remotas ya fusionadas en `main` que se pueden borrar. Otras dos no están fusionadas y no deben borrarse a la ligera: `claude/endurecer-la-pagina`, la del PR #22, y `codex/geometria-y-notacion`, que se conserva a propósito (§5) hasta que Codex confirme que no le falta nada.
+- **Ramas.** El 26 de septiembre se cerró el PR #22 sin fusionar y se borraron las 28 ramas remotas ya fusionadas. Quedan dos, ninguna fusionada: `claude/endurecer-la-pagina`, la del #22, cuyo contenido se rehízo en el #23 y que puede borrarse cuando se quiera; y `codex/geometria-y-notacion`, que se conserva a propósito (§5) hasta que Codex confirme que no le falta nada. Las ramas de un PR fusionado se pueden borrar al fusionarlo.
 - **Exigir PR y CI en `main`:** ver «Protección de `main`».
 
 **Decisiones abiertas del usuario** sobre el problema completo DH. El reparto de la nota (tabla 4, T 4, posición 2) está en `DH_CHAIN_PARTS`, y que una parte bien por arrastre reciba la nota entera está en `dhChainGrade`. Si su profesor puntúa de otra forma, cada cosa se cambia en una línea.
@@ -81,7 +80,6 @@ Comprobado sobre `main` el 26 de septiembre:
 
 - Repetición espaciada: que los ejercicios fallados vuelvan a salir a intervalos crecientes. Figura también en la pestaña «Mejoras futuras» de la app. El progreso ya guarda por tema la fecha y los últimos resultados, así que no hace falta servidor.
 - Ejecutar en el CI las 42 autopruebas que necesitan navegador. Hoy solo corren abriendo la página; `check-modeled-plates` ya usa `playwright` y podría servir de base.
-- Limpieza de ramas y cierre del PR #22 (ver arriba).
 
 ---
 

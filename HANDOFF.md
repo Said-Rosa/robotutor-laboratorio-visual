@@ -71,7 +71,7 @@ Comprobado sobre `main` el 26 de septiembre:
 
 - **2 temas sin práctica:** 3.1 «Sistemas de referencia y posición» y 3.5 «Ejemplo completo y controles» (claves del fuente).
 - **`industrial6R`** conserva la muñeca desplazada de lado respecto del antebrazo (§10). Revisable.
-- **Ramas.** El 26 de septiembre se cerró el PR #22 sin fusionar y se borraron las 28 ramas remotas ya fusionadas. Quedan dos, ninguna fusionada: `claude/endurecer-la-pagina`, la del #22, cuyo contenido se rehízo en el #23 y que puede borrarse cuando se quiera; y `codex/geometria-y-notacion`, que se conserva a propósito (§5) hasta que Codex confirme que no le falta nada. Las ramas de un PR fusionado se pueden borrar al fusionarlo.
+- **Ramas.** El 26 de septiembre se cerró el PR #22 sin fusionar y se borraron todas las ramas remotas salvo `main` y `codex/geometria-y-notacion`, que se conserva a propósito (§5) hasta que Codex confirme que no le falta nada. La del #22 también se borró: su contenido está en `main` por el #23. Las ramas de un PR fusionado se pueden borrar al fusionarlo.
 - **Exigir PR y CI en `main`:** ver «Protección de `main`».
 
 **Decisiones abiertas del usuario** sobre el problema completo DH. El reparto de la nota (tabla 4, T 4, posición 2) está en `DH_CHAIN_PARTS`, y que una parte bien por arrastre reciba la nota entera está en `dhChainGrade`. Si su profesor puntúa de otra forma, cada cosa se cambia en una línea.

@@ -694,6 +694,10 @@
     .reflection-formats{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:14px;margin:12px 0;border:1px solid var(--line);border-radius:12px;background:var(--soft)}
     #openAnswer{display:block;width:100%;min-height:170px;resize:vertical;padding:14px;border:1px solid var(--line);border-radius:12px;color:var(--text);background:var(--card);font:inherit;line-height:1.6}#openNotice{font-size:.9rem;line-height:1.6}#openReview{padding:18px;border:1px solid var(--line);border-radius:12px;margin-top:18px;background:var(--soft)}
     .dh-table-wrap{overflow-x:auto;margin:10px 0}
+    .review-banner{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin:0 0 12px;padding:10px 14px;border:1px solid var(--line);border-left:4px solid var(--cyan);border-radius:var(--radius);background:var(--soft)}
+    .review-banner[hidden]{display:none}
+    .review-banner p{margin:0;flex:1 1 240px}
+    .review-row{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--line);font-size:.86rem}
     .dh-chain-part{margin:14px 0 4px}
     .dh-chain-part h4{margin:0 0 6px;font-size:.95rem}
     .dh-chain-part h4 small{font-weight:600;color:var(--muted)}
@@ -830,6 +834,7 @@ var RoboTutorMechanical3D=(()=>{var Ka=Object.defineProperty;var Bh=Object.getOw
     <div class="exercise-layout">
       <main class="card exercise-card">
         <section id="topicPracticeContext" class="topic-practice-context" aria-label="Práctica del tema" hidden></section>
+        <section id="reviewBanner" class="review-banner" aria-live="polite" aria-label="Repaso espaciado" hidden></section>
         <div class="controls">
           <div>
             <label for="practiceChapter">Capítulo</label>
@@ -1039,6 +1044,7 @@ var RoboTutorMechanical3D=(()=>{var Ka=Object.defineProperty;var Bh=Object.getOw
         <p class="stats-note" id="assistedSummary">Resoluciones con ayuda: 0. No aumentan la precisión ni la racha.</p>
         <div class="mastery" id="mastery"></div>
         <div class="topic-report" id="topicReport"></div>
+        <div class="topic-report review-schedule" id="reviewSchedule"></div>
         <div class="data-actions">
           <button class="btn soft" id="exportProgress" type="button">Exportar</button>
           <button class="btn soft" id="importProgress" type="button">Importar</button>
@@ -2822,7 +2828,6 @@ const roadmap = [
 ["Verificador simbólico","Aceptar cos(θ₁+θ₂), tablas DH y expresiones equivalentes, no solo decimales. El analizador propio ya admite pi, raíces, funciones trigonométricas y potencias; falta el álgebra simbólica.","Alta","parcial"],
 
 ["Trazado de dominio por concepto","Estimar el dominio de cada habilidad con un modelo interpretable tipo BKT.","Media"],
-["Repetición espaciada","Reprogramar ejercicios fallados en intervalos crecientes para mejorar retención.","Media"],
 ["Ejemplos desvanecidos","Mostrar ejemplos completos al inicio y retirar pasos gradualmente hasta llegar a resolución autónoma. La auditoría matricial ya se desvanece por nivel: completa, enmascarada, solo el primer error y solo la incompatibilidad.","Media","listo"],
 ["Modo examen","Tiempo limitado, banco parametrizado sin enunciados repetidos y reparto por temas. Durante la prueba no se ven pistas, solución, ficha teórica ni taller. Al entregar, informe por tema con enlace a la lección.","Media","listo"],
 ["Importador de ejercicios","Convertir plantillas del profesor en generadores parametrizados y validadores deterministas.","Alta"],
@@ -2840,7 +2845,7 @@ const roadmap = [
    en este punto y renombra el archivo en consecuencia.
    Ojo: `progress.version` es otra cosa — numera el esquema de datos guardados en
    localStorage y avanza solo cuando cambia la forma de ese objeto. */
-const APP_VERSION="3.47.0";
+const APP_VERSION="3.48.0";
 const APP_STAGE="láminas claras · verdadero/falso y respuestas abiertas";
 /* Los cuatro niveles del curso. Toda comprobación de dificultad debe leer de aquí:
    el selector, las preferencias guardadas, la política pedagógica y los bancos. */
@@ -3860,7 +3865,7 @@ function defaultFamilies(){return Object.fromEntries(progressChapterIds().map(id
 /* `topics` lleva la cuenta por tema y `history` el rastro con marca de tiempo:
    sin lo primero no se puede decir qué repasar, y sin lo segundo no se puede
    ver si mejoras ni componer el informe de un examen. */
-function defaultProgress(){return{version:9,attempts:0,correct:0,streak:0,assisted:0,chapters:Object.fromEntries(progressChapterIds().map(id=>[id,[0,0]])),topics:{},history:[],exams:[],readTopics:{},learnBookmark:null,theme:"light",preferences:{difficulty:"1",angleUnit:"degrees",families:defaultFamilies()}}}
+function defaultProgress(){return{version:9,attempts:0,correct:0,streak:0,assisted:0,chapters:Object.fromEntries(progressChapterIds().map(id=>[id,[0,0]])),topics:{},history:[],exams:[],review:{},readTopics:{},learnBookmark:null,theme:"light",preferences:{difficulty:"1",angleUnit:"degrees",families:defaultFamilies()}}}
 function validateProgressData(data){
  if(!data||typeof data!=="object"||Array.isArray(data))throw Error("el JSON debe contener un objeto");
  const clean=defaultProgress(),finiteCount=v=>Number.isFinite(Number(v))&&Number(v)>=0?Math.floor(Number(v)):0;
@@ -3936,6 +3941,20 @@ function validateProgressData(data){
     salida[clave]=[Math.min(total,finiteCount(par[0])),total];}return salida})()}))
   .filter(fila=>fila.preguntas>0)
   .slice(-EXAM_HISTORY_MAX);
+ /* Agenda del repaso espaciado, desde 3.48. Solo temas que existen. Los
+    identificadores de familia son las únicas cadenas que se guardan tal cual,
+    así que se reducen al alfabeto de los identificadores. La caja máxima (4)
+    va escrita aquí porque REVIEW_INTERVAL_DAYS se declara después de que el
+    progreso se cargue, y leerla rompería el arranque. */
+ clean.review=(()=>{const salida={},agenda=data.review;
+  if(!agenda||typeof agenda!=="object"||Array.isArray(agenda))return salida;
+  for(const [clave,item] of Object.entries(agenda).slice(0,80)){
+   if(!item||typeof item!=="object"||!topicByKey(clave))continue;
+   const nivel=finiteCount(item.nivel);
+   salida[clave]={caja:Math.min(4,finiteCount(item.caja)),vence:finiteCount(item.vence),nivel:nivel>=1&&nivel<=4?nivel:1,
+    ids:(Array.isArray(item.ids)?item.ids:[]).map(reviewSafeId).filter(Boolean).slice(0,3),fallos:finiteCount(item.fallos)};
+  }
+  return salida})();
  const prefs=data.preferences&&typeof data.preferences==="object"?data.preferences:{};
  clean.preferences.difficulty=DIFFICULTY_LEVELS.map(String).includes(String(prefs.difficulty))?String(prefs.difficulty):"1";
  clean.preferences.angleUnit=["degrees","radians"].includes(prefs.angleUnit)?prefs.angleUnit:"degrees";
@@ -9026,7 +9045,7 @@ function renderExercise(){
   restoreExamAnswer(exercise,ex.respuestas[ex.actual]);
  }else renderedExamQuestions.delete(area);
  renderStageWorkbench(exercise);
- renderMechanicalControls();renderPlanarControls();renderReflectionControls();
+ renderMechanicalControls();renderPlanarControls();renderReflectionControls();renderReviewBanner();
  renderQuickInputs();
  document.getElementById("solutionLevel").textContent=solutionRevealPolicy(exercise.difficulty).label;
  document.getElementById("solutionSteps").innerHTML=solutionReasoningMarkup(exercise)+solutionProcedureMarkup(exercise)+solutionStepsMarkup(exercise)+solutionPitfallsMarkup(exercise);
@@ -9142,6 +9161,7 @@ function check(){
   feedback("bad",isStatementOnlyExercise(exercise)?(porQueFalla?"La respuesta no es correcta."+porQueFalla:"La respuesta no es correcta. Revisa tu resultado."):exercise.type==="choice"?(motivoOpcion?`Esa alternativa falla por una razón concreta.<span class="diff-pattern">${motivoOpcion}</span>`:"La opción no es correcta. Usa una pista o revisa la lección."):`Hay diferencias. Revisa orden, signos, unidades y redondeo.${scalarDetail}${detail}`)
  }
  if(!asistido)recordTopicResult(exercise,ok);
+ const repaso=reviewRecord(exercise,ok&&!asistido);if(exercise.reviewKey)exercise.reviewOutcome=repaso;
  /* El diagnóstico numérico y matricial muestra el valor esperado: una copia
     posterior es práctica con ayuda, aunque no se abra «Ver solución». */
  if(!ok&&!isStatementOnlyExercise(exercise)&&exercise.type!=="choice"&&exercise.type!=="symbolic")exercise.answerRevealed=true;
@@ -9194,6 +9214,111 @@ function recordTopicResult(exercise,acierto,{examen=false}={}){
  if(progress.history.length>HISTORY_MAX)progress.history=progress.history.slice(-HISTORY_MAX);
  return clave;
 }
+/* ---------- REPETICIÓN ESPACIADA ----------
+   «Temas por reforzar» decía qué flojeaba, pero nada volvía a ponerlo delante.
+   Aquí lo fallado vuelve: al día siguiente y, mientras se acierte sin ayuda, a
+   los 3, 7, 14 y 30 días (sistema de Leitner). Un fallo lo devuelve a mañana.
+   Se repasa el tema, no el ejercicio exacto: se genera uno nuevo, a poder ser
+   de la misma familia. Repetir los mismos números entrenaría la memoria de la
+   respuesta, no el método. Acertar habiendo visto la solución cuenta como
+   fallo: hizo falta ayuda. */
+const REVIEW_INTERVAL_DAYS=Object.freeze([1,3,7,14,30]);
+const REVIEW_MAX_IDS=3;
+function reviewDayStart(ms){const d=new Date(ms);d.setHours(0,0,0,0);return d.getTime()}
+/* Por calendario y no por horas: lo que vence mañana está disponible desde
+   medianoche, y los cambios de horario no lo desplazan. */
+function reviewAddDays(ms,dias){const d=new Date(reviewDayStart(ms));d.setDate(d.getDate()+dias);return d.getTime()}
+function reviewSafeId(id){return String(id??"").replace(/[^a-zA-Z0-9_-]/g,"").slice(0,64)}
+/* Aplica un resultado a una agenda. Devuelve qué pasó con el tema. */
+function reviewUpdate(agenda,clave,{independiente,nivel=1,id="",ahora=Date.now()}){
+ const item=agenda[clave];
+ if(!independiente){
+  const ids=[reviewSafeId(id),...(item?.ids||[])].filter((x,i,todos)=>x&&todos.indexOf(x)===i).slice(0,REVIEW_MAX_IDS);
+  agenda[clave]={caja:0,vence:reviewAddDays(ahora,REVIEW_INTERVAL_DAYS[0]),nivel,ids,fallos:(item?.fallos||0)+1};
+  return"programado";
+ }
+ /* Acertar antes de tiempo no adelanta el repaso: el intervalo mide cuánto
+    se sostiene lo aprendido, y eso solo se sabe cuando ha pasado. */
+ if(!item||item.vence>ahora)return"sin cambios";
+ if(item.caja>=REVIEW_INTERVAL_DAYS.length-1){delete agenda[clave];return"dominado"}
+ item.caja++;item.vence=reviewAddDays(ahora,REVIEW_INTERVAL_DAYS[item.caja]);
+ return"ascendido";
+}
+/* Solo se programa lo que el tema puede volver a ofrecer, al nivel en que se
+   falló o al más cercano que tenga ejercicios. */
+function reviewRecord(exercise,independiente,ahora=Date.now()){
+ const clave=exerciseTopicKey(exercise);
+ if(!clave||!topicByKey(clave))return null;
+ if(!progress.review||typeof progress.review!=="object"||Array.isArray(progress.review))progress.review={};
+ let nivel=Number(exercise.difficulty)||1;
+ if(!independiente){
+  const disponible=topicPracticeAvailability(clave,nivel);
+  if(!disponible.available){
+   if(!disponible.levels.length)return null;
+   nivel=disponible.levels.reduce((mejor,l)=>Math.abs(l-nivel)<Math.abs(mejor-nivel)?l:mejor);
+  }
+ }
+ return reviewUpdate(progress.review,clave,{independiente,nivel,id:exercise.id,ahora});
+}
+function reviewDue(agenda=progress.review||{},ahora=Date.now()){
+ return Object.entries(agenda).filter(([,item])=>item&&item.vence<=ahora)
+  .sort((a,b)=>a[1].vence-b[1].vence||a[1].caja-b[1].caja).map(([clave,item])=>({clave,...item}));
+}
+function reviewWhen(vence,ahora=Date.now()){
+ const dias=Math.round((reviewDayStart(vence)-reviewDayStart(ahora))/864e5);
+ return dias<=0?"hoy":dias===1?"mañana":`en ${dias} días`;
+}
+/* Un ejercicio nuevo del tema; si puede ser, de una de las familias falladas. */
+function reviewExercise(clave,item){
+ let primero=null;
+ for(let intento=0;intento<120;intento++){
+  let e=null;try{e=makeTopicExercise(clave,item.nivel)}catch(err){continue}
+  if(!e)continue;primero=primero||e;
+  if((item.ids||[]).includes(reviewSafeId(e.id)))return e;
+ }
+ return primero;
+}
+function startReview(){
+ if(examEnCurso())return;
+ const pendientes=reviewDue();if(!pendientes.length){renderReviewBanner();return}
+ const clave=pendientes[0].clave,item=progress.review[clave],e=reviewExercise(clave,item);
+ /* Un tema que ya no ofrece ejercicios no puede repasarse: sale de la agenda. */
+ if(!e){delete progress.review[clave];save();startReview();return}
+ setActiveChapter(topicByKey(clave).capitulo.id);
+ hintIndex=0;document.getElementById("feedback").className="feedback";document.getElementById("solution").classList.remove("show");
+ e.difficulty=item.nivel;e.family=exerciseFamily(e);e.attempted=false;e.lastAttempt=null;e.pedagogyTrace=buildPedagogyTrace(e);e.reviewKey=clave;
+ appState.currentExercise=e;
+ renderExercise();syncChapterUI();
+ document.getElementById("exerciseTitle")?.scrollIntoView({block:"nearest"});
+}
+function renderReviewBanner(){
+ const host=document.getElementById("reviewBanner");if(!host)return;
+ if(examEnCurso()){host.hidden=true;host.innerHTML="";return}
+ const pendientes=reviewDue(),e=appState.currentExercise,enRepaso=Boolean(e?.reviewKey);
+ const titulo=clave=>traceHtmlEscape(topicLabel(clave)?.titulo||clave),item=enRepaso?progress.review?.[e.reviewKey]:null;
+ let texto="";
+ if(enRepaso&&e.reviewOutcome){
+  const resultado={programado:"No salió: vuelve mañana.",ascendido:`Bien: vuelve ${item?reviewWhen(item.vence):"más adelante"}.`,dominado:"Bien por última vez: sale de la agenda.","sin cambios":"Registrado."}[e.reviewOutcome]||"";
+  texto=`<strong>Repaso · ${titulo(e.reviewKey)}</strong> ${resultado}`;
+ }else if(enRepaso){
+  texto=`<strong>Repaso · ${titulo(e.reviewKey)}</strong> Paso ${item?item.caja+1:1} de ${REVIEW_INTERVAL_DAYS.length}. La última vez no salió: resuélvelo sin ayuda para que el siguiente repaso se aleje.`;
+ }else if(pendientes.length){
+  texto=`<strong>Repaso de hoy</strong> ${pendientes.length===1?"Un tema que fallaste vuelve":`${pendientes.length} temas que fallaste vuelven`} a salir.`;
+ }
+ const boton=pendientes.length&&!(enRepaso&&!e.reviewOutcome)
+  ?`<button type="button" class="btn primary mini-btn" id="startReview">${enRepaso?"Siguiente repaso":"Repasar ahora"} · ${pendientes.length}</button>`:"";
+ host.hidden=!texto;
+ host.innerHTML=texto?`<p>${texto}</p>${boton}`:"";
+ host.querySelector("#startReview")?.addEventListener("click",startReview);
+}
+function renderReviewSchedule(){
+ const host=document.getElementById("reviewSchedule");if(!host)return;
+ const filas=Object.entries(progress.review||{}).filter(([,item])=>item).sort((a,b)=>a[1].vence-b[1].vence);
+ if(!filas.length){host.innerHTML=`<h4>Repaso espaciado</h4><p class="stats-note">Lo que falles volverá a salir al día siguiente, y después a los 3, 7, 14 y 30 días mientras lo aciertes sin ayuda.</p>`;return}
+ host.innerHTML=`<h4>Repaso espaciado</h4><p class="stats-note">Cada acierto sin ayuda aleja el siguiente repaso; un fallo lo devuelve a mañana.</p>`+
+  filas.slice(0,8).map(([clave,item])=>`<div class="review-row"><span>${traceHtmlEscape(topicLabel(clave)?.titulo||clave)}</span><span class="topic-row-score">${reviewWhen(item.vence)} · paso ${item.caja+1}/${REVIEW_INTERVAL_DAYS.length}</span></div>`).join("")+
+  (filas.length>8?`<p class="topic-report-foot">Y ${filas.length-8} más.</p>`:"");
+}
 /* Etiqueta legible de un tema, exista como lección o esté pendiente de escribirse. */
 function topicLabel(clave){
  const ref=topicByKey(clave);
@@ -9239,6 +9364,8 @@ function renderStats(){
  document.getElementById("streak").textContent=progress.streak;document.getElementById("accuracy").textContent=(progress.attempts?Math.round(100*progress.correct/progress.attempts):0)+"%";
  document.getElementById("mastery").innerHTML=Object.entries(progress.chapters).map(([ch,v])=>{let p=v[1]?Math.round(100*v[0]/v[1]):0;return`<div class="mastery-row"><div><span>Capítulo ${ch}</span><span>${p}%</span></div><div class="track"><div class="bar" style="width:${p}%"></div></div></div>`}).join("");
  renderTopicReport();
+ renderReviewSchedule();
+ renderReviewBanner();
 }
 /* El porcentaje por capítulo no dice qué estudiar. Esto sí: los temas con peor
    acierto, con enlace a su lección. */
@@ -9714,6 +9841,7 @@ function submitExam({porTiempo=false,capturar=true}={}){
      estadísticas por tema y la racha no cambien de sentido. */
   const nota=respuesta?examQuestionScore(pregunta,respuesta.valor):0,acierto=nota===1;
   const clave=recordTopicResult(pregunta,acierto,{examen:true});
+  reviewRecord(pregunta,acierto);
   /* el examen cuenta como práctica: son intentos reales sobre el temario */
   progress.attempts++;
   if(progress.chapters[pregunta.chapter])progress.chapters[pregunta.chapter][1]++;
@@ -14182,6 +14310,51 @@ function runSelfTests(){
    if(!DIFFICULTY_LEVELS.map(String).includes(limpio.preferences.difficulty))return false;
    return ["degrees","radians"].includes(limpio.preferences.angleUnit);
   }],
+  ["La agenda de repaso sigue los intervalos 1, 3, 7, 14 y 30 días",()=>{
+   /* Fechas fijas: la prueba no depende del día en que se ejecute. */
+   const dia=(d,h=10)=>new Date(2026,0,d,h).getTime(),medianoche=d=>new Date(2026,0,d).getTime(),agenda={};
+   if(reviewUpdate(agenda,"4.3",{independiente:false,nivel:2,id:"dh_chain_scara4",ahora:dia(10)})!=="programado")return false;
+   if(agenda["4.3"].caja!==0||agenda["4.3"].vence!==medianoche(11)||agenda["4.3"].ids[0]!=="dh_chain_scara4")return false;
+   /* acertar antes de tiempo no adelanta nada */
+   if(reviewUpdate(agenda,"4.3",{independiente:true,ahora:dia(10,20)})!=="sin cambios"||agenda["4.3"].caja!==0)return false;
+   let hoy=11;
+   for(const [caja,espera] of [[1,3],[2,7],[3,14],[4,30]]){
+    if(reviewUpdate(agenda,"4.3",{independiente:true,ahora:dia(hoy)})!=="ascendido")return false;
+    hoy+=espera;
+    if(agenda["4.3"].caja!==caja||agenda["4.3"].vence!==medianoche(hoy))return false;
+   }
+   if(reviewUpdate(agenda,"4.3",{independiente:true,ahora:dia(hoy)})!=="dominado"||"4.3" in agenda)return false;
+   /* un fallo a mitad de camino devuelve el tema a mañana y recuerda la familia */
+   reviewUpdate(agenda,"3.11",{independiente:false,nivel:1,id:"narrative_point",ahora:dia(1)});
+   reviewUpdate(agenda,"3.11",{independiente:true,ahora:dia(2)});reviewUpdate(agenda,"3.11",{independiente:true,ahora:dia(5)});
+   if(agenda["3.11"].caja!==2)return false;
+   reviewUpdate(agenda,"3.11",{independiente:false,nivel:1,id:"narrative_fixed",ahora:dia(6)});
+   const it=agenda["3.11"];
+   return it.caja===0&&it.vence===medianoche(7)&&it.fallos===2&&it.ids.join()==="narrative_fixed,narrative_point";
+  }],
+  ["Un día de repaso empieza a medianoche, no a las 24 horas",()=>{
+   const agenda={};
+   reviewUpdate(agenda,"4.3",{independiente:false,nivel:1,ahora:new Date(2026,2,3,23,50).getTime()});
+   const antes=reviewDue(agenda,new Date(2026,2,3,23,59).getTime()),despues=reviewDue(agenda,new Date(2026,2,4,0,1).getTime());
+   return antes.length===0&&despues.length===1&&despues[0].clave==="4.3"&&reviewWhen(agenda["4.3"].vence,new Date(2026,2,3,12).getTime())==="mañana";
+  }],
+  ["Lo que vence se repasa por orden de antigüedad",()=>{
+   const agenda={"4.3":{caja:2,vence:300,nivel:1,ids:[],fallos:1},"3.11":{caja:0,vence:100,nivel:1,ids:[],fallos:1},"4.1":{caja:0,vence:900,nivel:1,ids:[],fallos:1}};
+   return reviewDue(agenda,500).map(x=>x.clave).join()==="3.11,4.3";
+  }],
+  ["Una agenda de repaso importada se limpia",()=>{
+   const veneno='<img src=x onerror=alert(1)>';
+   const limpio=validateProgressData({review:{[veneno]:{caja:1,vence:5,nivel:2,ids:[]},"4.3":{caja:9,vence:-5,nivel:veneno,ids:[veneno,"dh_chain_scara4",4,"a","b"],fallos:"x"},"3.11":"nada"}});
+   const it=limpio.review["4.3"],texto=JSON.stringify(limpio.review);
+   return Object.keys(limpio.review).join()==="4.3"&&it.caja===4&&it.vence===0&&it.nivel===1&&it.fallos===0&&
+    it.ids.length===3&&it.ids[1]==="dh_chain_scara4"&&!/[<>`]/.test(texto)&&JSON.stringify(validateProgressData({}).review)==="{}";
+  }],
+  ["Un repaso genera un ejercicio nuevo del tema y de la familia fallada",()=>{
+   const e=reviewExercise("3.11",{nivel:2,ids:["narrative_point"]});
+   const otro=reviewExercise("3.11",{nivel:2,ids:["narrative_point"]});
+   /* del mismo tema y de la familia fallada, pero con otros números */
+   return exerciseTopicKey(e)==="3.11"&&e.id==="narrative_point"&&otro.id==="narrative_point"&&JSON.stringify(e.answer)!==JSON.stringify(otro.answer);
+  }],
   ["La solución de las cadenas tipo parcial llega al mismo resultado por otro camino",()=>{
    /* La solución enseña la regla «fijo premultiplica, móvil postmultiplica».
       Aquí se comprueba sin usarla: cada operación se aplica en coordenadas del
@@ -14201,7 +14374,12 @@ function runSelfTests(){
    for(const target of ["matrix","point","inversePoint"])for(const frameMode of ["fixed","mobile","mixed"])for(let i=0;i<4;i++){
     const e=makeNarrativeTransform(3,{frameMode,target}),{sequence,point}=e.narrativeData,T=porElMundo(sequence);
     const esperado=target==="matrix"?T:mul(target==="point"?T:invT(T),point.map(v=>[v]).concat([[1]])).slice(0,3);
-    if(!eq(e.answer,esperado,1e-9))return false;
+    /* La respuesta se redondea a siete decimales, y en los ejercicios de punto
+       ese redondeo se multiplica por las coordenadas. Con 1e-9 la prueba
+       fallaba en una ejecución de cada tres sin que nada estuviera mal. Medido
+       en 20.000 casos: el redondeo desvía como mucho 1,5e-5, y aplicar la regla
+       fijo/móvil al revés desvía como poco 0,29. 1e-3 separa ambos con margen. */
+    if(!eq(e.answer,esperado,1e-3))return false;
     /* y la solución escrita termina en esa respuesta */
     const final=target==="matrix"?mtxt(e.answer):`[${e.answer.map(f=>fmt(f[0])).join(", ")}, 1]ᵀ`;
     if(e.steps.length<6||!String(e.steps.at(-1)).endsWith(final))return false;

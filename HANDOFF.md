@@ -4,7 +4,7 @@ Esta sección describe el proyecto **tal como está hoy**. Todo lo que sigue a �
 
 ## Versión y publicación
 
-- **3.47.0**, publicada en https://said-rosa.github.io/robotutor-laboratorio-visual/ .
+- **3.48.0**, publicada en https://said-rosa.github.io/robotutor-laboratorio-visual/ .
 - **GitHub Pages es el único destino.** Las copias de `chatgpt.site` y de Sites que aparecen en el historial ya no se actualizan.
 
 ## Cómo se trabaja
@@ -34,7 +34,7 @@ Regla de repositorio **«Proteger main»**, sin excepciones para nadie: **no se 
 
 En el CI de cada PR: `check-source`, `check-worked-solutions`, `check-mechanical-plates`, `check-architectures`, `check-kinematics`, `check-selftests`, `check-exercises` y `check-security`, más el build en sus dos modos y `check-source`/`check-security` sobre cada uno.
 
-- **Autopruebas: 369/411 sin navegador.** Las 42 restantes necesitan DOM real y están listadas en `check-selftests.cjs`; si añadís una que lo necesite, añadidla ahí con su nombre exacto.
+- **Autopruebas: 374/416 sin navegador.** Las 42 restantes necesitan DOM real y están listadas en `check-selftests.cjs`; si añadís una que lo necesite, añadidla ahí con su nombre exacto.
 - **Todo ejercicio practicable tiene desarrollo escrito**, y `check-exercises` falla si llega uno sin él: el botón de solución no debería volver a decir «Sin desarrollo escrito».
 - En un cambio grande, **comparad contra `main`**: ejecutad la batería en las dos versiones y restad los fallos. Lo que solo aparezca en vuestra rama es vuestro.
 - `check-modeled-plates.cjs` necesita `playwright` y **no está en el CI**; en una copia sin él falla igual en `main`.
@@ -59,6 +59,8 @@ En el CI de cada PR: `check-source`, `check-worked-solutions`, `check-mechanical
 - **Ejercicios de asignación DH** (`kind:'dh-assignment'`): `kinematics` va solo en `params`, y su `pedagogyTrace` es la tabla. El banco de matrices ⁰A₁ … T usa su propio trazo (`stageTrace`) y **solo se abre con la tabla resuelta o la solución vista**, porque cada ⁱ⁻¹Aᵢ contiene su fila. En examen no aparece.
 - **Problema completo DH** (`kind:'dh-chain'`, `matrixLayout:'dhChain'`). Su respuesta es una matriz de (n+5)×4 con tres bloques: las n filas de la tabla, las 4 de T y la posición en homogéneas [x y z 1]. `dhChainGrade` la puntúa por partes (tabla 4, T 4, posición 2) **con arrastre**: una T que es la de la tabla escrita, o una posición que es la cuarta columna de la T escrita, puntúan aunque la tabla esté mal. En examen se captura celda a celda (vacía = `NaN`), y la guarda de valores finitos es imprescindible: del disco `NaN` vuelve como `null`, y `null−0` vale 0. No lleva banco de matrices, porque T es parte de la respuesta.
 - **Nota de examen.** `acierto` sigue siendo binario (entera y bien), así que las estadísticas por tema y la racha no cambian. Aparte, `examQuestionScore` da una nota de 0 a 1 por pregunta, y su suma se guarda como `puntos` en `progress.exams`. `validateProgressData` la acota entre los aciertos y el número de preguntas; las filas anteriores a 3.46 valen sus aciertos.
+- **Repaso espaciado** (`progress.review`). Agenda por tema: `{caja, vence, nivel, ids, fallos}`, con intervalos de 1, 3, 7, 14 y 30 días (`REVIEW_INTERVAL_DAYS`). `reviewRecord` se llama en `check()` y en `submitExam`. Cuenta como fallo fallar, fallar en examen o acertar con ayuda; acertar antes de que venza no cambia nada. `vence` es una medianoche local: se repasa por días de calendario. El repaso genera un ejercicio **nuevo** del tema (`reviewExercise`), preferentemente de una familia fallada. `validateProgressData` limpia la agenda sin leer `REVIEW_INTERVAL_DAYS`, que se declara después (por eso la caja máxima va escrita a mano).
+- **Tolerancias de las autopruebas.** Las respuestas se redondean a 7 decimales, y en los ejercicios de punto ese error se multiplica por las coordenadas. No comparéis con 1e-9: medid el desvío por redondeo y el del error que queréis detectar, y poned la tolerancia entre ambos.
 - **Exámenes guardados.** `loadStoredExam` restaura las preguntas tal como se guardaron. Si cambiáis la forma de una pregunta (orden de celdas, forma de la respuesta), hay que migrarla ahí, como hace `migrateDhColumns`.
 - **Orden de declaración.** `loadProgress()` se ejecuta en la línea ~3.850, antes de muchas `const`. Lo que se llame durante la carga no puede leerlas: por ejemplo, `EXAM_FORMATS` dentro de `validateProgressData` rompería el arranque.
 - **Pasos de las soluciones escritas.** `solutionStepsMarkup` inserta la primera línea de cada paso como HTML, y el resto va en un bloque de fórmula. No pongáis «<» en esos textos: un «0<θ<π» rompería el panel.
@@ -78,7 +80,6 @@ Comprobado sobre `main` el 26 de septiembre:
 
 **Propuestas del 26 de septiembre que el usuario aún no ha pedido**, en el orden en que se le recomendaron:
 
-- Repetición espaciada: que los ejercicios fallados vuelvan a salir a intervalos crecientes. Figura también en la pestaña «Mejoras futuras» de la app. El progreso ya guarda por tema la fecha y los últimos resultados, así que no hace falta servidor.
 - Ejecutar en el CI las 42 autopruebas que necesitan navegador. Hoy solo corren abriendo la página; `check-modeled-plates` ya usa `playwright` y podría servir de base.
 
 ---
@@ -433,3 +434,16 @@ Petición del usuario. Al fallar una de estas familias, el botón de solución d
 - **La primera línea de cada paso se inserta como HTML**: estos textos evitan el signo menor que.
 
 Las autopruebas contrastan lo escrito con algo independiente. Las cadenas se recalculan aplicando cada operación en coordenadas del mundo, con Rodrigues para los giros sobre ejes móviles y sin usar la regla fijo/móvil. Los radios del área de trabajo se contrastan barriendo las articulaciones del brazo. No se evalúan expresiones con `Function`, porque la política de contenido lo prohíbe. Tres autopruebas nuevas; tres mutaciones detectadas (el signo del teorema del coseno, la regla fijo/móvil y las casillas).
+
+## 3.48.0 · Repetición espaciada (Claude)
+
+Petición del usuario. «Temas por reforzar» decía qué flojeaba, pero nada volvía a ponerlo delante.
+
+- **Qué vuelve.** El tema fallado, con un ejercicio nuevo generado para ese tema y preferentemente de la familia fallada (se recuerdan hasta tres). No se repite el mismo ejercicio: con los mismos números se entrenaría la memoria de la respuesta, no el método.
+- **Cuándo.** Al día siguiente y, mientras se acierte sin ayuda, a los 3, 7, 14 y 30 días (Leitner). Tras el último acierto sale de la agenda. Un fallo la devuelve a mañana. Se cuenta por días de calendario, desde medianoche.
+- **Dónde.** Un aviso «Repaso de hoy» en Practicar cuando algo vence, con «Repasar ahora». Durante el repaso, el aviso dice en qué paso está y, al responder, cuándo vuelve. La barra de progreso muestra la agenda completa. Nada se inserta solo en la práctica: el repaso se pide.
+- La fila «Repetición espaciada» sale de «Mejoras futuras».
+
+**Prueba inestable corregida.** La autoprueba de las cadenas «tipo parcial» (3.47) comparaba con 1e-9, pero las respuestas van redondeadas: fallaba en torno a una ejecución de cada tres sin que nada estuviera mal. Medido en 20.000 casos, el redondeo desvía como mucho 1,5e-5 y el error que la prueba debe cazar (la regla fijo/móvil al revés), como poco 0,29. Ahora usa 1e-3, y sigue detectando ese error.
+
+Comprobado en la página real, con clics: fallar programa el tema para mañana; tras adelantar la fecha y recargar aparece «Repaso de hoy»; «Repasar ahora» sirve un ejercicio nuevo de la misma familia; acertarlo lo lleva a «vuelve en 3 días». Cinco autopruebas nuevas, con fechas fijas; cuatro mutaciones detectadas (adelantar al acertar pronto, contar por horas en vez de por días, importar temas inexistentes y la regla fijo/móvil con la tolerancia nueva).

@@ -1,10 +1,10 @@
-# Estado actual · 26 de septiembre de 2026
+# Estado actual · 6 de octubre de 2026
 
 Esta sección describe el proyecto **tal como está hoy**. Todo lo que sigue a «Historial» es el registro de cómo se llegó aquí; si algo de abajo contradice a esta sección, manda esta.
 
 ## Versión y publicación
 
-- **3.48.0**, publicada en https://said-rosa.github.io/robotutor-laboratorio-visual/ .
+- **3.49.0**, publicada en https://said-rosa.github.io/robotutor-laboratorio-visual/ .
 - **GitHub Pages es el único destino.** Las copias de `chatgpt.site` y de Sites que aparecen en el historial ya no se actualizan.
 
 ## Cómo se trabaja
@@ -27,14 +27,14 @@ Regla de repositorio **«Proteger main»**, sin excepciones para nadie: **no se 
 ## Seguridad
 
 - La página no pide nada a la red: KaTeX, sus fuentes y three.js van dentro del HTML. La **política de contenido** va en un `meta`, con `connect-src 'none'`, `font-src data:`, `img-src` sin destinos externos y sin `unsafe-eval`. Añadir un recurso externo la rompe, y `check-security` lo detecta.
-- `feedback(tipo, texto)` **escapa el texto por defecto**. Usad `{html:true}` solo con marcado escrito por nosotros; nunca con texto que venga de un archivo o del alumno.
+- `feedback(tipo, texto)` **escapa el texto por defecto**. Usad `{html:true}` solo con marcado escrito por nosotros; nunca con texto que venga de un archivo o del alumno. **Y al revés: un aviso con etiquetas propias tiene que pedirlo**, o el alumno las ve escritas tal cual. `check-security` vigila las dos cosas.
 - Al importar un progreso, `validateProgressData` reconstruye sobre un objeto por defecto. Una autoprueba exige que ninguna cadena de un archivo hostil sobreviva.
 
 ## Comprobaciones
 
 En el CI de cada PR: `check-source`, `check-worked-solutions`, `check-mechanical-plates`, `check-architectures`, `check-kinematics`, `check-selftests`, `check-exercises` y `check-security`, más el build en sus dos modos y `check-source`/`check-security` sobre cada uno.
 
-- **Autopruebas: 374/416 sin navegador.** Las 42 restantes necesitan DOM real y están listadas en `check-selftests.cjs`; si añadís una que lo necesite, añadidla ahí con su nombre exacto.
+- **Autopruebas: 377/419 sin navegador.** Las 42 restantes necesitan DOM real y están listadas en `check-selftests.cjs`; si añadís una que lo necesite, añadidla ahí con su nombre exacto.
 - **Todo ejercicio practicable tiene desarrollo escrito**, y `check-exercises` falla si llega uno sin él: el botón de solución no debería volver a decir «Sin desarrollo escrito».
 - En un cambio grande, **comparad contra `main`**: ejecutad la batería en las dos versiones y restad los fallos. Lo que solo aparezca en vuestra rama es vuestro.
 - `check-modeled-plates.cjs` necesita `playwright` y **no está en el CI**; en una copia sin él falla igual en `main`.
@@ -55,6 +55,7 @@ En el CI de cada PR: `check-source`, `check-worked-solutions`, `check-mechanical
   | 4.7 | 4.8 | Cinemática inversa: ramas, límites y robustez |
 
   **En textos para el alumno, citad los temas por su nombre**, no por número.
+- **T = [n o a p].** La matriz del robot se nombra por sus columnas: n (normal, eje x del extremo), o (orientación, eje y), a (aproximación, eje z) y p (posición). Es la notación del curso y la que usa la cinemática inversa. Las celdas de T se nombran así en el diagnóstico (`px`, `az`).
 - **Columnas DH: θ, d, a, α.** El orden lo fija `DH_COLUMNS`. No indexéis columnas DH por posición: usad `dhRowCells`, `dhRowFromCells` o `dhColumnIndex('a')`.
 - **Ejercicios de asignación DH** (`kind:'dh-assignment'`): `kinematics` va solo en `params`, y su `pedagogyTrace` es la tabla. El banco de matrices ⁰A₁ … T usa su propio trazo (`stageTrace`) y **solo se abre con la tabla resuelta o la solución vista**, porque cada ⁱ⁻¹Aᵢ contiene su fila. En examen no aparece.
 - **Problema completo DH** (`kind:'dh-chain'`, `matrixLayout:'dhChain'`). Su respuesta es una matriz de (n+5)×4 con tres bloques: las n filas de la tabla, las 4 de T y la posición en homogéneas [x y z 1]. `dhChainGrade` la puntúa por partes (tabla 4, T 4, posición 2) **con arrastre**: una T que es la de la tabla escrita, o una posición que es la cuarta columna de la T escrita, puntúan aunque la tabla esté mal. En examen se captura celda a celda (vacía = `NaN`), y la guarda de valores finitos es imprescindible: del disco `NaN` vuelve como `null`, y `null−0` vale 0. No lleva banco de matrices, porque T es parte de la respuesta.
@@ -447,3 +448,15 @@ Petición del usuario. «Temas por reforzar» decía qué flojeaba, pero nada vo
 **Prueba inestable corregida.** La autoprueba de las cadenas «tipo parcial» (3.47) comparaba con 1e-9, pero las respuestas van redondeadas: fallaba en torno a una ejecución de cada tres sin que nada estuviera mal. Medido en 20.000 casos, el redondeo desvía como mucho 1,5e-5 y el error que la prueba debe cazar (la regla fijo/móvil al revés), como poco 0,29. Ahora usa 1e-3, y sigue detectando ese error.
 
 Comprobado en la página real, con clics: fallar programa el tema para mañana; tras adelantar la fecha y recargar aparece «Repaso de hoy»; «Repasar ahora» sirve un ejercicio nuevo de la misma familia; acertarlo lo lleva a «vuelve en 3 días». Cinco autopruebas nuevas, con fechas fijas; cuatro mutaciones detectadas (adelantar al acertar pronto, contar por horas en vez de por días, importar temas inexistentes y la regla fijo/móvil con la tolerancia nueva).
+
+## 3.49.0 · Cinemática directa por D-H: noap, el peldaño que faltaba y un aviso roto (Claude)
+
+Petición del usuario: mejorar, rediseñar y rectificar la cinemática directa por D-H, con la notación **noap** que usa su profesor. Una auditoría del capítulo 4, generando ejercicios reales de cada tema, dio tres defectos.
+
+- **noap no aparecía en ningún sitio.** T se describía como «bloque de rotación y cuarta columna». Ahora el tema «Denavit–Hartenberg» explica T = [n o a p] y qué es cada vector; el paso D-H 16 lo nombra; el problema completo rotula las columnas de T y llama `px`, `az`… a sus celdas; y las soluciones lo usan.
+- **«Denavit–Hartenberg» no tenía cálculo en los niveles 1 y 2.** Nuevo `makeDhRowMatrix`: de una fila de la tabla a su matriz ⁱ⁻¹Aᵢ (D-H 14), en los cuatro niveles. Reconoce dos errores típicos (θ↔α y a↔d). No lleva `kinematics`, para que el banco de etapas no pida como etapa la propia respuesta.
+- **La inversa del 2R estaba archivada en «Asignación de marcos DH»**, y los temas de cinemática inversa no ofrecían ni un ejercicio de cálculo. Ahora vive en su tema (clave 4.4 del fuente).
+
+**Regresión corregida, publicada desde 3.41.** Al hacer que `feedback()` escapara por defecto se dijo que solo una llamada necesitaba marcado. Eran cuatro. El aviso de respuesta incorrecta, con su lista de diferencias, y la razón de los verdadero/falso se mostraban con las etiquetas escritas tal cual. No se vio porque en los ejercicios de lámina ese aviso se sustituye por otro. Corregido, y `check-security` falla ahora si un aviso con marcado no pide `{html:true}`, o si lo pide junto a un mensaje de error.
+
+Comprobado en la página: el ejercicio nuevo y su diagnóstico, los rótulos alineados sobre T, la teoría, el aviso de fallo y la razón de un verdadero/falso. Tres autopruebas nuevas: la matriz de una fila contra el producto de sus cuatro movimientos elementales, y n = o × a sobre las T del motor. Tres mutaciones detectadas. Los scripts auxiliares de mutación ya no están en la carpeta temporal: `node scripts/check-selftests.cjs <ruta>` sirve para lo mismo.

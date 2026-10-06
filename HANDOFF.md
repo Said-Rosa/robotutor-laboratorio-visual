@@ -4,7 +4,7 @@ Esta sección describe el proyecto **tal como está hoy**. Todo lo que sigue a �
 
 ## Versión y publicación
 
-- **3.49.0**, publicada en https://said-rosa.github.io/robotutor-laboratorio-visual/ .
+- **3.50.0**, publicada en https://said-rosa.github.io/robotutor-laboratorio-visual/ .
 - **GitHub Pages es el único destino.** Las copias de `chatgpt.site` y de Sites que aparecen en el historial ya no se actualizan.
 
 ## Cómo se trabaja
@@ -32,9 +32,9 @@ Regla de repositorio **«Proteger main»**, sin excepciones para nadie: **no se 
 
 ## Comprobaciones
 
-En el CI de cada PR: `check-source`, `check-worked-solutions`, `check-mechanical-plates`, `check-architectures`, `check-kinematics`, `check-selftests`, `check-exercises` y `check-security`, más el build en sus dos modos y `check-source`/`check-security` sobre cada uno.
+En el CI de cada PR: `check-source`, `check-worked-solutions`, `check-mechanical-plates`, `check-architectures`, `check-inverse`, `check-kinematics`, `check-selftests`, `check-exercises` y `check-security`, más el build en sus dos modos y `check-source`/`check-security` sobre cada uno.
 
-- **Autopruebas: 377/419 sin navegador.** Las 42 restantes necesitan DOM real y están listadas en `check-selftests.cjs`; si añadís una que lo necesite, añadidla ahí con su nombre exacto.
+- **Autopruebas: 381/423 sin navegador.** Las 42 restantes necesitan DOM real y están listadas en `check-selftests.cjs`; si añadís una que lo necesite, añadidla ahí con su nombre exacto.
 - **Todo ejercicio practicable tiene desarrollo escrito**, y `check-exercises` falla si llega uno sin él: el botón de solución no debería volver a decir «Sin desarrollo escrito».
 - En un cambio grande, **comparad contra `main`**: ejecutad la batería en las dos versiones y restad los fallos. Lo que solo aparezca en vuestra rama es vuestro.
 - `check-modeled-plates.cjs` necesita `playwright` y **no está en el CI**; en una copia sin él falla igual en `main`.
@@ -56,6 +56,7 @@ En el CI de cada PR: `check-source`, `check-worked-solutions`, `check-mechanical
 
   **En textos para el alumno, citad los temas por su nombre**, no por número.
 - **T = [n o a p].** La matriz del robot se nombra por sus columnas: n (normal, eje x del extremo), o (orientación, eje y), a (aproximación, eje z) y p (posición). Es la notación del curso y la que usa la cinemática inversa. Las celdas de T se nombran así en el diagnóstico (`px`, `az`).
+- **Cinemática inversa por noap** (`kind:'ik-noap'`, `matrixLayout:'ikNoap'`, `makeInverseNoap`). El dato es la T completa y la respuesta, un vector de coordenadas articulares. **No se compara con una solución guardada:** `ikNoapReaches` comprueba con la cinemática directa que la respuesta reproduce T, y `ikNoapGrade` puntúa por articulación contra la solución válida más parecida. Con la T completa la solución es única salvo en el SCARA (dos, por el codo): la posición sola deja dos candidatos de q₁ separados media vuelta y la orientación decide. La lámina se dibuja en `IK_NOAP_REFERENCE`, nunca en la postura pedida, y su cinemática va en `params.kinematics`; la del problema, en `params.ik`. Es de solo enunciado: no revela el valor esperado ni abre la solución de cinemática directa (`hasMechanicalWorkedSolution` lo excluye). Para añadir un robot hacen falta sus candidatos en `ikNoapSolutions`, su desarrollo en `ikNoapSteps`, su postura de referencia y sus ecuaciones en `check-inverse.cjs`.
 - **Columnas DH: θ, d, a, α.** El orden lo fija `DH_COLUMNS`. No indexéis columnas DH por posición: usad `dhRowCells`, `dhRowFromCells` o `dhColumnIndex('a')`.
 - **Ejercicios de asignación DH** (`kind:'dh-assignment'`): `kinematics` va solo en `params`, y su `pedagogyTrace` es la tabla. El banco de matrices ⁰A₁ … T usa su propio trazo (`stageTrace`) y **solo se abre con la tabla resuelta o la solución vista**, porque cada ⁱ⁻¹Aᵢ contiene su fila. En examen no aparece.
 - **Problema completo DH** (`kind:'dh-chain'`, `matrixLayout:'dhChain'`). Su respuesta es una matriz de (n+5)×4 con tres bloques: las n filas de la tabla, las 4 de T y la posición en homogéneas [x y z 1]. `dhChainGrade` la puntúa por partes (tabla 4, T 4, posición 2) **con arrastre**: una T que es la de la tabla escrita, o una posición que es la cuarta columna de la T escrita, puntúan aunque la tabla esté mal. En examen se captura celda a celda (vacía = `NaN`), y la guarda de valores finitos es imprescindible: del disco `NaN` vuelve como `null`, y `null−0` vale 0. No lleva banco de matrices, porque T es parte de la respuesta.
@@ -460,3 +461,17 @@ Petición del usuario: mejorar, rediseñar y rectificar la cinemática directa p
 **Regresión corregida, publicada desde 3.41.** Al hacer que `feedback()` escapara por defecto se dijo que solo una llamada necesitaba marcado. Eran cuatro. El aviso de respuesta incorrecta, con su lista de diferencias, y la razón de los verdadero/falso se mostraban con las etiquetas escritas tal cual. No se vio porque en los ejercicios de lámina ese aviso se sustituye por otro. Corregido, y `check-security` falla ahora si un aviso con marcado no pide `{html:true}`, o si lo pide junto a un mensaje de error.
 
 Comprobado en la página: el ejercicio nuevo y su diagnóstico, los rótulos alineados sobre T, la teoría, el aviso de fallo y la razón de un verdadero/falso. Tres autopruebas nuevas: la matriz de una fila contra el producto de sus cuatro movimientos elementales, y n = o × a sobre las T del motor. Tres mutaciones detectadas. Los scripts auxiliares de mutación ya no están en la carpeta temporal: `node scripts/check-selftests.cjs <ruta>` sirve para lo mismo.
+
+## 3.50.0 · Cinemática inversa por el método de la matriz homogénea (Claude)
+
+Petición del usuario: ejercicios de cinemática inversa con el criterio de los anteriores y con **noap**, que es como la explica su profesor. Los dos temas de cinemática inversa solo tenían preguntas de concepto.
+
+- **Ejercicio.** Se da el robot (lámina y tabla DH con q₁…qₙ sin valor) y la localización T = [n o a p]; se piden las coordenadas articulares. Cinco robots, de menos a más: cartesiano y cilíndrico (niveles 1–2), polar (2–3), SCARA y antropomórfico (3–4). Está en el selector «Actividad» («Cinemática inversa · de T a las articulaciones»), en la práctica del tema y en la rotación del capítulo, de donde salen las preguntas de examen.
+- **Corrección.** Por articulación, y aceptando cualquier solución que reproduzca T. En examen se captura celda a celda, como el problema completo DH, y suma a los puntos por partes.
+- **La orientación importa.** En el polar o = (−s₁, c₁, 0); en el antropomórfico a = (s₁, −c₁, 0), y además n_z = s₂₃ y o_z = c₂₃ dan q₂ + q₃ sin la ambigüedad del codo. El desarrollo escrito lo usa para elegir entre los candidatos que deja la posición.
+- **Teoría.** En «Cinemática inversa»: el método en cinco pasos, con el robot polar resuelto y la explicación de para qué sirve la orientación.
+- **`scripts/check-inverse.cjs`**, nuevo y en el CI: 800 ejercicios por ejecución. Rehace la cinemática directa con los cuatro movimientos elementales de cada fila, sin el motor, y comprueba que cada solución reproduce T, que las ecuaciones del desarrollo se cumplen, la calificación y que la lámina no delata la respuesta.
+
+Dos defectos encontrados al verificar 3.000 ejercicios en local, corregidos antes de publicar: la postura de referencia del cartesiano coincidía a veces con la respuesta, y con el codo estirado el redondeo de T daba dos soluciones de ±0,01° que son la misma.
+
+Comprobado en la página con clics: el selector, una respuesta con el otro codo y una articulación mal (3 de 4, sin revelar el valor), su corrección, la solución, la teoría y el examen. Cuatro autopruebas nuevas; cuatro mutaciones detectadas. La de las prismáticas negativas no mordía en su primera versión, porque quien rechazaba esa respuesta era la orientación; se reescribió.

@@ -147,6 +147,21 @@ assert.match(source,/function feedback\(type,msg,\{html=false\}=\{\}\)/,
 assert.match(source,/if\(html\)f\.innerHTML=msg;else f\.textContent=String\(msg\);/,
  'feedback() ya no escapa el mensaje cuando no se pide marcado');
 
+/* ---- un aviso con marcado tiene que pedirlo ----
+   feedback() escapa por defecto. Un aviso que lleva etiquetas propias y no pide
+   {html:true} no es un riesgo, pero enseña las etiquetas escritas tal cual: pasó
+   de 3.41 a 3.48 con el aviso de respuesta incorrecta y con la razón de los
+   verdadero/falso. Y al revés: {html:true} solo junto a texto de la aplicación. */
+const avisosSinMarcado=[];
+source.split('\n').forEach((linea,i)=>{
+ if(!/feedback\("/.test(linea)||/function feedback\(/.test(linea))return;
+ const llevaMarcado=/<(?:span|ul|li|strong|em|br)\b|porQue/.test(linea);
+ if(llevaMarcado&&!/\{html:true\}/.test(linea))avisosSinMarcado.push(`línea ${i+1}: ${linea.trim().slice(0,90)}`);
+ /* El mensaje de un error de lectura copia lo que tecleó el alumno. */
+ if(/\.message/.test(linea)&&/\{html:true\}/.test(linea))avisosSinMarcado.push(`línea ${i+1}: mensaje de error pintado como marcado`);
+});
+assert.deepEqual(avisosSinMarcado,[],'avisos con marcado que no piden {html:true}, o al revés:\n  '+avisosSinMarcado.join('\n  '));
+
 /* ---- el importador no se traga un archivo desmedido ---- */
 assert.match(source,/if\(file\.size>2\*1024\*1024\)/,'la importación de progreso ya no limita el tamaño del archivo');
 

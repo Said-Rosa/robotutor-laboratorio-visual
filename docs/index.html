@@ -699,6 +699,7 @@
     .review-banner p{margin:0;flex:1 1 240px}
     .review-row{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--line);font-size:.86rem}
     .dh-chain-part{margin:14px 0 4px}
+    .noap-label{text-align:center;font-weight:800;font-style:italic;color:var(--muted);font-size:.9rem;padding-bottom:2px}
     .dh-chain-part h4{margin:0 0 6px;font-size:.95rem}
     .dh-chain-part h4 small{font-weight:600;color:var(--muted)}
     .cell.carry{border-color:var(--orange);box-shadow:0 0 0 1px var(--orange) inset}
@@ -1806,6 +1807,11 @@ $$A_i=\begin{bmatrix}c_\theta&-s_\theta c_\alpha&s_\theta s_\alpha&a_i c_\theta\
 <p>Al acumular las filas se obtiene x=ρ cosq₁, y=ρ sinq₁, z=h+L₂ sinq₂+L₃ sin(q₂+q₃), con ρ=L₂ cosq₂+L₃ cos(q₂+q₃). Para h=1, L₂=3, L₃=2 y q=(90°,0°,90°):</p>
 <div class="formula">$$ {}^{0}T_3=\begin{bmatrix}0&0&1&0\\0&-1&0&3\\1&0&0&3\\0&0&0&1\end{bmatrix}$$</div>
 <p>La posición coincide con la resolución geométrica. La orientación depende también de la elección del marco terminal: no se comparan bloques R de dos modelos sin alinear primero esos marcos.</p>
+<h4>Qué hay dentro de T: los vectores n, o, a y p</h4>
+<p>El producto de todas las matrices de la tabla es la matriz T del robot. Sus cuatro columnas tienen nombre propio, y con ellos se suele escribir abreviada como <strong>T = [n o a p]</strong>:</p>
+<div class="formula">$$T={}^{0}A_n=\begin{bmatrix}n_x&o_x&a_x&p_x\\n_y&o_y&a_y&p_y\\n_z&o_z&a_z&p_z\\0&0&0&1\end{bmatrix}$$</div>
+<div class="table-wrap"><table class="dh-algorithm"><thead><tr><th>Vector</th><th>Qué es</th><th>En el sistema del extremo</th></tr></thead><tbody><tr><td><strong>p</strong></td><td>Posición del extremo respecto de la base.</td><td>Su origen.</td></tr><tr><td><strong>a</strong></td><td>Aproximación: la dirección en la que la herramienta se acerca a la pieza.</td><td>Su eje z.</td></tr><tr><td><strong>o</strong></td><td>Orientación: la dirección en la que se abren y cierran los dedos de la pinza.</td><td>Su eje y.</td></tr><tr><td><strong>n</strong></td><td>Normal: perpendicular a los otros dos, de modo que la terna sea dextrógira.</td><td>Su eje x.</td></tr></tbody></table></div>
+<p>Los tres primeros son unitarios y perpendiculares entre sí, y cumplen n = o × a: forman la orientación del extremo. p es el único que lleva unidades de longitud. En cinemática directa, n, o, a y p son el resultado: se calculan a partir de las coordenadas articulares. En cinemática inversa son el dato: se conoce dónde y cómo debe quedar la herramienta, y se buscan las coordenadas articulares que lo consiguen.</p>
 <p class="source">Convenciones y matriz de referencia: <a href="https://petercorke.github.io/robotics-toolbox-python/_modules/roboticstoolbox/robot/DHLink.html" target="_blank" rel="noopener noreferrer">Peter Corke · DHLink</a>.</p>
   `},
   {title:"4.3 Asignación de marcos DH",html:String.raw`
@@ -1833,7 +1839,7 @@ $$A_i=\begin{bmatrix}c_\theta&-s_\theta c_\alpha&s_\theta s_\alpha&a_i c_\theta\
 <tr><th colspan="2">De la tabla al modelo</th></tr>
 <tr><td>D-H 14</td><td>Con cada fila de la tabla, construye la matriz ⁱ⁻¹Aᵢ, que pasa del sistema i−1 al i.</td></tr>
 <tr><td>D-H 15</td><td>Multiplícalas en orden desde la base: T=⁰A₁·¹A₂·…·ⁿ⁻¹Aₙ.</td></tr>
-<tr><td>D-H 16</td><td>Lee T: su bloque de rotación da la orientación del extremo y su cuarta columna la posición, ambas respecto de la base y en función de las n coordenadas articulares.</td></tr>
+<tr><td>D-H 16</td><td>Lee T = [n o a p]: sus tres primeras columnas —n, o y a— dan la orientación del extremo, y la cuarta —p— su posición, todas respecto de la base y en función de las n coordenadas articulares.</td></tr>
 </tbody></table></div>
 <p>Al cerrar la tabla, declara cómo se relaciona cada coordenada articular con su parámetro: en una articulación de revolución q entra en θ; en una prismática, en d.</p>
 <p><strong>Por qué ⁱ⁻¹Aᵢ tiene esa forma.</strong> Los pasos 10 a 13 son cuatro movimientos que llevan {Sᵢ₋₁} hasta {Sᵢ}: girar θᵢ sobre zᵢ₋₁, avanzar dᵢ sobre zᵢ₋₁, avanzar aᵢ sobre xᵢ y girar αᵢ sobre xᵢ. Cada uno se hace sobre los ejes del sistema que ya se ha movido, así que se componen multiplicando por la derecha y en ese mismo orden:</p>
@@ -2845,7 +2851,7 @@ const roadmap = [
    en este punto y renombra el archivo en consecuencia.
    Ojo: `progress.version` es otra cosa — numera el esquema de datos guardados en
    localStorage y avanza solo cuando cambia la forma de ese objeto. */
-const APP_VERSION="3.48.0";
+const APP_VERSION="3.49.0";
 const APP_STAGE="láminas claras · verdadero/falso y respuestas abiertas";
 /* Los cuatro niveles del curso. Toda comprobación de dificultad debe leer de aquí:
    el selector, las preferencias guardadas, la política pedagógica y los bancos. */
@@ -4760,7 +4766,7 @@ function dhChainExercise(base,k,def){
  const n=base.rows,T=k.cumulative.at(-1).map(fila=>fila.map(Number)),p=[T[0][3],T[1][3],T[2][3],1];
  const puntos=DH_CHAIN_PARTS.map(x=>`${x.nombre} ${x.peso}`).join(" · ");
  const statement=base.statement.replace("Asigna los marcos y completa la tabla DH del robot mostrado.",
-  `Asigna los marcos y resuelve la cinemática directa del robot mostrado en tres partes: <strong>1)</strong> la tabla DH; <strong>2)</strong> la matriz T=⁰A${dhIndexDigits(n,DH_SUBINDICES)}, que lleva de la base al efector en la postura dada; <strong>3)</strong> la posición del efector E respecto de la base. Puntuación sobre 10: ${puntos}. Un error de la tabla no se cobra dos veces: T y la posición se corrigen también contra lo que hayas escrito antes.`);
+  `Asigna los marcos y resuelve la cinemática directa del robot mostrado en tres partes: <strong>1)</strong> la tabla DH; <strong>2)</strong> la matriz T=⁰A${dhIndexDigits(n,DH_SUBINDICES)}=[n o a p], que lleva de la base al efector en la postura dada; <strong>3)</strong> la posición del efector E respecto de la base. Puntuación sobre 10: ${puntos}. Un error de la tabla no se cobra dos veces: T y la posición se corrigen también contra lo que hayas escrito antes.`);
  if(statement===base.statement)throw Error("cambió el enunciado de la tabla DH: revisa dhChainExercise");
  return{...base,id:`dh_chain_${def.id}`,kind:"dh-chain",matrixLayout:"dhChain",
   title:"Problema completo: tabla DH, T y posición",
@@ -4812,7 +4818,10 @@ function dhChainSummary(g){
 function dhChainCellName(e,row,col){
  const n=e.params.chainRows;
  if(row<n)return`${dhColumnLabel(col)}${row+1}`;
- if(row<n+4)return`T(${row-n+1},${col+1})`;
+ /* Las celdas de T se nombran por su vector y su componente: «px» dice más
+    que «T(1,4)» a quien acaba de aprender que T = [n o a p]. */
+ if(row<n+3)return`${"noap"[col]}${"xyz"[row-n]}`;
+ if(row<n+4)return`T(4,${col+1})`;
  return["x","y","z","1"][col]||"?";
 }
 /* Nota de una pregunta de examen entre 0 y 1. Todas valen 0 o 1 salvo las que
@@ -4823,13 +4832,16 @@ function examQuestionScore(pregunta,valor){
 }
 function dhChainAnswerMarkup(e){
  const n=e.params.chainRows,celda=i=>matrixInputMarkup(e,i),[pt,pT,pp]=DH_CHAIN_PARTS;
- const rejilla=(desde,cuantas)=>`<div class="matrix-wrap"><span class="bracket left"></span><div class="matrix" style="--cols:4;grid-template-columns:repeat(var(--cols),minmax(0,1fr))">${Array.from({length:cuantas},(_,i)=>celda(desde+i)).join("")}</div><span class="bracket right"></span></div>`;
+ const rejilla=(desde,cuantas,cabecera="")=>`<div class="matrix-wrap"><span class="bracket left"></span><div class="matrix" style="--cols:4;grid-template-columns:repeat(var(--cols),minmax(0,1fr))">${cabecera}${Array.from({length:cuantas},(_,i)=>celda(desde+i)).join("")}</div><span class="bracket right"></span></div>`;
+ /* Las columnas de T llevan su nombre encima. Van dentro de la misma rejilla
+    que las celdas, para que cada rótulo quede sobre su columna. */
+ const noap=["n","o","a","p"].map(v=>`<span class="noap-label" aria-hidden="true">${v}</span>`).join("");
  const tabla=`<div class="dh-table-wrap"><table class="dh-table"><thead><tr><th>i</th>${DH_COLUMNS.map(c=>`<th>${c.symbol}<sub>i</sub> (${c.angle?"°":"m"})</th>`).join("")}</tr></thead><tbody>${Array.from({length:n},(_,r)=>`<tr><th scope="row">${r+1}</th>${Array.from({length:4},(_,c)=>`<td>${celda(r*4+c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
  const parte=(x,titulo,cuerpo,nota="")=>`<section class="dh-chain-part" data-dh-part="${x.key}"><h4>${titulo} <small>${x.pasos} · ${x.peso} puntos</small></h4>${cuerpo}${nota}</section>`;
  return`<label>Resuelve las tres partes:</label>
   ${parte(pt,"1 · Tabla DH",tabla)}
-  ${parte(pT,`2 · Matriz T = ⁰A${dhIndexDigits(n,DH_SUBINDICES)}`,rejilla(n*4,16))}
-  ${parte(pp,"3 · Posición del efector",rejilla((n+4)*4,4),'<p class="cell-hint">En homogéneas, [x y z 1]: la cuarta columna de T. El 1 ya viene puesto.</p>')}
+  ${parte(pT,`2 · Matriz T = ⁰A${dhIndexDigits(n,DH_SUBINDICES)} = [n o a p]`,rejilla(n*4,16,noap))}
+  ${parte(pp,"3 · Posición del efector",rejilla((n+4)*4,4),'<p class="cell-hint">Es el vector p de T, en homogéneas: [px py pz 1]. El 1 ya viene puesto.</p>')}
   <p class="cell-hint">Admite decimales y expresiones como pi/2 o sin(30). Los ángulos van en grados.${examEnCurso()?" Las respuestas se guardan automáticamente.":""}</p>`;
 }
 /* Un examen guardado antes del cambio trae la respuesta y lo tecleado con el
@@ -6822,7 +6834,7 @@ function makeChapter3Kind(diff,kind){
 function makeGeometric2R(diff,variant=pick(['point','point','inverse','length'])){
  const L1=ri(3,6),L2=ri(2,5),q1=pick([-30,0,30,45,60]),q2=pick([45,60,90,120]);
  const x=L1*Math.cos(rad(q1))+L2*Math.cos(rad(q1+q2)),y=L1*Math.sin(rad(q1))+L2*Math.sin(rad(q1+q2));
- const base={id:'geometric_2r_'+variant,chapter:4,difficulty:diff,kind:'geometric-2r',model:'Planar2R',visual:'planarWorksheet',geometryTopic:variant==='inverse'?'4.3':'4.1',title:'Planar 2R · método geométrico',params:{L1,L2,q1,q2,variant},chips:[],hints:[],steps:[],commonErrors:[],concepts:['método geométrico','cinemática planar'],tolerance:.003};
+ const base={id:'geometric_2r_'+variant,chapter:4,difficulty:diff,kind:'geometric-2r',model:'Planar2R',visual:'planarWorksheet',geometryTopic:variant==='inverse'?'4.4':'4.1',title:'Planar 2R · método geométrico',params:{L1,L2,q1,q2,variant},chips:[],hints:[],steps:[],commonErrors:[],concepts:['método geométrico','cinemática planar'],tolerance:.003};
  const convention='q₁ se mide desde +X; q₂ desde la prolongación del primer eslabón. Los giros positivos son antihorarios. Longitudes en metros. ';
  /* Desarrollo del método geométrico. El codo se sitúa primero y el segundo
     tramo se suma como vector: el error habitual es tratar q₂ como ángulo
@@ -7063,6 +7075,46 @@ function makeDh3R(diff){
  const h=2,l2=ri(2,4),l3=ri(2,4),q1=pick([-60,-30,0,30,60,90]),q2=pick([-45,-30,0,30,45]),q3=pick([-60,-30,0,30,60]),table=[{a:0,alpha:90,d:h,theta:q1},{a:l2,alpha:0,d:0,theta:q2},{a:l3,alpha:0,d:0,theta:q3}],kinematics=KinematicsEngine.serialDH(table),ask=Math.random()>.55?"position":pickInformativeAsk(kinematics,["x","y","z"]),tcp=kinematics.positions.at(-1);
  return spatialAnswerExercise({id:"forward_dh_3R",kind:"dh",model:"SerialDH",title:"Cadena DH espacial 3R",statement:`Usa la tabla DH suministrada para calcular ${ask==="position"?"la posición del TCP":"la coordenada <strong>"+ask+"</strong>"}.${dhTableMarkup(table)}`,chips:table.map((row,i)=>`(θ,d,a,α)${i+1}=(${fmt(row.theta,0)}°, ${fmt(row.d,2)}, ${fmt(row.a,2)}, ${fmt(row.alpha,0)}°)`),kinematics,ask,diff,params:{table},convention:"DH estándar: Aᵢ=Rz(θᵢ)Tz(dᵢ)Tx(aᵢ)Rx(αᵢ).",hints:["Construye cada Aᵢ por separado.","Acumula T₀ᵢ en el orden de la cadena.","La posición está en la cuarta columna de T₀³."],steps:[`Se calculan ${kinematics.individual.length} matrices Aᵢ.`,`p=[${fmt(tcp.x)}, ${fmt(tcp.y)}, ${fmt(tcp.z)}]ᵀ`,`Resultado solicitado: ${ask==="position"?"vector p":fmt(tcp[ask])}`]});
 }
+/* ---------- DE UNA FILA DE LA TABLA A SU MATRIZ · paso D-H 14 ----------
+   El tema de Denavit–Hartenberg solo tenía un ejercicio de cálculo, y a partir
+   del nivel difícil: en los dos primeros niveles, la destreza básica —convertir
+   una fila en su matriz— no se practicaba en ninguna parte. Este es el peldaño
+   que faltaba entre leer la tabla y multiplicar la cadena entera.
+   No lleva `kinematics`: con ella, el banco de etapas se abriría y pediría
+   como «etapa» la misma matriz que es la respuesta. */
+function makeDhRowMatrix(diff){
+ const nivel=Number(diff)||1,i=pick([1,2,3]);
+ const prismatica=nivel>=2&&Math.random()<.3;
+ let theta=prismatica?pick([0,90]):nivel===1?pick([0,90,-90,180]):pick([30,45,60,-30,-45,-60,120,135]);
+ let alpha=nivel<=2?pick([0,90,-90]):pick([0,90,-90,30,-60,45]);
+ let a=pick([0,1.5,2,2.5,3]),d=pick([0,1,1.5,2]);
+ /* En el nivel fácil, un solo desplazamiento; y nunca la identidad disfrazada. */
+ if(nivel===1&&a&&d){if(Math.random()<.5)a=0;else d=0}
+ if(!a&&!d)d=2;
+ if(prismatica&&!d)d=1.5;
+ if(theta===0&&alpha===0)alpha=90;
+ const row={a,alpha,d,theta},matriz=fila=>KinematicsEngine.serialDH([fila]).individual[0].map(f=>f.map(Number)),A=matriz(row);
+ const c=x=>Math.cos(rad(x)),sn=x=>Math.sin(rad(x)),f=x=>fmt(x,4),nombre=dhMatrixName(i);
+ const alternativas=[];
+ if(theta!==alpha)alternativas.push({matrix:matriz({...row,theta:alpha,alpha:theta}),message:"Esa matriz es la de la fila con θ y α intercambiados. θ gira sobre el eje z y aparece en las dos primeras filas; α gira sobre el eje x y aparece en la segunda y la tercera columna."});
+ if(a!==d)alternativas.push({matrix:matriz({...row,a:d,d:a}),message:"Esa matriz es la de la fila con a y d intercambiados. d va sola en la tercera fila de la cuarta columna; a entra en las dos primeras, girada por θ."});
+ return{id:"dh_row_matrix",kind:"dh-row",chapter:4,difficulty:nivel,model:"DhRow",geometryTopic:"4.2",
+  title:"De una fila de la tabla a su matriz",type:"matrix",rows:4,cols:4,answer:A,tolerance:.002,
+  statement:`Esta es la fila ${i} de una tabla DH${prismatica?", de una articulación prismática (su variable es d, que en esta postura vale lo que indica la tabla)":""}. Construye la matriz <strong>${nombre}</strong>, que pasa del sistema ${i-1} al sistema ${i}.${dhTableMarkup([row],i)}`,
+  chips:[`θ=${fmt(theta,1)}°`,`d=${fmt(d,3)}`,`a=${fmt(a,3)}`,`α=${fmt(alpha,1)}°`],params:{row,index:i},
+  convention:"DH estándar: ⁱ⁻¹Aᵢ = Rz(θᵢ)·Tz(dᵢ)·Tx(aᵢ)·Rx(αᵢ). Vectores columna y ángulos en grados.",
+  concepts:["matriz de una fila DH","tabla DH"],
+  commonErrors:["intercambiar θ y α al sustituir","escribir a directamente en la cuarta columna, sin girarla por θ","olvidar el signo menos de −sen θ·cos α o de −cos θ·sen α","colocar d en la primera o la segunda fila"],
+  diagnosticAlternatives:alternativas,
+  hints:["La matriz tiene siempre la misma forma: solo cambian los cuatro números de la fila.","Evalúa primero cos θ, sen θ, cos α y sen α; después, los productos.","La cuarta columna es [a·cos θ, a·sen θ, d, 1]: a entra girada por θ, y d va directa a la tercera fila."],
+  steps:[
+   `Escribe la forma general. Sale de cuatro movimientos encadenados: girar θ y avanzar d sobre el eje z anterior, y avanzar a y girar α sobre el eje x nuevo.\n${nombre} =\n[ cosθ   −senθ·cosα   senθ·senα   a·cosθ ]\n[ senθ   cosθ·cosα   −cosθ·senα   a·senθ ]\n[ 0   senα   cosα   d ]\n[ 0   0   0   1 ]`,
+   `Evalúa las cuatro funciones trigonométricas de la fila:\ncos θ = cos(${f(theta)}°) = ${f(c(theta))} · sen θ = ${f(sn(theta))}\ncos α = cos(${f(alpha)}°) = ${f(c(alpha))} · sen α = ${f(sn(alpha))}`,
+   `Calcula los productos del bloque de giro:\n−senθ·cosα = ${f(-sn(theta)*c(alpha))} · senθ·senα = ${f(sn(theta)*sn(alpha))}\ncosθ·cosα = ${f(c(theta)*c(alpha))} · −cosθ·senα = ${f(-c(theta)*sn(alpha))}`,
+   `Calcula la cuarta columna. a entra girada por θ; d va directa:\na·cosθ = ${f(a*c(theta))} · a·senθ = ${f(a*sn(theta))} · d = ${f(d)}`,
+   matrixStructureCheck(4),
+   `Resultado:\n${mtxt(A)}`]};
+}
 function makeRrrp(diff){
  const l1=2,l2=ri(2,4),l3=ri(2,4),q1=pick([-60,-30,0,30,60]),q2=pick([-45,-30,0,30,45]),q3=pick([-45,-30,0,30,45]),q4=pick([.5,1,1.5,2]),kinematics=KinematicsEngine.rrrp({l1,l2,l3,q1,q2,q3,q4}),ask=Math.random()>.6?"position":pickInformativeAsk(kinematics,["x","y","z"]),tcp=kinematics.positions.at(-1);
  return spatialAnswerExercise({id:"forward_rrrp",kind:"rrrp",model:"RRRP",title:"Cadena espacial RRRP",statement:`Calcula ${ask==="position"?"el vector posición":"la coordenada "+ask} después de las tres rotaciones y la extensión prismática.`,chips:[`L₁=${l1}`,`L₂=${l2}`,`L₃=${l3}`,formatAngle(q1,"q₁"),formatAngle(q2,"q₂"),formatAngle(q3,"q₃"),`q₄=${q4}`],kinematics,ask,diff,params:{l1,l2,l3,q1,q2,q3,q4},convention:"RRRP: yaw Z, dos pitch Y locales y extensión q₄ sobre X local.",hints:["Conserva el orden de las transformaciones.","La prismática actúa sobre el eje local ya orientado.","Lee el TCP de la transformación acumulada."],steps:[`T=T₀¹T₁²T₂³T₃⁴.`,`p=[${fmt(tcp.x)}, ${fmt(tcp.y)}, ${fmt(tcp.z)}]ᵀ`,`Resultado solicitado: ${ask==="position"?"vector p":fmt(tcp[ask])}`]});
@@ -7070,9 +7122,9 @@ function makeRrrp(diff){
 /* La geometría del 6R vivía solo en los valores por defecto del motor: el enunciado
    daba los seis ángulos y nada más, de modo que la respuesta era inalcanzable. Ahora
    la tabla DH completa forma parte del enunciado y de los parámetros de la figura. */
-function dhTableMarkup(table){
+function dhTableMarkup(table,primera=1){
  const celda=(c,v)=>c.angle?`${fmt(v,1)}°`:fmt(v,3);
- const filas=table.map((row,i)=>`<tr><td>${i+1}</td>${DH_COLUMNS.map(c=>`<td>${celda(c,row[c.key])}</td>`).join("")}</tr>`).join("");
+ const filas=table.map((row,i)=>`<tr><td>${i+primera}</td>${DH_COLUMNS.map(c=>`<td>${celda(c,row[c.key])}</td>`).join("")}</tr>`).join("");
  return`<div class="table-wrap dh-table"><table aria-label="Tabla de parámetros de Denavit-Hartenberg"><thead><tr><th>i</th>${DH_COLUMNS.map(c=>`<th>${c.symbol}ᵢ</th>`).join("")}</tr></thead><tbody>${filas}</tbody></table></div>`;
 }
 function makeIndustrial6R(diff){
@@ -7959,7 +8011,7 @@ function kinematicsCandidates(diff){
  if(diff>=2)lista.push({family:"3d",make:makeDhAssignment6R});
  const conceptuales=Math.max(1,Math.round(lista.length*(CONCEPT_SHARE[diff]??.3)));
  for(let i=0;i<conceptuales;i++)lista.push({family:"concepto",make:d=>makeChoice(4,d)});
- lista.push({family:'3d',make:d=>makeArchitectureExercise(d,'any','chain')},{family:'3d',make:d=>makeArchitectureExercise(d,'any','dh')},{family:'3d',make:d=>makeArchitectureExercise(d,'any','direct')},{family:'concepto',make:d=>makeArchitectureExercise(d,'any','identify')});
+ lista.push({family:'3d',make:makeDhRowMatrix},{family:'3d',make:d=>makeArchitectureExercise(d,'any','chain')},{family:'3d',make:d=>makeArchitectureExercise(d,'any','dh')},{family:'3d',make:d=>makeArchitectureExercise(d,'any','direct')},{family:'concepto',make:d=>makeArchitectureExercise(d,'any','identify')});
  return lista;
 }
 function makeKinematicsExercise(diff){
@@ -8008,8 +8060,12 @@ function legacyTopicNumericGenerators(key,diff){
  }
  /* El tema enseña a asignar marcos y construir la tabla; practicarlo con un
     ejercicio de cinemática inversa plana no entrenaba esa destreza. */
- if(key==="4.3")return[makeDhAssignment,makeDhAssignment6R,d=>makeArchitectureExercise(d,"any","chain"),d=>makeGeometric2R(d,'inverse'),...ROBOT_ARCHITECTURES.filter(d=>!d.id.startsWith("anthropomorphic")).map(def=>d=>makeArchitectureExercise(d,def.id,"dh"))];
- if(key==="4.2")return diff>=3?[plausibleSpatial(makeDh3R)]:[];
+ if(key==="4.3")return[makeDhAssignment,makeDhAssignment6R,d=>makeArchitectureExercise(d,"any","chain"),...ROBOT_ARCHITECTURES.filter(d=>!d.id.startsWith("anthropomorphic")).map(def=>d=>makeArchitectureExercise(d,def.id,"dh"))];
+ /* La inversa del 2R por método geométrico estaba archivada en «Asignación de
+    marcos DH», con el que no tiene relación; los temas de cinemática inversa,
+    mientras tanto, no ofrecían ni un ejercicio de cálculo. */
+ if(key==="4.4")return[d=>makeGeometric2R(d,'inverse')];
+ if(key==="4.2")return diff>=3?[makeDhRowMatrix,plausibleSpatial(makeDh3R)]:[makeDhRowMatrix];
  if(key==="3.13")return[makeWorkspaceExercise];
  if(key.startsWith("3."))return topicChapter3Kinds(key,diff).map(kind=>d=>makeChapter3Kind(d,kind));
  return all[key]||[];
@@ -8132,7 +8188,7 @@ function quickToolPolicy(exercise){
  const kind=responseKind(exercise);
  return{kind,visible:kind!=="choice"&&kind!=="symbolic"&&kind!=="open",identity:kind==="matrix"&&exercise.rows===exercise.cols,zeroVector:kind==="vector"};
 }
-function isHomogeneousResponse(exercise){return Boolean(exercise?.type==="matrix"&&exercise.rows===4&&exercise.cols===4&&["homogeneous_transform","inverse_homogeneous_transform"].includes(exercise.id))}
+function isHomogeneousResponse(exercise){return Boolean(exercise?.type==="matrix"&&exercise.rows===4&&exercise.cols===4&&["homogeneous_transform","inverse_homogeneous_transform","dh_row_matrix"].includes(exercise.id))}
 function matrixCellPolicy(exercise,row,col){
  /* En el problema completo, el 1 de la posición homogénea viene dado; la
     última fila de T se ofrece como en las demás matrices homogéneas. */
@@ -8226,7 +8282,7 @@ function stageOkMessage(trace,index){
  const nombre=stageLabel(trace,index);
  if(!trace.dh||index<trace.n-1)return`${nombre} coincide con la transformación del motor.`;
  const p=trace.output?`p = [${trace.output.map(r=>fmt(r[0],3)).join("; ")}]ᵀ`:"la cuarta columna";
- return`T coincide con el motor. Paso D-H 16: sus tres primeras columnas son la orientación del extremo respecto de la base, y la cuarta su posición, ${p}.`;
+ return`T coincide con el motor. Paso D-H 16: T = [n o a p]. Sus tres primeras columnas, n, o y a, son la orientación del extremo respecto de la base, y la cuarta su posición, ${p}.`;
 }
 function stageHeadTitle(trace,index){
  if(!trace.dh)return`Transformación individual ${stageLabel(trace,index)}`;
@@ -8779,6 +8835,7 @@ const SOLUTION_REASONING=Object.freeze({
  "dh_assignment_6R":{idea:"Las tres primeras filas son las del brazo antropomórfico de siempre. Lo que cambia es la muñeca: cuando tres ejes se cortan en un mismo punto no queda ninguna normal común que recorrer, así que sus filas solo pueden aportar torsión. Por eso a y d se anulan ahí y toda la información se concentra en αᵢ, cuyo signo depende del sentido en que se tome cada eje.",comprobacion:"Multiplica las seis Aᵢ y mira dónde cae el extremo. Si has puesto L₆ en a₆ en vez de en d₆, la herramienta sale perpendicular al último eje en lugar de prolongarlo, y el punto final se desvía justo esa longitud."},
  "narrative":{idea:"Cada operación es una matriz homogénea, y el orden del producto lo decide a qué sistema pertenece el eje o el vector que nombra el enunciado: las del sistema fijo se premultiplican y las del sistema móvil se postmultiplican. Cuando la incógnita es un punto, T lleva de las coordenadas del sistema final a las del fijo, y su inversa hace el camino contrario.",comprobacion:"El bloque de rotación del resultado tiene que ser ortonormal con determinante +1, y aplicar las operaciones una a una sobre un vector conocido debe dar lo mismo que multiplicarlo por la matriz final."},
  "workspace_symbolic_three":{idea:"Con giros completos, el extremo barre una corona centrada en la base. El radio exterior es la suma de las longitudes, y el interior depende de si un eslabón es más largo que la suma de los demás. Si una articulación queda fija, los eslabones que une se comportan como uno solo, cuya longitud da el teorema del coseno.",comprobacion:"Sustituye longitudes que cumplan la condición del enunciado: los radios tienen que salir positivos, el interior menor que el exterior, y la superficie igual a π por la diferencia de sus cuadrados."},
+ "dh_row_matrix":{idea:"La matriz de una fila no se deduce cada vez: es siempre el mismo producto de cuatro movimientos, girar θ y avanzar d sobre el eje z anterior, y después avanzar a y girar α sobre el eje x nuevo. Por eso basta con evaluar cuatro funciones trigonométricas y colocar cada resultado en su sitio.",comprobacion:"Las tres primeras columnas tienen que ser unitarias y perpendiculares entre sí, y la longitud de la cuarta debe ser la raíz de a al cuadrado más d al cuadrado, porque θ solo gira a sin cambiar su tamaño."},
  "dh_chain":{idea:"Es la cinemática directa entera, en el orden de los dieciséis pasos. La tabla sale de asignar los marcos (D-H 1 a 13); cada fila se sustituye en ⁱ⁻¹Aᵢ = Rz(θᵢ)·Tz(dᵢ)·Tx(aᵢ)·Rx(αᵢ) (D-H 14) y T es el producto de esas matrices en orden desde la base (D-H 15). La posición no se calcula aparte: es la cuarta columna de T (D-H 16).",comprobacion:"La posición de T tiene que caer en el extremo E dibujado en la lámina, y el bloque de rotación de T debe tener columnas unitarias, perpendiculares entre sí y determinante +1."},
  "dh_assignment_3R":{idea:"La tabla no se lee del dibujo: se construye eligiendo primero los ejes. El eje de cada articulación fija zᵢ₋₁, y el reparto entre aᵢ y dᵢ sale de sobre qué eje se mide cada distancia: dᵢ recorre zᵢ₋₁ y aᵢ recorre xᵢ. La torsión αᵢ solo aparece donde dos ejes consecutivos dejan de ser paralelos.",comprobacion:"Sustituye la tabla en el producto de las Aᵢ y comprueba que el extremo cae donde lo dibuja la lámina. Una tabla con la altura en la columna equivocada suele dar el mismo alcance pero a otra altura."},
  "forward_dh_3R":{idea:"La tabla DH es un contrato: cada fila describe una transformación con cuatro parámetros en un orden fijo. Construir cada matriz por separado y acumularlas en el orden de la cadena es lo que impide perderse cuando hay muchos eslabones.",comprobacion:"La posición del extremo es la cuarta columna de la última acumulada, y su última fila debe seguir siendo [0,0,0,1]."},
@@ -8911,10 +8968,10 @@ function mechanicalWorkedSolution(e){
  const tcp=k.positions.at(-1);
  if(isDhChainExercise(e)){
   const T=k.cumulative.at(-1),bloque=m=>m.map(fila=>'[ '+fila.map(f).join(' ; ')+' ]').join('\n');
-  step('Paso D-H 16 · Leer T y la posición','T es la respuesta de la parte 2. Sus tres primeras columnas dan la orientación del efector y la cuarta, su posición respecto de la base: esa es la parte 3, escrita en homogéneas.',[`X = ${f(tcp.x)}`,`Y = ${f(tcp.y)}`,`Z = ${f(tcp.z)}`,'Parte 1: la tabla DH de arriba.',`Parte 2: T =\n${bloque(T)}`,`Parte 3: [x y z 1] = [ ${f(tcp.x)} ; ${f(tcp.y)} ; ${f(tcp.z)} ; 1 ]`]);
+  step('Paso D-H 16 · Leer T y la posición','T = [n o a p] es la respuesta de la parte 2. Sus tres primeras columnas, n, o y a, dan la orientación del efector, y la cuarta, p, su posición respecto de la base: esa es la parte 3, escrita en homogéneas.',[`X = ${f(tcp.x)}`,`Y = ${f(tcp.y)}`,`Z = ${f(tcp.z)}`,'Parte 1: la tabla DH de arriba.',`Parte 2: T =\n${bloque(T)}`,`Parte 3: [x y z 1] = [ ${f(tcp.x)} ; ${f(tcp.y)} ; ${f(tcp.z)} ; 1 ]`]);
   return`<div class="mechanical-worked" data-worked-solution="true"><h3>Solución paso a paso</h3>${parts.join('')}</div>`;
  }
- step(e.matrixLayout==='dh'?'Paso D-H 16 · Leer T y comprobar la tabla':'Leer y comprobar el resultado',e.matrixLayout==='dh'?'T reúne la orientación del extremo —sus tres primeras columnas— y su posición respecto de la base —la cuarta—. La tabla es la respuesta pedida; que T lleve el extremo a la postura de la lámina es su comprobación.':'La cuarta columna da X, Y y Z. Entrega solo la coordenada o la matriz que pide el enunciado. Las cifras mostradas están redondeadas a siete decimales; el cálculo conserva la precisión interna.',[`X = ${f(tcp.x)}`,`Y = ${f(tcp.y)}`,`Z = ${f(tcp.z)}`,`Respuesta solicitada: ${Array.isArray(e.answer)?e.answer.map(r=>'[ '+r.map(f).join(' ; ')+' ]').join('\n'):f(e.answer)}`]);
+ step(e.matrixLayout==='dh'?'Paso D-H 16 · Leer T y comprobar la tabla':'Leer y comprobar el resultado',e.matrixLayout==='dh'?'T = [n o a p] reúne la orientación del extremo —sus tres primeras columnas, n, o y a— y su posición respecto de la base —la cuarta, p—. La tabla es la respuesta pedida; que T lleve el extremo a la postura de la lámina es su comprobación.':'La cuarta columna da X, Y y Z. Entrega solo la coordenada o la matriz que pide el enunciado. Las cifras mostradas están redondeadas a siete decimales; el cálculo conserva la precisión interna.',[`X = ${f(tcp.x)}`,`Y = ${f(tcp.y)}`,`Z = ${f(tcp.z)}`,`Respuesta solicitada: ${Array.isArray(e.answer)?e.answer.map(r=>'[ '+r.map(f).join(' ; ')+' ]').join('\n'):f(e.answer)}`]);
  return`<div class="mechanical-worked" data-worked-solution="true"><h3>Solución paso a paso</h3>${parts.join('')}</div>`;
 }
 function revealMechanicalWorkedSolution(e){
@@ -9145,11 +9202,16 @@ function check(){
   pulseWrongCells();
  }
  if(!asistido){progress.attempts++;progress.chapters[exercise.chapter][1]++}
+ /* Estos avisos llevan marcado propio —la lista de diferencias, la razón de un
+    verdadero/falso—, así que piden {html:true}. Todo lo que interpolan es texto
+    de la aplicación o números formateados. Lo que teclea el alumno, como el
+    mensaje de «No pude comprobar», va siempre sin él. Desde 3.41 a 3.48
+    faltaba, y el alumno veía las etiquetas escritas tal cual. */
  if(ok){
   exercise.practiceSolved=true;
   const porQue=reflectionExplanation(exercise,a,true);
-  if(asistido){progress.assisted=(progress.assisted||0)+1;feedback("ok","¡Correcto! Resolución con ayuda: se registra aparte, sin aumentar aciertos ni racha."+porQue)}
-  else{progress.correct++;progress.streak++;progress.chapters[exercise.chapter][0]++;feedback("ok",(porQue?"¡Correcto!":"¡Correcto! La respuesta coincide con el verificador determinista.")+porQue)}
+  if(asistido){progress.assisted=(progress.assisted||0)+1;feedback("ok","¡Correcto! Resolución con ayuda: se registra aparte, sin aumentar aciertos ni racha."+porQue,{html:true})}
+  else{progress.correct++;progress.streak++;progress.chapters[exercise.chapter][0]++;feedback("ok",(porQue?"¡Correcto!":"¡Correcto! La respuesta coincide con el verificador determinista.")+porQue,{html:true})}
  }
  else{
   if(!asistido)progress.streak=0;
@@ -9158,7 +9220,7 @@ function check(){
  const scalarDetail=!isStatementOnlyExercise(exercise)&&exercise.type==="number"?` Esperado ${fmt(exercise.answer,5)}; ingresado ${fmt(a,5)}; error ${fmt(Math.abs(a-exercise.answer),5)}.${patron?`<span class="diff-pattern">${patron.message}</span>`:""}`:"";
   const motivoOpcion=!isStatementOnlyExercise(exercise)&&exercise.type==="choice"?choiceFailureReason(exercise,a):null;
   const porQueFalla=reflectionExplanation(exercise,a,false);
-  feedback("bad",isStatementOnlyExercise(exercise)?(porQueFalla?"La respuesta no es correcta."+porQueFalla:"La respuesta no es correcta. Revisa tu resultado."):exercise.type==="choice"?(motivoOpcion?`Esa alternativa falla por una razón concreta.<span class="diff-pattern">${motivoOpcion}</span>`:"La opción no es correcta. Usa una pista o revisa la lección."):`Hay diferencias. Revisa orden, signos, unidades y redondeo.${scalarDetail}${detail}`)
+  feedback("bad",isStatementOnlyExercise(exercise)?(porQueFalla?"La respuesta no es correcta."+porQueFalla:"La respuesta no es correcta. Revisa tu resultado."):exercise.type==="choice"?(motivoOpcion?`Esa alternativa falla por una razón concreta.<span class="diff-pattern">${motivoOpcion}</span>`:"La opción no es correcta. Usa una pista o revisa la lección."):`Hay diferencias. Revisa orden, signos, unidades y redondeo.${scalarDetail}${detail}`,{html:true})
  }
  if(!asistido)recordTopicResult(exercise,ok);
  const repaso=reviewRecord(exercise,ok&&!asistido);if(exercise.reviewKey)exercise.reviewOutcome=repaso;
@@ -14309,6 +14371,44 @@ function runSelfTests(){
    if(limpio.theme!=="light"&&limpio.theme!=="dark")return false;
    if(!DIFFICULTY_LEVELS.map(String).includes(limpio.preferences.difficulty))return false;
    return ["degrees","radians"].includes(limpio.preferences.angleUnit);
+  }],
+  ["La matriz de una fila DH es el producto de sus cuatro movimientos",()=>{
+   /* No se compara con la fórmula cerrada del motor, sino con los cuatro
+      movimientos elementales multiplicados uno a uno: girar θ y avanzar d sobre
+      z, avanzar a y girar α sobre x. */
+   for(const nivel of DIFFICULTY_LEVELS)for(let i=0;i<12;i++){
+    const e=makeDhRowMatrix(nivel),r=e.params.row;
+    const producto=mul(mul(mul(hom(rot("z",r.theta),[0,0,0]),translation4(0,0,r.d)),translation4(r.a,0,0)),hom(rot("x",r.alpha),[0,0,0]));
+    if(!eq(e.answer,producto,1e-6))return false;
+    if(!String(e.steps.at(-1)).endsWith(mtxt(e.answer)))return false;
+    /* los errores que el diagnóstico reconoce no pueden coincidir con la respuesta */
+    if(e.diagnosticAlternatives.some(alt=>eq(alt.matrix,e.answer,1e-9)))return false;
+    if(nivel===1&&r.a&&r.d)return false;
+    /* sin cinemática a la vista, para que el banco de etapas no pida la respuesta como etapa */
+    if(e.kinematics||buildPedagogyTrace(e).source==="kinematics")return false;
+   }
+   return true;
+  }],
+  ["Denavit–Hartenberg tiene cálculo en todos los niveles y la inversa del 2R vive en su tema",()=>{
+   if(!DIFFICULTY_LEVELS.every(nivel=>topicNumericGenerators("4.2",nivel).length>0&&topicNumericGenerators("4.4",nivel).length>0))return false;
+   if(exerciseTopicKey(makeGeometric2R(2,"inverse"))!=="4.4"||exerciseTopicKey(makeDhRowMatrix(2))!=="4.2")return false;
+   /* y ya no se cuela en el tema de asignación de marcos */
+   for(let i=0;i<40;i++){const e=makeTopicExercise("4.3",2);if(e.kind==="geometric-2r")return false}
+   return true;
+  }],
+  ["T = [n o a p]: n, o y a son una terna dextrógira y p es la posición",()=>{
+   /* La teoría afirma que n = o × a. Se comprueba sobre las T que produce el
+      motor, no sobre un ejemplo elegido. */
+   const cruz=(u,v)=>[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]];
+   return ROBOT_ARCHITECTURES.every(def=>{
+    const e=makeArchitectureExercise(4,def.id,"chain"),n0=e.params.chainRows,T=e.answer.slice(n0,n0+4),col=j=>[T[0][j],T[1][j],T[2][j]];
+    const n=col(0),o=col(1),a=col(2),p=col(3),oxa=cruz(o,a),pos=e.params.kinematics.positions.at(-1);
+    if(!n.every((v,i)=>Math.abs(v-oxa[i])<1e-6))return false;
+    if(![n,o,a].every(v=>Math.abs(Math.hypot(...v)-1)<1e-6))return false;
+    /* las celdas de T se nombran por su vector */
+    if(dhChainCellName(e,n0,3)!=="px"||dhChainCellName(e,n0+2,2)!=="az"||dhChainCellName(e,n0+1,0)!=="ny"||dhChainCellName(e,0,0)!=="θ1")return false;
+    return Math.abs(p[0]-pos.x)<1e-9&&Math.abs(p[2]-pos.z)<1e-9&&e.statement.includes("[n o a p]");
+   });
   }],
   ["La agenda de repaso sigue los intervalos 1, 3, 7, 14 y 30 días",()=>{
    /* Fechas fijas: la prueba no depende del día en que se ejecute. */

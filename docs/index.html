@@ -900,7 +900,7 @@ var RoboTutorMechanical3D=(()=>{var Ka=Object.defineProperty;var Bh=Object.getOw
         <div class="statement" id="statement"></div>
         <div class="chips" id="chips"></div>
         <div class="exercise-variants" id="exerciseVariants">
-          <section id="mechanicalFormats" class="reflection-formats" hidden aria-label="Robots para identificación y cinemática"><label for="mechanicalModel">Robot para practicar</label><select id="mechanicalModel"><option value="any" selected>Cualquier modelo · sortea uno distinto</option><option value="scara">SCARA · 4 articulaciones</option><option value="cylindrical">Cilíndrico · 4 articulaciones</option><option value="anthropomorphic">Antropomórfico · 6 articulaciones</option></select><label for="mechanicalTask">Actividad</label><select id="mechanicalTask"><option value="identify">Identificar el robot</option><option value="dh">Construir la tabla DH</option><option value="chain">Problema completo · tabla, T y posición</option><option value="inverse">Cinemática inversa · de la localización a las articulaciones</option><option value="ikchain">Cinemática inversa completa · tabla DH y articulaciones</option><option value="wrist">Desacoplo cinemático · muñeca de seis ejes</option><option value="direct" selected>Calcular la posición</option></select><button id="newMechanical" class="btn soft" type="button">Nuevo ejercicio</button></section>
+          <section id="mechanicalFormats" class="reflection-formats" hidden aria-label="Robots para identificación y cinemática"><label for="mechanicalModel">Robot para practicar</label><select id="mechanicalModel"><option value="any" selected>Cualquier modelo · sortea uno distinto</option><option value="scara">SCARA · 4 articulaciones</option><option value="cylindrical">Cilíndrico · 4 articulaciones</option><option value="anthropomorphic">Antropomórfico · 6 articulaciones</option></select><label for="mechanicalTask">Actividad</label><select id="mechanicalTask"><option value="identify">Identificar el robot</option><option value="dh">Construir la tabla DH</option><option value="chain">Problema completo · tabla, T y posición</option><option value="inverse">Cinemática inversa · de la localización a las articulaciones</option><option value="ikchain">Cinemática inversa completa · tabla DH y articulaciones</option><option value="ikeq">Cinemática inversa · ecuaciones del robot</option><option value="wrist">Desacoplo cinemático · muñeca de seis ejes</option><option value="direct" selected>Calcular la posición</option></select><button id="newMechanical" class="btn soft" type="button">Nuevo ejercicio</button></section>
           <section id="planarGeometryFormat" class="reflection-formats" hidden aria-label="Método geométrico planar"><strong>Planar 2R · método geométrico</strong><button id="newPlanarNumeric" class="btn soft" type="button">Con datos numéricos</button><button id="newPlanarSymbolic" class="btn soft" type="button">Deducir ecuaciones</button></section>
           <section id="reflectionFormats" class="reflection-formats" hidden aria-label="Preguntas de teoría"><strong>Preguntas de teoría</strong><button id="newVF" class="btn soft" type="button">Verdadero / Falso</button><button id="newOpen" class="btn soft" type="button">Pregunta abierta</button></section>
         </div>
@@ -3004,7 +3004,7 @@ const roadmap = [
    en este punto y renombra el archivo en consecuencia.
    Ojo: `progress.version` es otra cosa — numera el esquema de datos guardados en
    localStorage y avanza solo cuando cambia la forma de ese objeto. */
-const APP_VERSION="3.54.0";
+const APP_VERSION="3.55.0";
 const APP_STAGE="láminas claras · verdadero/falso y respuestas abiertas";
 /* Los cuatro niveles del curso. Toda comprobación de dificultad debe leer de aquí:
    el selector, las preferencias guardadas, la política pedagógica y los bancos. */
@@ -4988,6 +4988,7 @@ function examQuestionScore(pregunta,valor){
  if(isDhChainExercise(pregunta))return Array.isArray(valor)?dhChainGrade(pregunta,valor).nota:0;
  if(isIkNoapExercise(pregunta))return Array.isArray(valor)?ikNoapGrade(pregunta,valor).nota:0;
  if(isIkChainExercise(pregunta))return Array.isArray(valor)?ikChainGrade(pregunta,valor).nota:0;
+ if(isIkEquationsExercise(pregunta))return ikEquationsScore(pregunta,valor);
  return answerIsCorrect(pregunta,valor)?1:0;
 }
 function dhChainAnswerMarkup(e){
@@ -5406,7 +5407,7 @@ function renderMechanicalWorksheet(e){
 function renderMechanicalControls(){
  const host=document.getElementById('mechanicalFormats'),e=appState.currentExercise;if(host)host.hidden=examEnCurso()||exerciseVariantKind(e)!=='mechanical';
  if(e?.kind==='robot-identification')document.getElementById('mechanicalModel').value='any';
- if(e)document.getElementById('mechanicalTask').value=e.kind==='robot-identification'?'identify':isWristExercise(e)?'wrist':e.kind==='ik-chain'?'ikchain':e.kind==='ik-noap'?'inverse':e.kind==='dh-chain'?'chain':e.visual==='dhAssignment'?'dh':'direct';
+ if(e)document.getElementById('mechanicalTask').value=e.kind==='robot-identification'?'identify':isWristExercise(e)?'wrist':e.kind==='ik-chain'?'ikchain':e.kind==='ik-equations'?'ikeq':e.kind==='ik-noap'?'inverse':e.kind==='dh-chain'?'chain':e.visual==='dhAssignment'?'dh':'direct';
 }
 /* Pulsar «Nuevo ejercicio» repetía siempre el mismo mecanismo: solo cambiaban
    los números. Con «Cualquier modelo» se sortea uno, y nunca el que acaba de
@@ -5424,7 +5425,7 @@ function initMechanicalControls(){
  document.getElementById('newMechanical').onclick=()=>{
   if(examEnCurso())return;
   const diff=Number(document.getElementById('difficulty').value),task=document.getElementById('mechanicalTask').value;
-  const inversa=task==='inverse'||task==='ikchain';
+  const inversa=task==='inverse'||task==='ikchain'||task==='ikeq';
   /* El desacoplo no depende del robot elegido: usa siempre el de seis ejes con
      muñeca esférica, y alterna sus dos partes. */
   if(task==='wrist'){
@@ -5434,7 +5435,7 @@ function initMechanicalControls(){
   }
   /* La inversa solo está resuelta para cinco robots: con otro elegido, o con «cualquiera», se toma uno acorde al nivel. */
   const model=inversa?(IK_NOAP_REFERENCE[modelSelect.value]?modelSelect.value:ikNoapModel(diff,ultimoModeloMecanico)):task==='chain'&&modelSelect.value==='any'?dhChainModel(diff,ultimoModeloMecanico):pickMechanicalModel(modelSelect.value);
-  ultimoModeloMecanico=model;appState.practiceTopicKey=inversa?'4.4':task==='dh'||task==='chain'?'4.3':'4.1';appState.currentExercise=task==='ikchain'?makeInverseChain(diff,model):inversa?makeInverseNoap(diff,model):makeArchitectureExercise(diff,model,task);
+  ultimoModeloMecanico=model;appState.practiceTopicKey=inversa?'4.4':task==='dh'||task==='chain'?'4.3':'4.1';appState.currentExercise=task==='ikchain'?makeInverseChain(diff,model):task==='ikeq'?makeInverseEquations(diff,model):inversa?makeInverseNoap(diff,model):makeArchitectureExercise(diff,model,task);
   if(task==='identify')modelSelect.value='any';
   document.getElementById('feedback').className='feedback';renderExercise();
  };renderMechanicalControls();
@@ -8192,7 +8193,7 @@ function kinematicsCandidates(diff){
  if(diff>=2)lista.push({family:"3d",make:makeDhAssignment6R});
  const conceptuales=Math.max(1,Math.round(lista.length*(CONCEPT_SHARE[diff]??.3)));
  for(let i=0;i<conceptuales;i++)lista.push({family:"concepto",make:d=>makeChoice(4,d)});
- lista.push({family:'3d',make:makeInverseNoap},{family:'3d',make:makeInverseChain},{family:'3d',make:makeWristCenter},{family:'3d',make:makeWristAngles},{family:'3d',make:makeDhRowMatrix},{family:'3d',make:d=>makeArchitectureExercise(d,'any','chain')},{family:'3d',make:d=>makeArchitectureExercise(d,'any','dh')},{family:'3d',make:d=>makeArchitectureExercise(d,'any','direct')},{family:'concepto',make:d=>makeArchitectureExercise(d,'any','identify')});
+ lista.push({family:'3d',make:makeInverseNoap},{family:'3d',make:makeInverseChain},{family:'3d',make:makeInverseEquations},{family:'3d',make:makeWristCenter},{family:'3d',make:makeWristAngles},{family:'3d',make:makeDhRowMatrix},{family:'3d',make:d=>makeArchitectureExercise(d,'any','chain')},{family:'3d',make:d=>makeArchitectureExercise(d,'any','dh')},{family:'3d',make:d=>makeArchitectureExercise(d,'any','direct')},{family:'concepto',make:d=>makeArchitectureExercise(d,'any','identify')});
  return lista;
 }
 function makeKinematicsExercise(diff){
@@ -8245,7 +8246,7 @@ function legacyTopicNumericGenerators(key,diff){
  /* La inversa del 2R por método geométrico estaba archivada en «Asignación de
     marcos DH», con el que no tiene relación; los temas de cinemática inversa,
     mientras tanto, no ofrecían ni un ejercicio de cálculo. */
- if(key==="4.4")return[d=>makeGeometric2R(d,'inverse'),makeInverseNoap,makeInverseNoap,makeInverseChain,makeWristCenter,makeWristAngles];
+ if(key==="4.4")return[d=>makeGeometric2R(d,'inverse'),makeInverseNoap,makeInverseNoap,makeInverseChain,makeInverseEquations,makeWristCenter,makeWristAngles];
  if(key==="4.2")return diff>=3?[makeDhRowMatrix,plausibleSpatial(makeDh3R)]:[makeDhRowMatrix];
  if(key==="3.13")return[makeWorkspaceExercise];
  if(key.startsWith("3."))return topicChapter3Kinds(key,diff).map(kind=>d=>makeChapter3Kind(d,kind));
@@ -8667,7 +8668,7 @@ function scalarDifferenceCause(exercise,entered){
 }
 function firstObservableDifference(exercise,entered,ok){
  if(isStatementOnlyExercise(exercise))return{kind:ok?"ok":"bad",title:ok?"Respuesta correcta":"Respuesta por revisar",message:ok?"La respuesta es correcta.":"Revisa tu resultado."};
- if(exercise.type==="symbolic")return{kind:ok?"ok":"bad",title:ok?"Expresiones equivalentes":"Deducción por revisar",message:ok?"Las expresiones coinciden algebraicamente con la región del enunciado.":"Revisa las casillas señaladas y los límites geométricos. No se ha revelado la respuesta."};
+ if(exercise.type==="symbolic")return{kind:ok?"ok":"bad",title:ok?"Expresiones equivalentes":"Deducción por revisar",message:ok?(isIkEquationsExercise(exercise)?"Las ecuaciones dan lo mismo que las del robot en todas las posturas de prueba.":"Las expresiones coinciden algebraicamente con la región del enunciado."):isIkEquationsExercise(exercise)?"Revisa las ecuaciones señaladas. No se ha revelado la respuesta.":"Revisa las casillas señaladas y los límites geométricos. No se ha revelado la respuesta."};
  if(ok)return{kind:"ok",title:"Procedimiento compatible",message:"No se detectaron diferencias entre la respuesta ingresada y el resultado del motor."};
  const captured=firstCapturedStageDifference(exercise);if(captured)return captured;
  const alternative=exercise.diagnosticAlternatives?.find(item=>Array.isArray(entered)&&eq(entered,item.matrix,1e-5));
@@ -9024,6 +9025,7 @@ const SOLUTION_REASONING=Object.freeze({
  "workspace_symbolic_three":{idea:"Con giros completos, el extremo barre una corona centrada en la base. El radio exterior es la suma de las longitudes, y el interior depende de si un eslabón es más largo que la suma de los demás. Si una articulación queda fija, los eslabones que une se comportan como uno solo, cuya longitud da el teorema del coseno.",comprobacion:"Sustituye longitudes que cumplan la condición del enunciado: los radios tienen que salir positivos, el interior menor que el exterior, y la superficie igual a π por la diferencia de sus cuadrados."},
  "ik_noap":{idea:"La localización deseada se escribe como T = [n o a p] y se iguala al producto de las matrices de la tabla. Al premultiplicar por la inversa de la primera matriz, a un lado queda solo la primera articulación y al otro las demás: entre los doce elementos siempre hay alguno con una constante a la derecha, y de él sale esa articulación. Las ecuaciones más cómodas son las de la cuarta columna, las de p. Con tres grados de libertad bastan; n, o y a hacen falta cuando el robot tiene más ejes.",comprobacion:"Sustituye la solución en la tabla y multiplica las matrices: tiene que salir el mismo vector p y, si el robot tiene más de tres ejes, también los mismos n, o y a."},
  "ik_chain":{idea:"El método D-H y la cinemática inversa son las dos mitades de un mismo problema. La tabla describe el robot: con las coordenadas articulares como datos da la localización del extremo, que es la cinemática directa. La inversa usa esa misma descripción al revés: la localización pasa a ser el dato y las coordenadas articulares, las incógnitas. Por eso la tabla va primero, y un error en ella se arrastra a todo lo demás.",comprobacion:"Sustituye las coordenadas que has calculado en tu propia tabla y multiplica las matrices: el extremo tiene que caer en la localización pedida. Si no cae, el fallo está en la segunda parte; si cae pero la tabla no coincide con la del mecanismo, está en la primera."},
+ "ik_equations":{idea:"Las ecuaciones de un robot se sacan una sola vez y sirven para cualquier postura. Primero, la directa: multiplicar las matrices de la tabla con las articulaciones como letras, y leer la posición en la cuarta columna. Después, la inversa: buscar en esas ecuaciones la combinación que deja sola una articulación —dividir dos componentes para quitar un factor común, o sumar cuadrados para quitar un ángulo— y despejarlas una a una.",comprobacion:"Dales valores: elige unas articulaciones, calcula la posición con las ecuaciones directas y métela en las inversas. Si no devuelven las articulaciones de partida, alguna está mal despejada."},
  "ik_geometric":{idea:"El giro de la base mete todo el brazo en un plano vertical, y dentro de ese plano el hombro, el codo y el extremo forman un triángulo del que se conocen los tres lados. El teorema del coseno da el ángulo del codo, con dos signos posibles para su seno: son las dos posturas, codo arriba y codo abajo. El dato es solo la posición, porque con tres grados de libertad no se puede elegir además la orientación.",comprobacion:"Sustituye cada postura en la cinemática directa: las dos tienen que dar el mismo punto. Si el coseno del codo sale mayor que 1 en valor absoluto, el punto está fuera del alcance del brazo."},
  "ik_wrist":{idea:"En un robot con muñeca esférica la orientación se reparte: las tres primeras articulaciones ponen ⁰R₃ y la muñeca pone el resto, ³R₆ = (⁰R₃)ᵀ·[n o a]. Esa matriz tiene una forma conocida, y en su tercera columna y su tercera fila cada elemento es un producto de dos senos o cosenos: de ahí salen los tres giros con atan2.",comprobacion:"Multiplica los tres bloques de giro de la muñeca con la solución: tiene que salir ³R₆. Si sen q₅ vale 0, q₄ y q₆ giran sobre la misma recta y solo se puede conocer su suma: es la singularidad de la muñeca."},
  "wrist_center":{idea:"Los tres ejes de una muñeca esférica se cortan en un punto, y ese punto no se mueve al girarlos: solo depende de las tres primeras articulaciones. Como el extremo está a una distancia fija de él sobre el último eje, que es el vector a, basta retroceder esa distancia desde p. Así el problema de seis incógnitas se parte en dos de tres.",comprobacion:"La distancia entre p y el centro de la muñeca tiene que ser exactamente l₄, porque a es unitario. Y si cambias n y o sin tocar a ni p, el centro de la muñeca no debe moverse."},
@@ -9051,6 +9053,7 @@ const SOLUTION_REASONING_CONCEPT=Object.freeze({idea:"Estas preguntas se resuelv
 function solutionReasoning(exercise){
  if(!exercise)return null;
  if(exercise.kind==='ik-chain')return SOLUTION_REASONING.ik_chain;
+ if(exercise.kind==='ik-equations')return SOLUTION_REASONING.ik_equations;
  if(exercise.kind==='ik-noap')return SOLUTION_REASONING[{p:'ik_geometric',R:'ik_wrist'}[exercise.params?.ik?.dato]||'ik_noap'];
  if(exercise.kind==='dh-chain')return SOLUTION_REASONING.dh_chain;
  if(isNarrativeExercise(exercise))return SOLUTION_REASONING.narrative;
@@ -9221,10 +9224,233 @@ function ikNoapAnswerMarkup(e){
   <div class="dh-table-wrap"><table class="dh-table"><thead><tr><th>Articulación</th><th>Qué mide</th><th>Valor</th></tr></thead><tbody>${ik.types.map((tipo,i)=>`<tr><th scope="row">q<sub>${i+ikNoapFirst(ik)}</sub></th><td>${tipo==="R"?"giro (°)":"desplazamiento (m)"}</td><td>${matrixInputMarkup(e,i)}</td></tr>`).join("")}</tbody></table></div>
   <p class="cell-hint">${ik.types.includes("P")?"Ángulos en grados y distancias en metros.":"Ángulos en grados."} ${ik.solutions.length>1?"Hay más de una solución: vale cualquiera. ":""}Cada articulación puntúa por separado.${examEnCurso()?" Las respuestas se guardan automáticamente.":""}</p>`;
 }
+/* ---------- ECUACIONES DE CADA ROBOT ----------
+   La T simbólica de los cinco robots de la inversa y sus ecuaciones inversas,
+   escritas una sola vez y en la sintaxis que evalúa `ikeqEvaluate`. De aquí
+   salen tres cosas: el desarrollo simbólico de las soluciones, las respuestas
+   de la actividad de ecuaciones y lo que `check-inverse.cjs` contrasta con el
+   motor. Los símbolos de las dimensiones son los de la tabla DH: dᵢ y aᵢ.
+   `usa` limita las variables de cada respuesta: sin eso, «q3 = q3» valdría.
+   `muestras` son posturas de la rama principal —brazo hacia delante—, donde
+   las formas del libro con arctan coinciden con las de atan2. */
+const IK_EQ=Object.freeze({
+ cartesian3:{constantes:{},lamina:"",
+  T:{n:["0","0","-1"],o:["0","1","0"],a:["1","0","0"],p:["q3","q2","q1"]},
+  muestras:[[.7,1.3,.9],[1.6,.4,2.1],[.25,2.2,1.4],[1.1,.8,.6]],
+  inversa:[
+   {key:"q1",label:"q₁",expr:"pz",usa:["px","py","pz"],porque:"La primera guía es vertical: su desplazamiento es la altura del extremo."},
+   {key:"q2",label:"q₂",expr:"py",usa:["px","py","pz"],porque:"La segunda guía avanza según el eje y de la base."},
+   {key:"q3",label:"q₃",expr:"px",usa:["px","py","pz"],porque:"La tercera avanza según el eje x."}]},
+ cylindrical3:{constantes:{d1:[0,"d"]},lamina:"d₁ es la altura H de la lámina.",
+  T:{n:["cos(q1)","sin(q1)","0"],o:["0","0","-1"],a:["-sin(q1)","cos(q1)","0"],p:["-q3*sin(q1)","q3*cos(q1)","d1+q2"]},
+  muestras:[[.35,.7,.9],[-1.1,1.4,1.6],[.6,.3,.5],[-.25,1.1,1.2]],
+  inversa:[
+   {key:"q1",label:"q₁",expr:"atan2(-px,py)",usa:["px","py","pz","d1"],angulo:true,porque:"Dividiendo px entre py desaparece q₃ y queda −tan q₁. Con atan2 se conserva el cuadrante: el seno va con −px y el coseno con py."},
+   {key:"q2",label:"q₂",expr:"pz-d1",usa:["px","py","pz","d1","q1"],porque:"La altura solo depende de la guía vertical."},
+   {key:"q3",label:"q₃",expr:"sqrt(px^2+py^2)",usa:["px","py","pz","d1","q1"],porque:"Sumando los cuadrados de px y py desaparece q₁: queda la distancia del extremo al eje de la base."}]},
+ polar3:{constantes:{d1:[0,"d"]},lamina:"d₁ es la altura H de la lámina.",
+  T:{n:["cos(q1)*cos(q2)","sin(q1)*cos(q2)","sin(q2)"],o:["-sin(q1)","cos(q1)","0"],a:["-cos(q1)*sin(q2)","-sin(q1)*sin(q2)","cos(q2)"],p:["-q3*cos(q1)*sin(q2)","-q3*sin(q1)*sin(q2)","d1+q3*cos(q2)"]},
+  muestras:[[.35,-.7,.9],[1.1,-.35,1.6],[.6,-1.2,.5],[.2,-.5,1.2]],
+  inversa:[
+   {key:"q1",label:"q₁",expr:"atan2(py,px)",usa:["px","py","pz","d1"],angulo:true,porque:"Premultiplicando por la inversa de ⁰A₁, el elemento (3,4) da s₁·px − c₁·py = 0. Es lo mismo que dividir py entre px: el factor −q₃·s₂ es común y se va."},
+   {key:"q2",label:"q₂",expr:"atan2(-sqrt(px^2+py^2),pz-d1)",usa:["px","py","pz","d1","q1"],angulo:true,porque:"Con u = c₁·px + s₁·py = raíz(px² + py²), quedan u = −s₂·q₃ y pz − d₁ = c₂·q₃. Su cociente da la tangente de q₂ sin q₃."},
+   {key:"q3",label:"q₃",expr:"sqrt(px^2+py^2+(pz-d1)^2)",usa:["px","py","pz","d1","q1","q2"],porque:"Esas dos igualdades son las componentes de un vector de longitud q₃: su módulo es la distancia del hombro al extremo."}]},
+ anthropomorphic3:{constantes:{d1:[0,"d"],a2:[1,"a"],a3:[2,"a"]},lamina:"d₁ es la altura H de la lámina; a₂ y a₃, las longitudes L₂ y L₃.",
+  T:{n:["cos(q1)*cos(q2+q3)","sin(q1)*cos(q2+q3)","sin(q2+q3)"],o:["-cos(q1)*sin(q2+q3)","-sin(q1)*sin(q2+q3)","cos(q2+q3)"],a:["sin(q1)","-cos(q1)","0"],
+   p:["cos(q1)*(a2*cos(q2)+a3*cos(q2+q3))","sin(q1)*(a2*cos(q2)+a3*cos(q2+q3))","d1+a2*sin(q2)+a3*sin(q2+q3)"]},
+  muestras:[[.35,.7,-.9],[1.1,.35,.4],[.6,.8,-.5],[.2,.5,-1]],
+  inversa:[
+   {key:"q1",label:"q₁",expr:"atan2(py,px)",usa:["px","py","pz","d1","a2","a3"],angulo:true,porque:"px y py llevan el mismo paréntesis: al dividirlos queda tan q₁. Es el plano vertical que contiene al extremo."},
+   {key:"c3",label:"cos q₃",expr:"(px^2+py^2+(pz-d1)^2-a2^2-a3^2)/(2*a2*a3)",usa:["px","py","pz","d1","a2","a3"],porque:"Sumando px² + py² + (pz − d₁)² desaparecen q₁ y q₂ y queda a₂² + a₃² + 2·a₂·a₃·cos q₃: el teorema del coseno. Se pide el coseno porque q₃ admite los dos signos, uno por cada postura del codo."},
+   {key:"q2",label:"q₂, conocido q₃",expr:"atan2(pz-d1,sqrt(px^2+py^2))-atan2(a3*sin(q3),a2+a3*cos(q3))",usa:["px","py","pz","d1","a2","a3","q3"],angulo:true,porque:"q₂ = β − α: β es el ángulo de la recta que va del hombro al extremo y α el que esa recta forma con el primer eslabón."}]},
+ scara4:{constantes:{d1:[0,"d"],a1:[0,"a"],a2:[1,"a"],d4:[3,"d"]},lamina:"d₁ es la altura H de la lámina; a₁ y a₂, los brazos L₂ y L₃; d₄, la herramienta L₄.",
+  T:{n:["cos(q1+q2-q4)","sin(q1+q2-q4)","0"],o:["sin(q1+q2-q4)","-cos(q1+q2-q4)","0"],a:["0","0","-1"],p:["a1*cos(q1)+a2*cos(q1+q2)","a1*sin(q1)+a2*sin(q1+q2)","d1-q3-d4"]},
+  muestras:[[.35,.7,.9,.4],[1.1,-.9,.6,-.8],[-.6,1.2,.5,1.3],[2.2,.5,1.2,.25]],
+  extra:[{key:"fi",label:"φ, el ángulo de n con el eje x",expr:"q1+q2-q4",angulo:true}],
+  inversa:[
+   {key:"q3",label:"q₃",expr:"d1-d4-pz",usa:["px","py","pz","d1","a1","a2","d4"],porque:"La altura solo depende de la guía."},
+   {key:"c2",label:"cos q₂",expr:"(px^2+py^2-a1^2-a2^2)/(2*a1*a2)",usa:["px","py","pz","d1","a1","a2","d4"],porque:"Sumando px² + py² desaparece q₁: en planta es un brazo de dos eslabones. Se pide el coseno porque q₂ admite los dos signos."},
+   {key:"q1",label:"q₁, conocido q₂",expr:"atan2(py,px)-atan2(a2*sin(q2),a1+a2*cos(q2))",usa:["px","py","pz","a1","a2","q2"],angulo:true,porque:"Es el ángulo del extremo visto desde arriba, menos el que desvía el segundo brazo."},
+   {key:"q4",label:"q₄, conocidos q₁ y q₂",expr:"q1+q2-atan2(ny,nx)",usa:["nx","ny","q1","q2"],angulo:true,porque:"n = (cos φ, sen φ, 0) con φ = q₁ + q₂ − q₄. El giro de la herramienta no mueve el extremo: solo se puede sacar de la orientación."}]}
+});
+const IK_EQ_SAMPLE_CONSTANTS=Object.freeze({d1:1.3,a1:.8,a2:.9,a3:.7,d4:.25});
+/* Evalúa una expresión con las variables dadas. Ángulos en radianes: es
+   álgebra, no un cálculo con datos. No usa eval ni Function —la política de
+   contenido los prohíbe—, sino un analizador descendente propio. Un error de
+   escritura lanza una excepción con su motivo; un dominio imposible, como la
+   raíz de un negativo, devuelve NaN. */
+function ikeqNormalize(texto){
+ return String(texto==null?"":texto).toLowerCase().replace(/[−–—‐‑]/g,"-").replace(/[×⋅·]/g,"*").replace(/÷/g,"/").replace(/π/g,"pi").replace(/√/g,"sqrt").replace(/²/g,"^2").replace(/[₀-₉]/g,c=>String(c.charCodeAt(0)-0x2080)).replace(/ₓ/g,"x").replace(/[_\s]/g,"").replace(/;/g,",");
+}
+const IKEQ_FUNCTIONS=Object.freeze({sin:Math.sin,sen:Math.sin,cos:Math.cos,tan:Math.tan,sqrt:Math.sqrt,raiz:Math.sqrt,abs:Math.abs,atan:Math.atan,arctan:Math.atan,arctg:Math.atan,acos:Math.acos,arccos:Math.acos,asin:Math.asin,arcsen:Math.asin,arcsin:Math.asin,atan2:Math.atan2,arctan2:Math.atan2});
+function ikeqEvaluate(texto,vars){
+ const t=ikeqNormalize(texto);let i=0;
+ if(!t)throw Error("falta la expresión");
+ if(t.length>400)throw Error("la expresión es demasiado larga");
+ const come=x=>{if(t.startsWith(x,i)){i+=x.length;return true}return false};
+ const suma=()=>{let v=producto();for(;;){if(come("+"))v+=producto();else if(come("-"))v-=producto();else return v}};
+ const producto=()=>{let v=signo();for(;;){if(come("*"))v*=signo();else if(come("/"))v/=signo();else return v}};
+ const signo=()=>come("+")?signo():come("-")?-signo():potencia();
+ const potencia=()=>{const v=atomo();return come("^")?Math.pow(v,signo()):v};
+ const atomo=()=>{
+  if(come("(")){const v=suma();if(!come(")"))throw Error("falta cerrar un paréntesis");return v}
+  const numero=t.slice(i).match(/^(?:\d+(?:\.\d*)?|\.\d+)/);
+  if(numero){i+=numero[0].length;return Number(numero[0])}
+  const palabra=t.slice(i).match(/^[a-z][a-z0-9]*/);
+  if(!palabra)throw Error(i<t.length?`símbolo no admitido: ${t[i]}`:"la expresión está incompleta");
+  const nombre=palabra[0];i+=nombre.length;
+  if(t[i]==="("){
+   if(!Object.hasOwn(IKEQ_FUNCTIONS,nombre))throw Error(`no se reconoce «${nombre}(»; la multiplicación se escribe con *, como en q3*cos(q1)`);
+   i++;const args=[suma()];while(come(","))args.push(suma());
+   if(!come(")"))throw Error("falta cerrar un paréntesis");
+   const dos=nombre==="atan2"||nombre==="arctan2";
+   if(args.length!==(dos?2:1))throw Error(`${nombre} lleva ${dos?"dos argumentos, separados por una coma":"un solo argumento"}`);
+   return IKEQ_FUNCTIONS[nombre](...args);
+  }
+  if(nombre==="pi")return Math.PI;
+  if(!Object.hasOwn(vars,nombre))throw Error(`aquí no se puede usar ${nombre}`);
+  return vars[nombre];
+ };
+ const v=suma();
+ if(i!==t.length)throw Error(`no se entiende a partir de «${t.slice(i,i+8)}»; la multiplicación se escribe con *`);
+ return v;
+}
+/* Posturas de prueba de un robot, con todo lo que una ecuación puede usar:
+   dimensiones, articulaciones, posición y, en el SCARA, el vector n. */
+function ikeqSamples(id){
+ const spec=IK_EQ[id],base=Object.fromEntries(Object.keys(spec.constantes).map(k=>[k,IK_EQ_SAMPLE_CONSTANTS[k]]));
+ return spec.muestras.map(q=>{
+  const v={...base};q.forEach((x,i)=>{v[`q${i+1}`]=x});
+  const [px,py,pz]=spec.T.p.map(e=>ikeqEvaluate(e,v)),[nx,ny]=spec.T.n.map(e=>ikeqEvaluate(e,v));
+  return{...v,px,py,pz,nx,ny};
+ });
+}
+/* Dos expresiones son la misma si dan lo mismo en todas las posturas de
+   prueba; los ángulos se comparan sin contar vueltas completas. Como el resto
+   de la aplicación compara textos, una expresión equivalente a la esperada
+   devuelve la firma de la esperada. */
+function ikeqCanonical(texto,exercise,field){
+ const solo=v=>Object.fromEntries(field.usa.map(k=>[k,v[k]])),muestras=ikeqSamples(exercise.params.eq.id);
+ const dados=muestras.map(v=>ikeqEvaluate(texto,solo(v))),ref=muestras.map(v=>ikeqEvaluate(exercise.answer[field.key],solo(v)));
+ const igual=(x,y)=>Number.isFinite(x)&&(field.angulo?Math.abs(Math.atan2(Math.sin(x-y),Math.cos(x-y))):Math.abs(x-y))<=1e-7*(1+Math.abs(y));
+ const firma=xs=>`ikeq:${field.key}:${xs.map(x=>Number.isFinite(x)?x.toFixed(6):"nan").join("|")}`;
+ return dados.every((x,i)=>igual(x,ref[i]))?firma(ref):firma(dados)+":distinta";
+}
+/* De la sintaxis del analizador a la del papel: c₁, s₂₃, a₂·c₂, raíz(…). */
+function ikeqPretty(expr){
+ const subindice=d=>dhIndexDigits(Number(d),DH_SUBINDICES);
+ return String(expr).replace(/atan2/g,"\u0001")
+  .replace(/\b(sin|cos)\(q(\d)((?:\+q\d)*)\)/g,(m,f,a,resto)=>(f==="sin"?"s":"c")+[a,...(resto.match(/\d/g)||[])].map(subindice).join(""))
+  .replace(/\bsin\(/g,"sen(").replace(/\bsqrt\(/g,"raíz(")
+  .replace(/\b([a-z]+)(\d)\b/g,(m,nombre,d)=>nombre+subindice(d))
+  .replace(/\^2/g,"²").replace(/\*/g,"·").replace(/-/g,"−").replace(/,/g,", ").replace(/\u0001/g,"atan2");
+}
+/* Las matrices de la tabla con sus símbolos: cᵢ y sᵢ donde la articulación
+   gira, qᵢ donde se desplaza y el nombre de la dimensión donde es fija. Los
+   giros fijos de estas tablas son múltiplos de 90°, así que sus senos y
+   cosenos valen 0, 1 o −1 y los productos se simplifican solos. */
+function dhSymbolicMatrix(row,tipo,i){
+ const k=dhIndexDigits(i,DH_SUBINDICES),exacto=x=>{const r=Math.round(x);return Math.abs(x-r)<1e-9?r:Number(x.toFixed(4))};
+ const num=x=>({c:exacto(x),s:""}),sim=(nombre)=>({c:1,s:nombre});
+ const ct=tipo==="R"?sim("c"+k):num(Math.cos(rad(row.theta))),st=tipo==="R"?sim("s"+k):num(Math.sin(rad(row.theta)));
+ const ca=num(Math.cos(rad(row.alpha))),sa=num(Math.sin(rad(row.alpha)));
+ const a=row.a?sim("a"+k):num(0),d=tipo==="P"?sim("q"+k):row.d?sim("d"+k):num(0);
+ const por=(...fs)=>fs.reduce((x,y)=>({c:x.c*y.c,s:[x.s,y.s].filter(Boolean).join("·")})),menos=x=>({c:-x.c,s:x.s});
+ const texto=x=>x.c===0?"0":!x.s?String(x.c).replace("-","−"):x.c===1?x.s:x.c===-1?"−"+x.s:`${String(x.c).replace("-","−")}·${x.s}`;
+ return[[ct,menos(por(st,ca)),por(st,sa),por(a,ct)],[st,por(ct,ca),menos(por(ct,sa)),por(a,st)],[num(0),sa,ca,d],[num(0),num(0),num(0),num(1)]].map(f=>f.map(texto));
+}
+/* Pasos simbólicos comunes a todas las soluciones de la inversa: las matrices
+   de la tabla y su producto, T = [n o a p]. */
+function ikSymbolicSteps(ik){
+ const spec=IK_EQ[ik.id];
+ if(!spec)return[];
+ const n=ik.types.length,fila=f=>`[ ${f.join("   ")} ]`,vector=(nombre,v)=>`${nombre} = ( ${v.map(ikeqPretty).join(" ,  ")} )`;
+ const matrices=ik.rows.map((r,i)=>`${dhMatrixName(i+1)} =\n${dhSymbolicMatrix(r,ik.types[i],i+1).map(fila).join("\n")}`).join("\n");
+ const giran=ik.types.some(t=>t==="R"),producto=[vector("n",spec.T.n),vector("o",spec.T.o),vector("a",spec.T.a),vector("p",spec.T.p)].join("\n");
+ return[
+  `De cada fila de la tabla sale una matriz. Es siempre la misma plantilla, ⁱ⁻¹Aᵢ = Rz(θ)·Tz(d)·Tx(a)·Rx(α), con las articulaciones todavía sin valor${giran?": cᵢ y sᵢ son el coseno y el seno de qᵢ":""}.\n${matrices}`,
+  `Multiplica las ${n} matrices en orden, desde la base. El resultado es T = [n o a p]: sus tres primeras columnas son la orientación del extremo y la cuarta, su posición. Estas son las ecuaciones de la cinemática directa${/[cs][₁-₆]{2}/.test(producto)?"; dos subíndices juntos indican la suma de los ángulos: c₁₂ es el coseno de q₁ + q₂":""}.\n${producto}`];
+}
+/* Por qué vale cada parámetro de una fila. Se deduce de la propia tabla: α = 0
+   son ejes paralelos, a = 0 son ejes que se cortan, y así. */
+function dhRowReasoning(rows,types){
+ const g=x=>`${fmt(x,2)}°`,m=x=>fmt(x,3);
+ return rows.map((r,idx)=>{
+  const i=idx+1,k=dhIndexDigits(i,DH_SUBINDICES),k0=dhIndexDigits(i-1,DH_SUBINDICES),gira=types[idx]==="R";
+  const theta=gira?`θ = q${k}: es la variable, el giro alrededor de z${k0}. En la postura dibujada vale ${g(r.theta)}.`
+   :Math.abs(r.theta)<1e-9?`θ = 0°: al pasar de un sistema al otro, el eje x no gira.`
+   :`θ = ${g(r.theta)}: giro fijo alrededor de z${k0} que lleva x${k0} sobre x${k}. Una articulación prismática no anula θ: lo deja constante.`;
+  const d=!gira?`d = q${k}: es la variable, lo que avanza el carro sobre z${k0}. En la postura dibujada vale ${m(r.d)} m.`
+   :Math.abs(r.d)<1e-9?`d = 0: el origen no se desplaza sobre z${k0}.`
+   :`d = ${m(r.d)} m: distancia fija sobre z${k0}, desde el origen anterior hasta la normal común.`;
+  const a=Math.abs(r.a)<1e-9?`a = 0: el eje z${k0} y el eje z${k} se cortan o coinciden; no hay distancia entre ellos.`
+   :`a = ${m(r.a)} m: distancia entre el eje z${k0} y el eje z${k}, medida sobre x${k}.`;
+  const al=Math.abs(r.alpha)<1e-9?`α = 0°: z${k} queda paralelo a z${k0}.`
+   :Math.abs(Math.abs(r.alpha)-180)<1e-9?`α = 180°: z${k} es paralelo a z${k0}, pero de sentido contrario.`
+   :`α = ${g(r.alpha)}: z${k} es perpendicular a z${k0}. El signo es el del giro alrededor de x${k} que lleva z${k0} sobre z${k}, con la regla de la mano derecha.`;
+  return`Fila ${i} · articulación ${gira?"de giro":"prismática"}. El eje z${k0} se pone sobre el eje de esta articulación, y x${k} sobre la normal común con el eje siguiente. Con eso se leen los cuatro parámetros:\n${theta}\n${d}\n${a}\n${al}`;
+ });
+}
+/* ---------- ACTIVIDAD DE ECUACIONES ----------
+   El mismo problema, sin números: se escriben las ecuaciones de la posición a
+   partir de la tabla y, después, las de las articulaciones a partir de la
+   posición. */
+function isIkEquationsExercise(e){return Boolean(e?.type==="symbolic"&&e.symbolEngine==="evalua"&&IK_EQ[e.params?.eq?.id])}
+function ikEquationsTableMarkup(ik){
+ const spec=IK_EQ[ik.id],nombre=Object.fromEntries(Object.entries(spec.constantes).map(([k,[fila,col]])=>[`${fila}:${col}`,k]));
+ const celda=(r,i,col)=>(ik.types[i]==="R"&&col.key==="theta")||(ik.types[i]==="P"&&col.key==="d")?`q<sub>${i+1}</sub>`
+  :nombre[`${i}:${col.key}`]?`${nombre[`${i}:${col.key}`][0]}<sub>${nombre[`${i}:${col.key}`].slice(1)}</sub>`
+  :col.angle?`${fmt(r[col.key],1)}°`:fmt(r[col.key],3);
+ return`<div class="table-wrap dh-table"><table aria-label="Tabla DH con las articulaciones y las dimensiones como símbolos"><thead><tr><th>i</th>${DH_COLUMNS.map(col=>`<th>${col.symbol}ᵢ</th>`).join("")}</tr></thead><tbody>${ik.rows.map((r,i)=>`<tr><td>${i+1}</td>${DH_COLUMNS.map(col=>`<td>${celda(r,i,col)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+}
+function ikEquationsFields(id){
+ const spec=IK_EQ[id],n=spec.muestras[0].length,qs=Array.from({length:n},(_,i)=>`q${i+1}`),ks=Object.keys(spec.constantes);
+ const directa=/* Las etiquetas van sin marcado: también se usan en los avisos, que escapan
+    todo lo que reciben. */
+ ["px","py","pz"].map((key,i)=>({key,label:key,grupo:"directa",expr:spec.T.p[i],usa:[...qs,...ks]}));
+ const extra=(spec.extra||[]).map(f=>({...f,grupo:"directa",usa:[...qs,...ks]}));
+ return[...directa,...extra,...spec.inversa.map(f=>({...f,grupo:"inversa"}))];
+}
+function makeInverseEquations(diff,id="any"){
+ const e0=makeInverseNoap(diff,id),ik=e0.params.ik,spec=IK_EQ[ik.id],campos=ikEquationsFields(ik.id),n=ik.types.length;
+ const directas=campos.filter(f=>f.grupo==="directa"),inversas=campos.filter(f=>f.grupo==="inversa");
+ const usados=[...new Set(campos.flatMap(f=>f.usa))],nombre=f=>f.label.split(",")[0];
+ return{...e0,id:`ik_equations_${ik.id}`,kind:"ik-equations",type:"symbolic",symbolEngine:"evalua",matrixLayout:undefined,rows:campos.length,cols:1,tolerance:undefined,
+  title:"Cinemática inversa · ecuaciones",symbols:usados,symbolFields:campos.map((f,i)=>({key:f.key,label:f.label,grupo:f.grupo,usa:f.usa,angulo:Boolean(f.angulo),row:i+1})),
+  answer:Object.fromEntries(campos.map(f=>[f.key,f.expr])),
+  statement:`Tabla DH del robot ${IK_NOAP_NAMES[ik.id]}, con sus articulaciones y sus dimensiones como símbolos:${ikEquationsTableMarkup(ik)}Escribe las ecuaciones, sin números: <strong>1)</strong> la posición del extremo en función de las articulaciones; <strong>2)</strong> las articulaciones en función de la posición.`,
+  notes:`${spec.lamina?spec.lamina+" ":""}La primera parte es la cuarta columna de T, que sale de multiplicar las matrices de la tabla. La segunda son esas mismas ecuaciones despejadas. Se toma la postura con el brazo hacia delante. Cada expresión se comprueba dándole valores: vale cualquier forma equivalente a la esperada.`,
+  chips:[],params:{...e0.params,eq:{id:ik.id}},
+  convention:"DH estándar. p = (px, py, pz) es la posición del extremo respecto de la base; n, o y a, su orientación.",
+  plateNote:"Esquema del robot, para reconocer sus articulaciones y el sentido de sus ejes.",
+  concepts:["cinemática directa","cinemática inversa","ecuaciones del robot"],
+  commonErrors:["multiplicar las matrices en otro orden","olvidar la altura de la base al despejar","usar arctan donde hace falta atan2","dar un ángulo con arco coseno cuando admite los dos signos"],
+  hints:["Para la primera parte no hace falta desarrollar las doce componentes: la posición es la cuarta columna de T, y solo crece al pasar por una matriz que tenga a o d.","Para la segunda, busca la combinación que quita incógnitas: dividir dos componentes elimina un factor común, y sumar sus cuadrados elimina un ángulo.","atan2(seno, coseno) conserva el cuadrante. El arco coseno, en cambio, solo da uno de los dos signos posibles."],
+  steps:[
+   ...ikSymbolicSteps(ik),
+   `Primera parte: las ecuaciones de la posición son las tres componentes de p${directas.length>3?", y el giro de la herramienta se lee en n":""}.\n${directas.map(f=>`${nombre(f)} = ${ikeqPretty(f.expr)}`).join("\n")}`,
+   ...inversas.map((f,i)=>`${i?"":"Segunda parte: se despejan las articulaciones, empezando por la que queda sola. "}${f.porque}\n${nombre(f)} = ${ikeqPretty(f.expr)}`),
+   `Comprueba dándoles valores: elige unas articulaciones, calcula p con las ecuaciones de la primera parte y sustitúyelo en las de la segunda. Tienen que devolver las articulaciones de las que partiste.`]};
+}
+function ikEquationsInputs(e){
+ const campo=f=>`<label for="wsAnswer-${f.key}">${f.label} =<input id="wsAnswer-${f.key}" data-ws-answer="${f.key}" type="text" autocomplete="off" spellcheck="false" placeholder="Tu ecuación" aria-describedby="wsSyntax"><span data-ws-status="${f.key}"></span><small class="cell-hint">Puedes usar: ${f.usa.join(", ")}</small></label>`;
+ const grupo=(clave,titulo)=>`<fieldset><legend>${titulo}</legend><div class="ns-fields">${e.symbolFields.filter(f=>f.grupo===clave).map(campo).join("")}</div></fieldset>`;
+ return`<div class="ws-symbolic-answer ns-answer">
+  ${grupo("directa","1 · Cinemática directa: del producto de las matrices")}
+  ${grupo("inversa","2 · Cinemática inversa: despejando las anteriores")}
+  <p id="wsSyntax">Escribe con +, −, *, /, ^ y paréntesis. Funciones: sin o sen, cos, tan, sqrt o raiz, atan2(seno, coseno), atan, acos y asin. La multiplicación lleva siempre su asterisco: 2*a2*a3. Ejemplos: a2*cos(q1+q2) · sqrt(px^2+py^2) · atan2(py, px).</p>
+  <button type="button" class="btn soft" id="wsClearExpressions">Limpiar expresiones</button></div>`;
+}
+/* Cuántas ecuaciones están bien, para la nota de examen por partes. */
+function ikEquationsScore(e,valor){
+ if(!valor||typeof valor!=="object")return 0;
+ return e.symbolFields.filter(f=>{try{return valor[f.key]===wsFieldCanonical(e.answer[f.key],e,f)}catch(err){return false}}).length/e.symbolFields.length;
+}
 /* Desarrollo escrito, robot a robot. Los números salen de la solución ya
    comprobada con la cinemática directa. La primera línea de cada paso se
    inserta como HTML: ningún texto de aquí lleva el signo menor que. */
-function ikNoapSteps(ik){
+function ikNoapSteps(ik){return[...ikSymbolicSteps(ik),...ikNoapNumericSteps(ik)]}
+function ikNoapNumericSteps(ik){
  const {id,rows,T,solutions}=ik,sol=solutions[0],f=x=>fmt(x,4),ang=x=>`${fmt(x,2)}°`;
  const [nx,ox,ax,px]=T[0],[ny,oy,ay,py]=T[1],[nz,oz,az,pz]=T[2],c=x=>Math.cos(rad(x)),sn=x=>Math.sin(rad(x));
  const vector=(nombre,x,y,z)=>`${nombre} = (${f(x)}, ${f(y)}, ${f(z)})`;
@@ -9370,6 +9596,9 @@ function makeInverseChain(diff,id="any"){
     sus coordenadas articulares son dato y van en las fichas. */
  const filas=ikNoapRows(ik,ref),q=i=>`q${dhIndexDigits(i+1,DH_SUBINDICES)}`;
  const postura=ref.map((v,i)=>`${q(i)}=${fmt(v,2)}${ik.types[i]==="R"?"°":" m"}`);
+ /* Hacia dónde apunta el eje de cada articulación en la postura dibujada: es
+    el eje z del sistema anterior. */
+ const acumuladas=e0.params.kinematics.cumulative,ejes=ik.types.map((_,i)=>{const z=i?Math.abs(Number(acumuladas[i-1][2][2])):1;return z>.99?"vertical":z<.01?"horizontal":"inclinado"});
  const geometrico=ik.dato==="p",puntos=IK_CHAIN_PARTS.map(x=>`${x.nombre} ${x.peso}`).join(" · ");
  const pedido=geometrico?`al punto <strong>p</strong>, en metros:${ikNoapPointMarkup(ik.T)}`:`a <strong>T = [n o a p]</strong>:${ikNoapTargetMarkup(ik.T)}`;
  return{...e0,id:`ik_chain_${ik.id}`,kind:"ik-chain",matrixLayout:"ikChain",
@@ -9384,8 +9613,10 @@ function makeInverseChain(diff,id="any"){
   commonErrors:["dejar en la tabla las coordenadas de la segunda parte en lugar de las de la postura dibujada","confundir un carro deslizante con un cojinete de giro",...e0.commonErrors],
   hints:[],
   steps:[
-   `Parte 1 · Tabla DH. Asigna los marcos con el algoritmo de D-H y mide los cuatro parámetros de cada fila en la postura dibujada. La coordenada articular entra en θ si la articulación gira y en d si se desplaza.\n${filas.map((r,i)=>`Fila ${i+1}: θ = ${fmt(r.theta,2)}° · d = ${fmt(r.d,3)} · a = ${fmt(r.a,3)} · α = ${fmt(r.alpha,2)}°`).join("\n")}`,
-   `Parte 2 · Cinemática inversa. La tabla es la misma, pero ${q(0)} a ${q(n-1)} dejan de ser datos y pasan a ser incógnitas: se escribe cada una en su celda y se busca qué valores llevan el extremo adonde se pide.`,
+   `Parte 1 · Tabla DH. Antes de medir nada, recorre el mecanismo desde la base e identifica cada articulación y su eje: los cojinetes giran, los carros se desplazan por una guía. En D-H, el eje de la articulación i es el eje z del sistema anterior.\n${ik.types.map((tipo,i)=>`Articulación ${i+1}: ${tipo==="R"?"de giro, alrededor de":"prismática, a lo largo de"} un eje ${ejes[i]}. Su coordenada es ${q(i)}, ${tipo==="R"?"un ángulo":"una distancia"}.`).join("\n")}`,
+   ...dhRowReasoning(filas,ik.types),
+   `Reúne las filas. Esta es la tabla DH del mecanismo en la postura dibujada, con las columnas en el orden θ, d, a, α:\n${filas.map((r,i)=>`Fila ${i+1}: θ = ${fmt(r.theta,2)}° · d = ${fmt(r.d,3)} · a = ${fmt(r.a,3)} · α = ${fmt(r.alpha,2)}°`).join("\n")}`,
+   `Parte 2 · Cinemática inversa. La tabla es la misma, pero ${q(0)} a ${q(n-1)} dejan de ser datos y pasan a ser incógnitas: se deja cada una como letra en su celda y se busca qué valores llevan el extremo adonde se pide.`,
    ...e0.steps]};
 }
 function ikChainGrade(e,a){
@@ -9494,7 +9725,7 @@ function makeWristAngles(diff){
    mecanismo, cómo se puntúa— va en `notes` y se pinta plegado: está a un
    clic, pero no hay que leerlo entero antes de cada ejercicio. */
 function statementNotesMarkup(e){return e?.notes?`<details class="statement-notes"><summary>Convenio y aclaraciones</summary><p>${e.notes}</p></details>`:""}
-function hasMechanicalWorkedSolution(e){return Boolean(isMechanicalWorksheet(e)||(e?.visual==='dhAssignment'&&e.kind!=='ik-noap'&&e.kind!=='ik-chain'))}
+function hasMechanicalWorkedSolution(e){return Boolean(isMechanicalWorksheet(e)||(e?.visual==='dhAssignment'&&e.kind!=='ik-noap'&&e.kind!=='ik-chain'&&e.kind!=='ik-equations'))}
 /* Teaching calculations are derived from the input parameters. They do not
    replace the verifier or round intermediate values used by the engine. */
 function mechanicalWorkedSolution(e){
@@ -9847,6 +10078,10 @@ function check(){
  if(!ok&&hasMechanicalWorkedSolution(exercise)){revealMechanicalWorkedSolution(exercise);feedback("bad",(isDhChainExercise(exercise)?dhChainSummary(dhChainGrade(exercise,a))+" ":"La respuesta no es correcta. ")+"Debajo tienes el desarrollo completo, paso a paso.")}
  if(!ok&&isIkNoapExercise(exercise))feedback("bad",ikNoapSummary(ikNoapGrade(exercise,a))+" Puedes corregirlo y volver a comprobar, o abrir la solución.");
  if(!ok&&isIkChainExercise(exercise))feedback("bad",ikChainSummary(ikChainGrade(exercise,a))+" Puedes corregirlo y volver a comprobar, o abrir la solución.");
+ if(!ok&&isIkEquationsExercise(exercise)){
+  const total=exercise.symbolFields.length,bien=Math.round(ikEquationsScore(exercise,a)*total);
+  feedback("bad",`${bien} de ${total} ecuaciones bien. Las que hay que revisar están señaladas; vale cualquier forma equivalente a la esperada. Puedes corregirlas y volver a comprobar, o abrir la solución.`);
+ }
  if(isDhTableExercise(exercise))renderStageWorkbench(exercise);
  save();
 }
@@ -15170,7 +15405,12 @@ function runSelfTests(){
     if(n===3&&!matrixCellPolicy(e,n,3).locked)return false;
     if(matrixCellPolicy(e,n,0).locked||matrixCellPolicy(e,0,3).locked)return false;
     if(exerciseTopicKey(e)!=="4.4"||!isStatementOnlyExercise(e)||hasMechanicalWorkedSolution(e)||!solutionHasContent({...e,attempted:true})||buildPedagogyTrace(e).source==="kinematics")return false;
-    if(!e.steps[0].startsWith("Parte 1")||!e.steps[1].startsWith("Parte 2")||!e.notes.includes("flecha de cada eje"))return false;
+    /* el desarrollo va entero y en orden: los ejes, una fila cada vez, la
+       tabla, y solo entonces la inversa, que empieza por las matrices con letras */
+    const parte2=e.steps.findIndex(t=>t.startsWith("Parte 2"));
+    if(!e.steps[0].startsWith("Parte 1")||parte2!==n+2||!e.notes.includes("flecha de cada eje"))return false;
+    if(!e.steps.slice(1,n+1).every((t,i)=>t.startsWith(`Fila ${i+1} · articulación ${ik.types[i]==="R"?"de giro":"prismática"}`)&&["θ =","d =","a =","α ="].every(x=>t.includes("\n"+x))))return false;
+    if(!e.steps[parte2+1].includes(dhMatrixName(1)+" =")||!e.steps[parte2+2].includes("p = ("))return false;
     /* sus datos están en las fichas, así que se enseñan aunque sea de solo
        enunciado; en la inversa sencilla, que da la tabla, siguen ocultas */
     if(!showsDataChips(e)||showsDataChips(makeInverseNoap(nivel,id))||!showsDataChips(makeDhRowMatrix(nivel)))return false;
@@ -15191,6 +15431,67 @@ function runSelfTests(){
    const gl=ikChainGrade(c,lejos);
    if(gl.q.arrastre||gl.q.aciertos!==1||!gl.q.partes[2]||gl.puntos!==5/3)return false;
    return !g.tabla.ok&&g.q.arrastre&&g.q.aciertos===3&&g.puntos===5&&ikChainSummary(g).includes("arrastre")&&!answerIsCorrect(c,b)&&Number.isFinite(px+py+pz);
+  }],
+  ["Las ecuaciones de cada robot son las de su tabla, y sus inversas las deshacen",()=>{
+   for(const id of Object.keys(IK_EQ)){
+    const spec=IK_EQ[id];
+    for(let rep=0;rep<6;rep++){
+     /* un robot sorteado, con sus dimensiones; y una postura de prueba */
+     const ik=makeInverseNoap(pick(DIFFICULTY_LEVELS),id).params.ik,n=ik.types.length;
+     const v=Object.fromEntries(Object.entries(spec.constantes).map(([k,[fila,col]])=>[k,ik.rows[fila][col]]));
+     const postura=pick(spec.muestras);postura.forEach((x,i)=>{v[`q${i+1}`]=x});
+     /* la T simbólica, componente a componente, contra el motor */
+     const T=KinematicsEngine.serialDH(ik.rows.map((r,i)=>ik.types[i]==="R"?{...r,theta:postura[i]*180/Math.PI}:{...r,d:postura[i]})).cumulative.at(-1);
+     for(const [col,clave] of [[0,"n"],[1,"o"],[2,"a"],[3,"p"]])for(let r=0;r<3;r++)if(Math.abs(ikeqEvaluate(spec.T[clave][r],v)-Number(T[r][col]))>1e-9)return false;
+     /* las inversas devuelven la postura de la que se partió */
+     const datos={...v,px:Number(T[0][3]),py:Number(T[1][3]),pz:Number(T[2][3]),nx:Number(T[0][0]),ny:Number(T[1][0])};
+     for(const f of spec.inversa){
+      const valor=ikeqEvaluate(f.expr,Object.fromEntries(f.usa.map(k=>[k,datos[k]])));
+      const esperado=/^c\d$/.test(f.key)?Math.cos(postura[Number(f.key[1])-1]):postura[Number(f.key[1])-1];
+      if(!(Math.abs(f.angulo?Math.atan2(Math.sin(valor-esperado),Math.cos(valor-esperado)):valor-esperado)<1e-9))return false;
+     }
+     /* y las matrices con letras son las de la tabla: se evalúan y se multiplican */
+     const valores={...v};ik.types.forEach((t,i)=>{if(t==="R"){valores[`c${i+1}`]=Math.cos(postura[i]);valores[`s${i+1}`]=Math.sin(postura[i])}});
+     const num=celda=>ikeqEvaluate(celda.replace(/[₀-₉]/g,c=>String(c.charCodeAt(0)-0x2080)).replace(/−/g,"-").replace(/·/g,"*"),valores);
+     const prod=ik.rows.map((r,i)=>dhSymbolicMatrix(r,ik.types[i],i+1).map(f=>f.map(num))).reduce((A,B)=>A.map((f,i)=>B[0].map((_,j)=>f.reduce((suma,_,k)=>suma+A[i][k]*B[k][j],0))));
+     if(!prod.every((f,i)=>f.every((x,j)=>Math.abs(x-Number(T[i][j]))<1e-9)))return false;
+    }
+   }
+   return true;
+  }],
+  ["La actividad de ecuaciones acepta formas equivalentes y rechaza las que no lo son",()=>{
+   const igual=(e,clave,texto)=>{const f=e.symbolFields.find(x=>x.key===clave);return wsFieldCanonical(texto,e,f)===wsFieldCanonical(e.answer[clave],e,f)};
+   const falla=(e,clave,texto)=>{try{igual(e,clave,texto);return false}catch(err){return true}};
+   for(const id of Object.keys(IK_EQ))for(const nivel of DIFFICULTY_LEVELS){
+    const e=makeInverseEquations(nivel,id);
+    if(!isIkEquationsExercise(e)||e.type!=="symbolic"||isIkNoapExercise(e)||isStatementOnlyExercise(e)||hasMechanicalWorkedSolution(e)||exerciseVariantKind(e)!=="mechanical"||exerciseTopicKey(e)!=="4.4")return false;
+    /* la respuesta esperada vale, y nadie puede contestar una incógnita con ella misma */
+    const bien=Object.fromEntries(e.symbolFields.map(f=>[f.key,wsFieldCanonical(e.answer[f.key],e,f)]));
+    if(!answerIsCorrect(e,bien)||examQuestionScore(e,bien)!==1)return false;
+    if(e.symbolFields.some(f=>f.usa.includes(f.key)))return false;
+    /* una ecuación mal: se pierde solo su parte */
+    const primera=e.symbolFields[0],mal={...bien,[primera.key]:wsFieldCanonical(`(${e.answer[primera.key]})+1`,e,primera)};
+    if(answerIsCorrect(e,mal)||Math.abs(examQuestionScore(e,mal)-(e.symbolFields.length-1)/e.symbolFields.length)>1e-12||examQuestionScore(e,null)!==0)return false;
+    /* el desarrollo: matrices, producto, las dos partes y la comprobación */
+    if(!e.steps[0].includes(dhMatrixName(1)+" =")||!e.steps[1].includes("p = (")||!e.steps[2].startsWith("Primera parte")||!e.steps[3].startsWith("Segunda parte")||!e.hints.length)return false;
+    if(e.steps.some(t=>String(t).split("\n")[0].includes("<"))||/undefined|NaN/.test(e.steps.join(" ")+e.statement+e.notes))return false;
+    /* las dimensiones van con letra en la tabla, no con número */
+    if(Object.keys(IK_EQ[id].constantes).some(k=>!e.statement.includes(`${k[0]}<sub>${k.slice(1)}</sub>`)))return false;
+   }
+   const polar=makeInverseEquations(2,"polar3"),scara=makeInverseEquations(3,"scara4"),brazo=makeInverseEquations(3,"anthropomorphic3");
+   /* las formas del libro, con arctan, valen en la rama principal */
+   if(!igual(polar,"q1","atan(py/px)")||!igual(polar,"q2","arctan(raiz(px^2+py^2)/(d1-pz))")||!igual(polar,"q3","cos(q2)*(pz-d1)-sen(q2)*sqrt(px^2+py^2)"))return false;
+   /* la notación del papel también: subíndices, menos tipográfico, punto de multiplicar */
+   if(!igual(polar,"px","−q₃·cos(q₁)·sen(q₂)")||!igual(scara,"py","a1*sin(q1) + a2*(sin(q1)*cos(q2)+cos(q1)*sin(q2))")||!igual(scara,"fi","q1 + q2 − q4 + 2*pi"))return false;
+   if(!igual(brazo,"q2","atan2(pz-d1, sqrt(px^2+py^2)) - atan(a3*sin(q3)/(a2+a3*cos(q3)))"))return false;
+   /* lo que no es equivalente no pasa: argumentos cambiados, signo, altura olvidada */
+   if(igual(polar,"q1","atan2(px,py)")||igual(polar,"q2","atan2(sqrt(px^2+py^2),pz-d1)")||igual(polar,"q3","sqrt(px^2+py^2+pz^2)")||igual(brazo,"c3","(px^2+py^2+pz^2-a2^2-a3^2)/(2*a2*a3)"))return false;
+   /* una raíz imposible no es un error de escritura: es una ecuación equivocada */
+   if(igual(polar,"q3","sqrt(-px^2-1)"))return false;
+   /* y lo mal escrito se dice, en vez de darlo por malo sin más */
+   if(!falla(polar,"q3","q3")||!falla(polar,"px","-q3 cos(q1) sin(q2)")||!falla(polar,"q1","atan2(py)")||!falla(polar,"q1","")||!falla(polar,"q1","atan2(py,px")||!falla(polar,"q1","py$px"))return false;
+   /* el analizador no ejecuta nada: un nombre que no es variable ni función se rechaza */
+   return falla(polar,"q1","alert(1)")&&falla(polar,"q1","constructor")&&falla(polar,"q1","__proto__")&&ikeqEvaluate("2^3^2",{})===512&&ikeqEvaluate("-2^2",{})===-4&&Math.abs(ikeqEvaluate("atan2(1;1)*4",{})-Math.PI)<1e-12;
   }],
   ["El centro de la muñeca no depende de sus tres giros",()=>{
    for(const nivel of DIFFICULTY_LEVELS)for(let i=0;i<4;i++){
@@ -17416,6 +17717,7 @@ function wsParseExpression(raw,variables,{normalize=wsNormalize,trig=false,maxLe
  const ast=expression();if(i!==stream.length)throw Error("revisa los paréntesis y operadores");const poly=normalize(ast);return{ast,poly,canonical:wsCanonical(poly)};
 }
 function wsFieldCanonical(text,exercise,field){
+ if(exercise.symbolEngine==="evalua")return ikeqCanonical(text,exercise,field);
  if(isNarrativeExercise(exercise)||exercise.symbolEngine==="trig")return nsParse(text,exercise.symbols).canonical;
  const entered=wsParseExpression(text,exercise.symbols),expected=wsParseExpression(exercise.answer[field.key],exercise.symbols);
  /* sqrt(p²)=abs(p), también si el cuadrado se escribió desarrollado. */
@@ -17428,7 +17730,7 @@ function wsFieldCanonical(text,exercise,field){
 }
 function wsReadAnswers(exercise){return Object.fromEntries(exercise.symbolFields.map(f=>{const el=document.querySelector(`[data-ws-answer="${f.key}"]`);try{return[f.key,wsFieldCanonical(el?.value||"",exercise,f)]}catch(e){throw Error(`${f.label}: ${e.message}`)}}))}
 function wsSymbolicCorrect(exercise,answer){return Boolean(answer&&exercise.symbolFields.every(f=>answer[f.key]===wsFieldCanonical(exercise.answer[f.key],exercise,f)))}
-function wsSymbolicInputs(exercise){if(isNarrativeExercise(exercise)||exercise.symbolEngine==="trig")return nsInputs(exercise);return`<div class="ws-symbolic-answer"><p>Escribe las expresiones usando <strong>${exercise.symbols.join(", ")}</strong> y pi. No se requieren valores numéricos.</p>${exercise.symbolFields.map(f=>`<label for="wsAnswer-${f.key}">${f.label}<input id="wsAnswer-${f.key}" data-ws-answer="${f.key}" type="text" autocomplete="off" spellcheck="false" placeholder="Tu expresión" aria-describedby="wsSyntax"><span data-ws-status="${f.key}"></span></label>`).join("")}<p id="wsSyntax">Admite +, −, *, / por números, ^ de 0 a 4, paréntesis, abs(...), sqrt(...) y cos(theta). Puedes usar L₁, L₂, L₃, π y multiplicación implícita. Las expresiones se comparan algebraicamente dentro de esta notación.</p><button type="button" class="btn soft" id="wsClearExpressions">Limpiar expresiones</button></div>`}
+function wsSymbolicInputs(exercise){if(isIkEquationsExercise(exercise))return ikEquationsInputs(exercise);if(isNarrativeExercise(exercise)||exercise.symbolEngine==="trig")return nsInputs(exercise);return`<div class="ws-symbolic-answer"><p>Escribe las expresiones usando <strong>${exercise.symbols.join(", ")}</strong> y pi. No se requieren valores numéricos.</p>${exercise.symbolFields.map(f=>`<label for="wsAnswer-${f.key}">${f.label}<input id="wsAnswer-${f.key}" data-ws-answer="${f.key}" type="text" autocomplete="off" spellcheck="false" placeholder="Tu expresión" aria-describedby="wsSyntax"><span data-ws-status="${f.key}"></span></label>`).join("")}<p id="wsSyntax">Admite +, −, *, / por números, ^ de 0 a 4, paréntesis, abs(...), sqrt(...) y cos(theta). Puedes usar L₁, L₂, L₃, π y multiplicación implícita. Las expresiones se comparan algebraicamente dentro de esta notación.</p><button type="button" class="btn soft" id="wsClearExpressions">Limpiar expresiones</button></div>`}
 function wsMarkSymbolic(exercise,answers){for(const f of exercise.symbolFields){const input=document.querySelector(`[data-ws-answer="${f.key}"]`),label=document.querySelector(`[data-ws-status="${f.key}"]`);if(!input||!label)continue;const ok=answers[f.key]===wsFieldCanonical(exercise.answer[f.key],exercise,f);input.setAttribute("aria-invalid",String(!ok));label.textContent=ok?"✓ Expresión equivalente":"Revisa esta expresión";label.className=ok?"ws-correct":"ws-review"}}
 
 /* Ejercicios geométricos de área: el modelo y los datos del enunciado son

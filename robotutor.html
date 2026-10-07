@@ -900,7 +900,7 @@ var RoboTutorMechanical3D=(()=>{var Ka=Object.defineProperty;var Bh=Object.getOw
         <div class="statement" id="statement"></div>
         <div class="chips" id="chips"></div>
         <div class="exercise-variants" id="exerciseVariants">
-          <section id="mechanicalFormats" class="reflection-formats" hidden aria-label="Robots para identificación y cinemática"><label for="mechanicalModel">Robot para practicar</label><select id="mechanicalModel"><option value="any" selected>Cualquier modelo · sortea uno distinto</option><option value="scara">SCARA · 4 articulaciones</option><option value="cylindrical">Cilíndrico · 4 articulaciones</option><option value="anthropomorphic">Antropomórfico · 6 articulaciones</option></select><label for="mechanicalTask">Actividad</label><select id="mechanicalTask"><option value="identify">Identificar el robot</option><option value="dh">Construir la tabla DH</option><option value="chain">Problema completo · tabla, T y posición</option><option value="inverse">Cinemática inversa · de la localización a las articulaciones</option><option value="wrist">Desacoplo cinemático · muñeca de seis ejes</option><option value="direct" selected>Calcular la posición</option></select><button id="newMechanical" class="btn soft" type="button">Nuevo ejercicio</button></section>
+          <section id="mechanicalFormats" class="reflection-formats" hidden aria-label="Robots para identificación y cinemática"><label for="mechanicalModel">Robot para practicar</label><select id="mechanicalModel"><option value="any" selected>Cualquier modelo · sortea uno distinto</option><option value="scara">SCARA · 4 articulaciones</option><option value="cylindrical">Cilíndrico · 4 articulaciones</option><option value="anthropomorphic">Antropomórfico · 6 articulaciones</option></select><label for="mechanicalTask">Actividad</label><select id="mechanicalTask"><option value="identify">Identificar el robot</option><option value="dh">Construir la tabla DH</option><option value="chain">Problema completo · tabla, T y posición</option><option value="inverse">Cinemática inversa · de la localización a las articulaciones</option><option value="ikchain">Cinemática inversa completa · tabla DH y articulaciones</option><option value="wrist">Desacoplo cinemático · muñeca de seis ejes</option><option value="direct" selected>Calcular la posición</option></select><button id="newMechanical" class="btn soft" type="button">Nuevo ejercicio</button></section>
           <section id="planarGeometryFormat" class="reflection-formats" hidden aria-label="Método geométrico planar"><strong>Planar 2R · método geométrico</strong><button id="newPlanarNumeric" class="btn soft" type="button">Con datos numéricos</button><button id="newPlanarSymbolic" class="btn soft" type="button">Deducir ecuaciones</button></section>
           <section id="reflectionFormats" class="reflection-formats" hidden aria-label="Preguntas de teoría"><strong>Preguntas de teoría</strong><button id="newVF" class="btn soft" type="button">Verdadero / Falso</button><button id="newOpen" class="btn soft" type="button">Pregunta abierta</button></section>
         </div>
@@ -2915,7 +2915,7 @@ const roadmap = [
    en este punto y renombra el archivo en consecuencia.
    Ojo: `progress.version` es otra cosa — numera el esquema de datos guardados en
    localStorage y avanza solo cuando cambia la forma de ese objeto. */
-const APP_VERSION="3.52.0";
+const APP_VERSION="3.53.0";
 const APP_STAGE="láminas claras · verdadero/falso y respuestas abiertas";
 /* Los cuatro niveles del curso. Toda comprobación de dificultad debe leer de aquí:
    el selector, las preferencias guardadas, la política pedagógica y los bancos. */
@@ -4898,6 +4898,7 @@ function dhChainCellName(e,row,col){
 function examQuestionScore(pregunta,valor){
  if(isDhChainExercise(pregunta))return Array.isArray(valor)?dhChainGrade(pregunta,valor).nota:0;
  if(isIkNoapExercise(pregunta))return Array.isArray(valor)?ikNoapGrade(pregunta,valor).nota:0;
+ if(isIkChainExercise(pregunta))return Array.isArray(valor)?ikChainGrade(pregunta,valor).nota:0;
  return answerIsCorrect(pregunta,valor)?1:0;
 }
 function dhChainAnswerMarkup(e){
@@ -5316,7 +5317,7 @@ function renderMechanicalWorksheet(e){
 function renderMechanicalControls(){
  const host=document.getElementById('mechanicalFormats'),e=appState.currentExercise;if(host)host.hidden=examEnCurso()||exerciseVariantKind(e)!=='mechanical';
  if(e?.kind==='robot-identification')document.getElementById('mechanicalModel').value='any';
- if(e)document.getElementById('mechanicalTask').value=e.kind==='robot-identification'?'identify':isWristExercise(e)?'wrist':e.kind==='ik-noap'?'inverse':e.kind==='dh-chain'?'chain':e.visual==='dhAssignment'?'dh':'direct';
+ if(e)document.getElementById('mechanicalTask').value=e.kind==='robot-identification'?'identify':isWristExercise(e)?'wrist':e.kind==='ik-chain'?'ikchain':e.kind==='ik-noap'?'inverse':e.kind==='dh-chain'?'chain':e.visual==='dhAssignment'?'dh':'direct';
 }
 /* Pulsar «Nuevo ejercicio» repetía siempre el mismo mecanismo: solo cambiaban
    los números. Con «Cualquier modelo» se sortea uno, y nunca el que acaba de
@@ -5334,7 +5335,7 @@ function initMechanicalControls(){
  document.getElementById('newMechanical').onclick=()=>{
   if(examEnCurso())return;
   const diff=Number(document.getElementById('difficulty').value),task=document.getElementById('mechanicalTask').value;
-  const inversa=task==='inverse';
+  const inversa=task==='inverse'||task==='ikchain';
   /* El desacoplo no depende del robot elegido: usa siempre el de seis ejes con
      muñeca esférica, y alterna sus dos partes. */
   if(task==='wrist'){
@@ -5344,7 +5345,7 @@ function initMechanicalControls(){
   }
   /* La inversa solo está resuelta para cinco robots: con otro elegido, o con «cualquiera», se toma uno acorde al nivel. */
   const model=inversa?(IK_NOAP_REFERENCE[modelSelect.value]?modelSelect.value:ikNoapModel(diff,ultimoModeloMecanico)):task==='chain'&&modelSelect.value==='any'?dhChainModel(diff,ultimoModeloMecanico):pickMechanicalModel(modelSelect.value);
-  ultimoModeloMecanico=model;appState.practiceTopicKey=inversa?'4.4':task==='dh'||task==='chain'?'4.3':'4.1';appState.currentExercise=inversa?makeInverseNoap(diff,model):makeArchitectureExercise(diff,model,task);
+  ultimoModeloMecanico=model;appState.practiceTopicKey=inversa?'4.4':task==='dh'||task==='chain'?'4.3':'4.1';appState.currentExercise=task==='ikchain'?makeInverseChain(diff,model):inversa?makeInverseNoap(diff,model):makeArchitectureExercise(diff,model,task);
   if(task==='identify')modelSelect.value='any';
   document.getElementById('feedback').className='feedback';renderExercise();
  };renderMechanicalControls();
@@ -6271,7 +6272,7 @@ function nsInputs(exercise){const rows=[...new Set(exercise.symbolFields.map(f=>
 
 
 function isNarrativeExercise(exercise){return Boolean(exercise?.chapter===3&&exercise.kind==="narrative")}
-function isStatementOnlyExercise(exercise){return isMechanicalWorksheet(exercise)||exercise?.kind==="geometric-2r"||exercise?.kind==="reflection"||Boolean(exercise?.calculationTopic)||exercise?.kind==="classification"||wsIsExercise(exercise)||isNarrativeExercise(exercise)||exercise?.kind==="ik-noap"}
+function isStatementOnlyExercise(exercise){return isMechanicalWorksheet(exercise)||exercise?.kind==="geometric-2r"||exercise?.kind==="reflection"||Boolean(exercise?.calculationTopic)||exercise?.kind==="classification"||wsIsExercise(exercise)||isNarrativeExercise(exercise)||exercise?.kind==="ik-noap"||exercise?.kind==="ik-chain"}
 function narrativeChainSteps(diff,frameMode,count){
  if(![3,4,5].includes(count))throw new Error("El parcial requiere 3, 4 o 5 matrices.");
  if(!["fixed","mobile","mixed"].includes(frameMode))throw new Error("Referencia no válida.");
@@ -8102,7 +8103,7 @@ function kinematicsCandidates(diff){
  if(diff>=2)lista.push({family:"3d",make:makeDhAssignment6R});
  const conceptuales=Math.max(1,Math.round(lista.length*(CONCEPT_SHARE[diff]??.3)));
  for(let i=0;i<conceptuales;i++)lista.push({family:"concepto",make:d=>makeChoice(4,d)});
- lista.push({family:'3d',make:makeInverseNoap},{family:'3d',make:makeWristCenter},{family:'3d',make:makeWristAngles},{family:'3d',make:makeDhRowMatrix},{family:'3d',make:d=>makeArchitectureExercise(d,'any','chain')},{family:'3d',make:d=>makeArchitectureExercise(d,'any','dh')},{family:'3d',make:d=>makeArchitectureExercise(d,'any','direct')},{family:'concepto',make:d=>makeArchitectureExercise(d,'any','identify')});
+ lista.push({family:'3d',make:makeInverseNoap},{family:'3d',make:makeInverseChain},{family:'3d',make:makeWristCenter},{family:'3d',make:makeWristAngles},{family:'3d',make:makeDhRowMatrix},{family:'3d',make:d=>makeArchitectureExercise(d,'any','chain')},{family:'3d',make:d=>makeArchitectureExercise(d,'any','dh')},{family:'3d',make:d=>makeArchitectureExercise(d,'any','direct')},{family:'concepto',make:d=>makeArchitectureExercise(d,'any','identify')});
  return lista;
 }
 function makeKinematicsExercise(diff){
@@ -8155,7 +8156,7 @@ function legacyTopicNumericGenerators(key,diff){
  /* La inversa del 2R por método geométrico estaba archivada en «Asignación de
     marcos DH», con el que no tiene relación; los temas de cinemática inversa,
     mientras tanto, no ofrecían ni un ejercicio de cálculo. */
- if(key==="4.4")return[d=>makeGeometric2R(d,'inverse'),makeInverseNoap,makeInverseNoap,makeWristCenter,makeWristAngles];
+ if(key==="4.4")return[d=>makeGeometric2R(d,'inverse'),makeInverseNoap,makeInverseNoap,makeInverseChain,makeWristCenter,makeWristAngles];
  if(key==="4.2")return diff>=3?[makeDhRowMatrix,plausibleSpatial(makeDh3R)]:[makeDhRowMatrix];
  if(key==="3.13")return[makeWorkspaceExercise];
  if(key.startsWith("3."))return topicChapter3Kinds(key,diff).map(kind=>d=>makeChapter3Kind(d,kind));
@@ -8288,6 +8289,12 @@ function matrixCellPolicy(exercise,row,col){
   if(row===n+4&&col===3)return{value:"1",locked:true,preset:true};
   if(row===n+3&&exercise.difficulty<3)return{value:col===3?"1":"0",locked:exercise.difficulty===1,preset:true};
   return{value:"",locked:false,preset:false};
+ }
+ /* En la inversa completa, la fila de las articulaciones tiene cuatro celdas
+    y un robot de tres ejes solo usa tres: la que sobra va fija. */
+ if(isIkChainExercise(exercise)){
+  const n=exercise.params.chainRows;
+  return row===n&&col>=n?{value:"0",locked:true,preset:true}:{value:"",locked:false,preset:false};
  }
  if(!isHomogeneousResponse(exercise)||row!==3||exercise.difficulty>=3)return{value:"",locked:false,preset:false};
  return{value:col===3?"1":"0",locked:exercise.difficulty===1,preset:true};
@@ -8927,6 +8934,7 @@ const SOLUTION_REASONING=Object.freeze({
  "narrative":{idea:"Cada operación es una matriz homogénea, y el orden del producto lo decide a qué sistema pertenece el eje o el vector que nombra el enunciado: las del sistema fijo se premultiplican y las del sistema móvil se postmultiplican. Cuando la incógnita es un punto, T lleva de las coordenadas del sistema final a las del fijo, y su inversa hace el camino contrario.",comprobacion:"El bloque de rotación del resultado tiene que ser ortonormal con determinante +1, y aplicar las operaciones una a una sobre un vector conocido debe dar lo mismo que multiplicarlo por la matriz final."},
  "workspace_symbolic_three":{idea:"Con giros completos, el extremo barre una corona centrada en la base. El radio exterior es la suma de las longitudes, y el interior depende de si un eslabón es más largo que la suma de los demás. Si una articulación queda fija, los eslabones que une se comportan como uno solo, cuya longitud da el teorema del coseno.",comprobacion:"Sustituye longitudes que cumplan la condición del enunciado: los radios tienen que salir positivos, el interior menor que el exterior, y la superficie igual a π por la diferencia de sus cuadrados."},
  "ik_noap":{idea:"La localización deseada se escribe como T = [n o a p] y se iguala al producto de las matrices de la tabla. Al premultiplicar por la inversa de la primera matriz, a un lado queda solo la primera articulación y al otro las demás: entre los doce elementos siempre hay alguno con una constante a la derecha, y de él sale esa articulación. Las ecuaciones más cómodas son las de la cuarta columna, las de p. Con tres grados de libertad bastan; n, o y a hacen falta cuando el robot tiene más ejes.",comprobacion:"Sustituye la solución en la tabla y multiplica las matrices: tiene que salir el mismo vector p y, si el robot tiene más de tres ejes, también los mismos n, o y a."},
+ "ik_chain":{idea:"El método D-H y la cinemática inversa son las dos mitades de un mismo problema. La tabla describe el robot: con las coordenadas articulares como datos da la localización del extremo, que es la cinemática directa. La inversa usa esa misma descripción al revés: la localización pasa a ser el dato y las coordenadas articulares, las incógnitas. Por eso la tabla va primero, y un error en ella se arrastra a todo lo demás.",comprobacion:"Sustituye las coordenadas que has calculado en tu propia tabla y multiplica las matrices: el extremo tiene que caer en la localización pedida. Si no cae, el fallo está en la segunda parte; si cae pero la tabla no coincide con la del mecanismo, está en la primera."},
  "ik_geometric":{idea:"El giro de la base mete todo el brazo en un plano vertical, y dentro de ese plano el hombro, el codo y el extremo forman un triángulo del que se conocen los tres lados. El teorema del coseno da el ángulo del codo, con dos signos posibles para su seno: son las dos posturas, codo arriba y codo abajo. El dato es solo la posición, porque con tres grados de libertad no se puede elegir además la orientación.",comprobacion:"Sustituye cada postura en la cinemática directa: las dos tienen que dar el mismo punto. Si el coseno del codo sale mayor que 1 en valor absoluto, el punto está fuera del alcance del brazo."},
  "ik_wrist":{idea:"En un robot con muñeca esférica la orientación se reparte: las tres primeras articulaciones ponen ⁰R₃ y la muñeca pone el resto, ³R₆ = (⁰R₃)ᵀ·[n o a]. Esa matriz tiene una forma conocida, y en su tercera columna y su tercera fila cada elemento es un producto de dos senos o cosenos: de ahí salen los tres giros con atan2.",comprobacion:"Multiplica los tres bloques de giro de la muñeca con la solución: tiene que salir ³R₆. Si sen q₅ vale 0, q₄ y q₆ giran sobre la misma recta y solo se puede conocer su suma: es la singularidad de la muñeca."},
  "wrist_center":{idea:"Los tres ejes de una muñeca esférica se cortan en un punto, y ese punto no se mueve al girarlos: solo depende de las tres primeras articulaciones. Como el extremo está a una distancia fija de él sobre el último eje, que es el vector a, basta retroceder esa distancia desde p. Así el problema de seis incógnitas se parte en dos de tres.",comprobacion:"La distancia entre p y el centro de la muñeca tiene que ser exactamente l₄, porque a es unitario. Y si cambias n y o sin tocar a ni p, el centro de la muñeca no debe moverse."},
@@ -8953,6 +8961,7 @@ const SOLUTION_REASONING=Object.freeze({
 const SOLUTION_REASONING_CONCEPT=Object.freeze({idea:"Estas preguntas se resuelven por descarte razonado y no por reconocimiento: casi siempre hay una opción que es cierta en general pero que no responde al caso descrito. Conviene confrontar cada alternativa con el dato concreto del enunciado antes de elegir.",comprobacion:"La opción correcta debe seguir siéndolo si cambias los números del enunciado sin cambiar la situación que describe."});
 function solutionReasoning(exercise){
  if(!exercise)return null;
+ if(exercise.kind==='ik-chain')return SOLUTION_REASONING.ik_chain;
  if(exercise.kind==='ik-noap')return SOLUTION_REASONING[{p:'ik_geometric',R:'ik_wrist'}[exercise.params?.ik?.dato]||'ik_noap'];
  if(exercise.kind==='dh-chain')return SOLUTION_REASONING.dh_chain;
  if(isNarrativeExercise(exercise))return SOLUTION_REASONING.narrative;
@@ -9019,7 +9028,7 @@ const IK_NOAP_TOL=Object.freeze({angulo:.5,longitud:.01,posicion:.02,orientacion
 /* Postura en la que se dibuja la lámina. No es la que se pide —la figura
    delataría los ángulos, que salen de valores redondos— y usa valores que el
    generador nunca sortea. */
-const IK_NOAP_REFERENCE=Object.freeze({cartesian3:[2.8,3.2,2.6],cylindrical3:[25,3,3],polar3:[25,-40,3.5],scara4:[20,40,1.5,15],anthropomorphic3:[25,40,-50]});
+const IK_NOAP_REFERENCE=Object.freeze({cartesian3:[2.8,3.2,2.6],cylindrical3:[25,2.8,3.2],polar3:[25,-40,3.3],scara4:[20,40,1.4,15],anthropomorphic3:[25,40,-50]});
 const IK_NOAP_NAMES=Object.freeze({cartesian3:"cartesiano (PPP)",cylindrical3:"cilíndrico (RPP)",polar3:"polar (RRP)",scara4:"SCARA (RRPR)",anthropomorphic3:"antropomórfico (RRR)"});
 function isIkNoapExercise(e){return Boolean(e?.type==="matrix"&&e.matrixLayout==="ikNoap"&&e.params?.ik)}
 /* El robot sube de dificultad con el nivel: del que se resuelve leyendo p al
@@ -9238,7 +9247,9 @@ function makeInverseNoap(diff,id="any"){
  return{id:`ik_noap_${id}`,kind:"ik-noap",chapter:4,difficulty:nivel,model:k.model,visual:"dhAssignment",geometryTopic:"4.4",matrixLayout:"ikNoap",
   title:geometrico?"Cinemática inversa · método geométrico":"Cinemática inversa · método de la matriz homogénea",type:"matrix",rows:n,cols:1,answer:ik.solutions[0].map(v=>[v]),tolerance:IK_NOAP_TOL.longitud,
   statement:enunciado,notes:aclaraciones,
-  chips:[],params:{...geometria,dimensions:base.params.dimensions,kinematics:lamina,ik},
+  /* `dh` guarda lo que necesita la inversa completa para pedir también la
+     tabla: las fichas de las dimensiones y el convenio de marcos. */
+  chips:[],params:{...geometria,dimensions:base.params.dimensions,kinematics:lamina,ik,dh:{fijas:base.chips.slice(0,base.chips.length-n),convenio:base.notes}},
   convention:geometrico?"DH estándar. p es la posición del extremo respecto de la base; d₁ es la altura del hombro, y a₂ y a₃ las longitudes del brazo y del antebrazo.":"DH estándar. T = [n o a p]: n, o y a son la orientación del extremo y p su posición, todos respecto de la base.",
   plateNote:"Esquema del robot en una postura cualquiera, para reconocer sus articulaciones y el sentido de sus ejes. No representa la localización que se pide.",
   concepts:geometrico?["cinemática inversa","método geométrico","codo arriba y codo abajo"]:["cinemática inversa","matriz de transformación homogénea","vectores n, o, a y p"],
@@ -9246,6 +9257,82 @@ function makeInverseNoap(diff,id="any"){
    ?["usar arctan en lugar de atan2 y perder el cuadrante","medir la altura desde la base en vez de desde el hombro","quedarse con el arco coseno de q₃ y perder la otra postura del codo","sumar α a β en lugar de restarlo"]
    :["usar arctan en lugar de atan2 y perder el cuadrante","buscar las articulaciones en n, o y a cuando las ecuaciones de p son más sencillas","invertir ⁰A₁ como una matriz cualquiera, en vez de usar Rᵀ y −Rᵀp","dar un desplazamiento negativo en una articulación prismática"],
   hints:[],steps:ikNoapSteps(ik)};
+}
+/* ---------- CINEMÁTICA INVERSA COMPLETA · tabla DH y articulaciones ----------
+   El problema entero, como se hace en clase: primero el método D-H sobre el
+   mecanismo dibujado, y después la inversa con esa misma tabla. Son dos partes
+   y se puntúan por separado.
+   La respuesta es una matriz de cuatro columnas: las n filas de la tabla y una
+   fila más con las n coordenadas articulares. Si el robot tiene tres ejes, la
+   cuarta celda de esa fila va fija y oculta, para que la lectura, el guardado
+   del examen y la corrección celda a celda funcionen sin cambios. */
+const IK_CHAIN_PARTS=Object.freeze([
+ Object.freeze({key:"tabla",nombre:"Tabla DH",pasos:"método D-H",peso:5}),
+ Object.freeze({key:"q",nombre:"Cinemática inversa",pasos:"de la localización a las articulaciones",peso:5})
+]);
+/* Los ejercicios de solo enunciado no enseñan fichas, porque repetirían lo que
+   ya dice el enunciado. La inversa completa es la excepción: pide la tabla del
+   mecanismo dibujado, y sus dimensiones y su postura solo están en las fichas. */
+function showsDataChips(e){return Boolean(e)&&(!isStatementOnlyExercise(e)||isIkChainExercise(e))}
+function isIkChainExercise(e){return Boolean(e?.type==="matrix"&&e.matrixLayout==="ikChain"&&Number.isInteger(e.params?.chainRows)&&e.params?.ik)}
+function makeInverseChain(diff,id="any"){
+ const e0=makeInverseNoap(diff,id),ik=e0.params.ik,n=ik.types.length,ref=IK_NOAP_REFERENCE[ik.id];
+ /* La tabla que se pide es la de la postura dibujada, que es la de referencia:
+    sus coordenadas articulares son dato y van en las fichas. */
+ const filas=ikNoapRows(ik,ref),q=i=>`q${dhIndexDigits(i+1,DH_SUBINDICES)}`;
+ const postura=ref.map((v,i)=>`${q(i)}=${fmt(v,2)}${ik.types[i]==="R"?"°":" m"}`);
+ const geometrico=ik.dato==="p",puntos=IK_CHAIN_PARTS.map(x=>`${x.nombre} ${x.peso}`).join(" · ");
+ const pedido=geometrico?`al punto <strong>p</strong>, en metros:${ikNoapPointMarkup(ik.T)}`:`a <strong>T = [n o a p]</strong>:${ikNoapTargetMarkup(ik.T)}`;
+ return{...e0,id:`ik_chain_${ik.id}`,kind:"ik-chain",matrixLayout:"ikChain",
+  title:"Cinemática inversa completa: tabla DH y articulaciones",
+  rows:n+1,cols:4,answer:[...filas.map(dhRowCells),[...ik.solutions[0],...Array(4-n).fill(0)]],tolerance:.05,
+  statement:`Resuelve el robot mostrado en dos partes: <strong>1)</strong> la tabla DH en la postura dibujada; <strong>2)</strong> las coordenadas articulares que llevan el extremo ${pedido}`,
+  notes:`Puntuación sobre 10: ${puntos}; la segunda se reparte entre las articulaciones. Un error de la tabla no se cobra dos veces: las articulaciones se corrigen también contra la tabla que hayas escrito. La segunda parte usa la misma tabla, con ${q(0)} a ${q(n-1)} como incógnitas en lugar de datos. ${e0.notes} ${e0.params.dh.convenio}`,
+  chips:[...e0.params.dh.fijas,...postura],params:{...e0.params,chainRows:n},
+  convention:"DH estándar, terna dextrógira y vectores columna. El marco base es el único dibujado.",
+  plateNote:"Mecanismo en la postura de las fichas, que es la de la tabla. No es la postura que se pide en la segunda parte.",
+  concepts:["asignación de marcos DH","tabla DH",...e0.concepts],
+  commonErrors:["dejar en la tabla las coordenadas de la segunda parte en lugar de las de la postura dibujada","confundir un carro deslizante con un cojinete de giro",...e0.commonErrors],
+  hints:[],
+  steps:[
+   `Parte 1 · Tabla DH. Asigna los marcos con el algoritmo de D-H y mide los cuatro parámetros de cada fila en la postura dibujada. La coordenada articular entra en θ si la articulación gira y en d si se desplaza.\n${filas.map((r,i)=>`Fila ${i+1}: θ = ${fmt(r.theta,2)}° · d = ${fmt(r.d,3)} · a = ${fmt(r.a,3)} · α = ${fmt(r.alpha,2)}°`).join("\n")}`,
+   `Parte 2 · Cinemática inversa. La tabla es la misma, pero ${q(0)} a ${q(n-1)} dejan de ser datos y pasan a ser incógnitas: se escribe cada una en su celda y se busca qué valores llevan el extremo adonde se pide.`,
+   ...e0.steps]};
+}
+function ikChainGrade(e,a){
+ const ik=e.params.ik,n=e.params.chainRows,num=v=>typeof v==="number"&&Number.isFinite(v),filas=Array.isArray(a)?a:[];
+ const dada=filas.slice(0,n),completa=dada.length===n&&dada.every(f=>Array.isArray(f)&&f.length===4&&f.every(num));
+ const tablaOk=completa&&eq(dada,e.answer.slice(0,n),baseTolerance(e));
+ const q=Array.from({length:n},(_,i)=>Array.isArray(filas[n])?filas[n][i]:NaN),g=ikNoapGrade({params:{ik}},q.map(v=>[v]));
+ /* Arrastre: con la tabla mal, unas articulaciones que alcanzan la
+    localización según esa tabla están bien calculadas. El error se cobra una
+    vez, en la tabla. */
+ let arrastre=false;
+ if(g.nota<1&&!tablaOk&&completa&&q.every(num)){
+  try{arrastre=ikNoapReaches({...ik,rows:dada.map(dhRowFromCells)},q)}catch(err){}
+ }
+ const aciertos=arrastre?n:g.aciertos,[pt,pq]=IK_CHAIN_PARTS,total=pt.peso+pq.peso,puntos=(tablaOk?pt.peso:0)+pq.peso*aciertos/n;
+ return{tabla:{ok:tablaOk,vacia:!dada.some(f=>Array.isArray(f)&&f.some(num))},
+  q:{partes:arrastre?q.map(()=>true):g.partes,vacias:g.vacias,aciertos,total:n,arrastre},puntos,total,nota:puntos/total};
+}
+function ikChainSummary(g){
+ const [pt,pq]=IK_CHAIN_PARTS,tabla=g.tabla.ok?"bien":g.tabla.vacia?"sin responder":"por revisar";
+ const detalle=g.q.partes.map((bien,i)=>`q${dhIndexDigits(i+1,DH_SUBINDICES)}: ${bien?"bien":g.q.vacias[i]?"sin responder":"por revisar"}`).join(" · ");
+ return`Nota por partes: ${fmt(g.puntos,2)}/${g.total}. ${pt.nombre}: ${tabla}. ${pq.nombre}: ${g.q.aciertos} de ${g.q.total} articulaciones${g.q.arrastre?", bien por arrastre (alcanzan la localización con tu tabla)":""} (${detalle}).`;
+}
+function ikChainSolutionText(e){
+ const ik=e.params.ik,n=e.params.chainRows;
+ return`Tabla: ${e.answer.slice(0,n).map(fila=>`[ ${fila.map(v=>fmt(v,4)).join("  ")} ]`).join(" ")} · articulaciones: ${ik.solutions.map(sol=>ikNoapSolutionText(ik,sol)).join(" · o bien ")}`;
+}
+function ikChainAnswerMarkup(e){
+ const ik=e.params.ik,n=e.params.chainRows,celda=i=>matrixInputMarkup(e,i),[pt,pq]=IK_CHAIN_PARTS;
+ const tabla=`<div class="dh-table-wrap"><table class="dh-table"><thead><tr><th>i</th>${DH_COLUMNS.map(c=>`<th>${c.symbol}<sub>i</sub> (${c.angle?"°":"m"})</th>`).join("")}</tr></thead><tbody>${Array.from({length:n},(_,r)=>`<tr><th scope="row">${r+1}</th>${Array.from({length:4},(_,c)=>`<td>${celda(r*4+c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+ const inversa=`<div class="dh-table-wrap"><table class="dh-table"><thead><tr><th>Articulación</th><th>Qué mide</th><th>Valor</th></tr></thead><tbody>${ik.types.map((tipo,i)=>`<tr><th scope="row">q<sub>${i+1}</sub></th><td>${tipo==="R"?"giro (°)":"desplazamiento (m)"}</td><td>${celda(n*4+i)}</td></tr>`).join("")}</tbody></table></div><span hidden>${Array.from({length:4-n},(_,i)=>celda(n*4+n+i)).join("")}</span>`;
+ const parte=(x,titulo,cuerpo)=>`<section class="dh-chain-part" data-dh-part="${x.key}"><h4>${titulo} <small>${x.pasos} · ${x.peso} puntos</small></h4>${cuerpo}</section>`;
+ return`<label>Resuelve las dos partes:</label>
+  ${parte(pt,"1 · Tabla DH, en la postura dibujada",tabla)}
+  ${parte(pq,"2 · Coordenadas articulares que alcanzan lo pedido",inversa)}
+  <p class="cell-hint">Admite decimales y expresiones como pi/2 o sin(30). ${ik.types.includes("P")?"Ángulos en grados y distancias en metros.":"Ángulos en grados."} ${ik.solutions.length>1?"La segunda parte tiene más de una solución: vale cualquiera. ":""}${examEnCurso()?"Las respuestas se guardan automáticamente.":""}</p>`;
 }
 /* ---------- DESACOPLO CINEMÁTICO · la muñeca de un robot de seis ejes ----------
    Es donde el libro usa de verdad los vectores de orientación: a lleva del
@@ -9318,7 +9405,7 @@ function makeWristAngles(diff){
    mecanismo, cómo se puntúa— va en `notes` y se pinta plegado: está a un
    clic, pero no hay que leerlo entero antes de cada ejercicio. */
 function statementNotesMarkup(e){return e?.notes?`<details class="statement-notes"><summary>Convenio y aclaraciones</summary><p>${e.notes}</p></details>`:""}
-function hasMechanicalWorkedSolution(e){return Boolean(isMechanicalWorksheet(e)||(e?.visual==='dhAssignment'&&e.kind!=='ik-noap'))}
+function hasMechanicalWorkedSolution(e){return Boolean(isMechanicalWorksheet(e)||(e?.visual==='dhAssignment'&&e.kind!=='ik-noap'&&e.kind!=='ik-chain'))}
 /* Teaching calculations are derived from the input parameters. They do not
    replace the verifier or round intermediate values used by the engine. */
 function mechanicalWorkedSolution(e){
@@ -9479,7 +9566,7 @@ function renderExercise(){
     de fallar. Quedan bajo la misma puerta que el resto de la aplicación: el
     botón no se abre hasta el primer intento, y abrirlo cuenta como resolución
     con ayuda. Durante un examen los oculta el CSS de body[data-exam]. */
- document.getElementById("chips").hidden=worksheet;
+ document.getElementById("chips").hidden=!showsDataChips(exercise);
  for(const id of ["hint","showSolution","solution"])document.getElementById(id).hidden=false;
  if(worksheet){document.getElementById("solution").classList.remove("show");document.getElementById("matrixBreakdownContent").innerHTML=""}
  document.getElementById("practiceView").removeAttribute("data-topic-empty");
@@ -9487,7 +9574,7 @@ function renderExercise(){
  setActiveChapter(exercise.chapter);
  document.getElementById("exerciseTitle").textContent=exercise.title;
  document.getElementById("statement").innerHTML=exercise.statement+statementNotesMarkup(exercise);
- document.getElementById("chips").innerHTML=(worksheet?[]:exercise.chips).map(x=>`<span class="data-chip">${x}</span>`).join("");
+ document.getElementById("chips").innerHTML=(showsDataChips(exercise)?exercise.chips:[]).map(x=>`<span class="data-chip">${x}</span>`).join("");
  renderExerciseTheory(exercise);
  const area=document.getElementById("answerArea");
  activeAnswerInput=null;
@@ -9495,6 +9582,7 @@ function renderExercise(){
  else if(exercise.type==="symbolic"){area.innerHTML=wsSymbolicInputs(exercise)}
  else if(isIkNoapExercise(exercise)){area.innerHTML=ikNoapAnswerMarkup(exercise)}
  else if(isDhChainExercise(exercise)){area.innerHTML=dhChainAnswerMarkup(exercise)}
+ else if(isIkChainExercise(exercise)){area.innerHTML=ikChainAnswerMarkup(exercise)}
  else if(exercise.type==="matrix"&&exercise.matrixLayout==="dh"){
   /* Una tabla DH no es una matriz: sin cabeceras no se sabe qué columna es aᵢ
      y cuál αᵢ. Las celdas conservan el mismo orden y la misma clase que en el
@@ -9566,6 +9654,7 @@ function answerIsCorrect(exercise,a){
  if(!Array.isArray(a))return false;
  if(isDhChainExercise(exercise))return dhChainGrade(exercise,a).nota===1;
  if(isIkNoapExercise(exercise))return ikNoapGrade(exercise,a).nota===1;
+ if(isIkChainExercise(exercise))return ikChainGrade(exercise,a).nota===1;
  return eq(a,exercise.answer,baseTolerance(exercise));
 }
 /* Un pulso, no una sacudida: señala sin reprender. */
@@ -9624,6 +9713,17 @@ function check(){
    const g=ikNoapGrade(exercise,a);
    document.querySelectorAll("#answerArea .cell").forEach((c,i)=>{const bien=Boolean(g.partes[i]);c.classList.toggle("ok",bien);c.classList.toggle("bad",!bien);c.setAttribute("aria-invalid",String(!bien));c.title=bien?"Correcta":"Revisa esta articulación"});
   }
+  /* En la inversa completa, la tabla se juzga celda a celda y las
+     articulaciones, como en la inversa: por la nota de cada una. */
+  if(isIkChainExercise(exercise)){
+   const g=ikChainGrade(exercise,a),n=exercise.params.chainRows,celdas=[...document.querySelectorAll("#answerArea .cell")];
+   celdas.slice(n*4,n*4+n).forEach((c,i)=>{
+    const bien=Boolean(g.q.partes[i]);
+    c.classList.remove("ok","bad","carry");c.classList.add(bien?(g.q.arrastre?"carry":"ok"):"bad");c.setAttribute("aria-invalid",String(!bien));
+    c.title=bien?(g.q.arrastre?"Coherente con la tabla que escribiste (arrastre)":"Correcta"):"Revisa esta articulación";
+   });
+   celdas.slice(n*4+n).forEach(c=>c.classList.remove("ok","bad"));
+  }
   exercise.lastDiffs=diffs;
   pulseWrongCells();
  }
@@ -9657,6 +9757,7 @@ function check(){
  if(wsIsExercise(exercise))renderWsActivity(exercise);
  if(!ok&&hasMechanicalWorkedSolution(exercise)){revealMechanicalWorkedSolution(exercise);feedback("bad",(isDhChainExercise(exercise)?dhChainSummary(dhChainGrade(exercise,a))+" ":"La respuesta no es correcta. ")+"Debajo tienes el desarrollo completo, paso a paso.")}
  if(!ok&&isIkNoapExercise(exercise))feedback("bad",ikNoapSummary(ikNoapGrade(exercise,a))+" Puedes corregirlo y volver a comprobar, o abrir la solución.");
+ if(!ok&&isIkChainExercise(exercise))feedback("bad",ikChainSummary(ikChainGrade(exercise,a))+" Puedes corregirlo y volver a comprobar, o abrir la solución.");
  if(isDhTableExercise(exercise))renderStageWorkbench(exercise);
  save();
 }
@@ -10199,7 +10300,7 @@ function captureExamAnswer(){
  /* El problema completo DH se puntúa por partes: una celda vacía no puede
     anular la respuesta entera, porque quien deja T en blanco conserva la nota
     de su tabla. Cada celda ilegible queda como NaN y la juzga su parte. */
- if(isDhChainExercise(pregunta)||isIkNoapExercise(pregunta))valor=Array.from({length:pregunta.rows},(_,i)=>Array.from({length:pregunta.cols},(_,j)=>{try{return new Parser(textos[i*pregunta.cols+j]||"",unidad).parse()}catch(err){return NaN}}));
+ if(isDhChainExercise(pregunta)||isIkNoapExercise(pregunta)||isIkChainExercise(pregunta))valor=Array.from({length:pregunta.rows},(_,i)=>Array.from({length:pregunta.cols},(_,j)=>{try{return new Parser(textos[i*pregunta.cols+j]||"",unidad).parse()}catch(err){return NaN}}));
  else try{valor=Array.from({length:pregunta.rows},(_,i)=>Array.from({length:pregunta.cols},(_,j)=>new Parser(textos[i*pregunta.cols+j]||"",unidad).parse()))}
  catch(err){valor=null}
  ex.respuestas[ex.actual]={crudo:textos,valor};
@@ -14896,7 +14997,7 @@ function runSelfTests(){
    for(const nivel of DIFFICULTY_LEVELS){
     for(const def of ROBOT_ARCHITECTURES)for(const tarea of ["dh","chain","direct"])casos.push(makeArchitectureExercise(nivel,def.id,tarea));
     for(const id of Object.keys(IK_NOAP_REFERENCE))casos.push(makeInverseNoap(nivel,id));
-    casos.push(makeDhAssignment(nivel),makeDhAssignment6R(nivel),makeWristCenter(nivel),makeWristAngles(nivel));
+    casos.push(makeDhAssignment(nivel),makeDhAssignment6R(nivel),makeWristCenter(nivel),makeWristAngles(nivel),makeInverseChain(nivel));
    }
    for(const e of casos){
     /* sin contar las tablas, el enunciado cabe en dos líneas */
@@ -14915,6 +15016,57 @@ function runSelfTests(){
    if(!makeArchitectureExercise(2,"scara4","chain").notes.includes("Puntuación sobre 10"))return false;
    /* y un ejercicio sin notas no pinta un plegable vacío */
    return statementNotesMarkup(makeDhRowMatrix(2))===""&&statementNotesMarkup(makeArchitectureExercise(2,"scara4","identify"))===""&&statementNotesMarkup(null)==="";
+  }],
+  ["La inversa completa puntúa la tabla y las articulaciones por separado",()=>{
+   for(const id of Object.keys(IK_NOAP_REFERENCE))for(const nivel of DIFFICULTY_LEVELS){
+    const e=makeInverseChain(nivel,id),ik=e.params.ik,n=e.params.chainRows,copia=()=>e.answer.map(f=>[...f]);
+    if(!isIkChainExercise(e)||isIkNoapExercise(e)||isDhChainExercise(e)||isDhTableExercise(e)||e.rows!==n+1||e.cols!==4||n!==ik.types.length)return false;
+    /* la tabla es la de la postura dibujada, que es la de las fichas, y no la
+       que se pide en la segunda parte */
+    const dibujada=e.params.kinematics.table;
+    if(!e.answer.slice(0,n).every((f,i)=>eq([f],[dhRowCells(dibujada[i])],1e-9)))return false;
+    const ref=IK_NOAP_REFERENCE[id];
+    if(!ref.every((v,i)=>e.chips.includes(`q${dhIndexDigits(i+1,DH_SUBINDICES)}=${fmt(v,2)}${ik.types[i]==="R"?"°":" m"}`)))return false;
+    if(ikNoapSame(ik,ref,ik.solutions[0]))return false;
+    /* todo bien: 10; y vale cualquier solución de la inversa */
+    for(const sol of ik.solutions){const a=copia();a[n]=[...sol,...Array(4-n).fill(0)];if(ikChainGrade(e,a).puntos!==10||!answerIsCorrect(e,a))return false}
+    /* tabla en blanco, articulaciones bien: 5 */
+    const sinTabla=copia();for(let i=0;i<n;i++)sinTabla[i]=[NaN,NaN,NaN,NaN];
+    const g1=ikChainGrade(e,sinTabla);
+    if(g1.puntos!==5||g1.tabla.ok||!g1.tabla.vacia||g1.q.aciertos!==n||answerIsCorrect(e,sinTabla))return false;
+    /* tabla bien, articulaciones en blanco (null, como vuelven del disco): 5 */
+    const sinQ=copia();sinQ[n]=[null,null,null,null];
+    const g2=ikChainGrade(e,sinQ);
+    if(g2.puntos!==5||!g2.tabla.ok||g2.q.aciertos!==0||!g2.q.vacias.every(Boolean)||examQuestionScore(e,sinQ)!==.5)return false;
+    /* una articulación mal: se pierde solo su parte */
+    const unaMal=copia();unaMal[n][0]+=ik.types[0]==="R"?25:1.3;
+    const g3=ikChainGrade(e,unaMal);
+    if(Math.abs(g3.puntos-(5+5*(n-1)/n))>1e-9||g3.q.partes[0]||!ikChainSummary(g3).includes(`${n-1} de ${n} articulaciones`))return false;
+    /* la celda que sobra en un robot de tres ejes va fija */
+    if(n===3&&!matrixCellPolicy(e,n,3).locked)return false;
+    if(matrixCellPolicy(e,n,0).locked||matrixCellPolicy(e,0,3).locked)return false;
+    if(exerciseTopicKey(e)!=="4.4"||!isStatementOnlyExercise(e)||hasMechanicalWorkedSolution(e)||!solutionHasContent({...e,attempted:true})||buildPedagogyTrace(e).source==="kinematics")return false;
+    if(!e.steps[0].startsWith("Parte 1")||!e.steps[1].startsWith("Parte 2")||!e.notes.includes("flecha de cada eje"))return false;
+    /* sus datos están en las fichas, así que se enseñan aunque sea de solo
+       enunciado; en la inversa sencilla, que da la tabla, siguen ocultas */
+    if(!showsDataChips(e)||showsDataChips(makeInverseNoap(nivel,id))||!showsDataChips(makeDhRowMatrix(nivel)))return false;
+   }
+   /* arrastre: con una dimensión mal en la tabla, las articulaciones que
+      alcanzan el punto según esa tabla valen; la tabla no */
+   const e=makeInverseChain(1,"cartesian3"),a=e.answer.map(f=>[...f]),[px,py,pz]=[0,1,2].map(r=>e.params.ik.T[r][3]);
+   a[0][dhColumnIndex("alpha")]=0;   /* sin la torsión, las tres guías quedan en la vertical */
+   const sinArrastre=ikChainGrade(e,a);
+   if(sinArrastre.tabla.ok||sinArrastre.q.arrastre||sinArrastre.puntos!==5)return false;
+   /* un cilíndrico con la altura de la base mal medida */
+   const c=makeInverseChain(2,"cylindrical3"),b=c.answer.map(f=>[...f]),ik=c.params.ik,[q1,q2,q3]=ik.solutions[0];
+   b[0][dhColumnIndex("d")]+=.5;b[3]=[q1,q2-.5,q3,0];
+   const g=ikChainGrade(c,b);
+   /* pero si con esa tabla tampoco se alcanza, no hay arrastre que valga: se
+      cuenta solo lo que coincide con la solución, aquí el último desplazamiento */
+   const lejos=b.map(f=>[...f]);lejos[3][0]+=25;
+   const gl=ikChainGrade(c,lejos);
+   if(gl.q.arrastre||gl.q.aciertos!==1||!gl.q.partes[2]||gl.puntos!==5/3)return false;
+   return !g.tabla.ok&&g.q.arrastre&&g.q.aciertos===3&&g.puntos===5&&ikChainSummary(g).includes("arrastre")&&!answerIsCorrect(c,b)&&Number.isFinite(px+py+pz);
   }],
   ["El centro de la muñeca no depende de sus tres giros",()=>{
    for(const nivel of DIFFICULTY_LEVELS)for(let i=0;i<4;i++){
@@ -16628,6 +16780,10 @@ function examAnswerText(pregunta,respuesta){
   const b=dhChainBlocks(pregunta),filas=(i,j)=>Array.from({length:j-i},(_,k)=>`[ ${respuesta.crudo.slice((i+k)*4,(i+k)*4+4).map(t=>String(t==null?"":t).trim()||"·").join("  ")} ]`).join(" ");
   return`Tabla: ${filas(...b.tabla)} · T: ${filas(...b.T)} · posición: ${filas(...b.p)}`;
  }
+ if(isIkChainExercise(pregunta)&&Array.isArray(respuesta.crudo)){
+  const n=pregunta.params.chainRows,texto=t=>String(t==null?"":t).trim()||"·";
+  return`Tabla: ${Array.from({length:n},(_,k)=>`[ ${respuesta.crudo.slice(k*4,k*4+4).map(texto).join("  ")} ]`).join(" ")} · articulaciones: [ ${respuesta.crudo.slice(n*4,n*4+n).map(texto).join("  ")} ]`;
+ }
  if(pregunta.type==="matrix"){
   const celdas=Array.isArray(respuesta.crudo)?respuesta.crudo:[respuesta.crudo];
   return`[ ${celdas.map(t=>String(t==null?"":t).trim()||"·").join("  ")} ]`;
@@ -16639,6 +16795,7 @@ function examSolutionText(pregunta){
  if(pregunta.type==="choice")return String(pregunta.answer);
  if(pregunta.type==="number")return fmt(pregunta.answer,5);
  if(isIkNoapExercise(pregunta))return pregunta.params.ik.solutions.map(sol=>ikNoapSolutionText(pregunta.params.ik,sol)).join(" · o bien ");
+ if(isIkChainExercise(pregunta))return ikChainSolutionText(pregunta);
  if(isDhChainExercise(pregunta)){
   const b=dhChainBlocks(pregunta),filas=(i,j)=>pregunta.answer.slice(i,j).map(fila=>`[ ${fila.map(v=>fmt(v,4)).join("  ")} ]`).join(" ");
   return`Tabla: ${filas(...b.tabla)} · T: ${filas(...b.T)} · posición: ${filas(...b.p)}`;
@@ -16698,6 +16855,7 @@ function renderExamReport(){
      <div class="exam-q-head"><span><strong>${d.indice+1}.</strong> ${traceHtmlEscape(d.pregunta.title||"Ejercicio")}</span><span class="exam-q-tiempo">${d.ms>0?formatClock(d.ms):"—"}${masLenta&&d===masLenta&&d.ms>0?" · la más lenta":""}</span><span class="exam-q-mark">${d.acierto?"✓ correcta":d.respondida?"✗ incorrecta":"✗ sin responder"}</span></div>
      <div class="statement">${d.pregunta.statement}</div>
      ${isDhChainExercise(d.pregunta)?`<p class="exam-hint">${traceHtmlEscape(dhChainSummary(dhChainGrade(d.pregunta,Array.isArray(d.respuesta?.valor)?d.respuesta.valor:[])))}</p>`:""}
+     ${isIkChainExercise(d.pregunta)?`<p class="exam-hint">${traceHtmlEscape(ikChainSummary(ikChainGrade(d.pregunta,Array.isArray(d.respuesta?.valor)?d.respuesta.valor:[])))}</p>`:""}
      ${isIkNoapExercise(d.pregunta)?`<p class="exam-hint">${traceHtmlEscape(ikNoapSummary(ikNoapGrade(d.pregunta,Array.isArray(d.respuesta?.valor)?d.respuesta.valor:[])))}</p>`:""}
      <div class="exam-answers">
       <div><strong>Tu respuesta:</strong><br>${traceHtmlEscape(examAnswerText(d.pregunta,d.respuesta))}</div>

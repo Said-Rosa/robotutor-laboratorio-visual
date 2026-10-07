@@ -4,7 +4,7 @@ Esta sección describe el proyecto **tal como está hoy**. Todo lo que sigue a �
 
 ## Versión y publicación
 
-- **3.52.0**, publicada en https://said-rosa.github.io/robotutor-laboratorio-visual/ .
+- **3.53.0**, publicada en https://said-rosa.github.io/robotutor-laboratorio-visual/ .
 - **GitHub Pages es el único destino.** Las copias de `chatgpt.site` y de Sites que aparecen en el historial ya no se actualizan.
 
 ## Cómo se trabaja
@@ -34,7 +34,7 @@ Regla de repositorio **«Proteger main»**, sin excepciones para nadie: **no se 
 
 En el CI de cada PR: `check-source`, `check-worked-solutions`, `check-mechanical-plates`, `check-architectures`, `check-inverse`, `check-kinematics`, `check-selftests`, `check-exercises` y `check-security`, más el build en sus dos modos y `check-source`/`check-security` sobre cada uno.
 
-- **Autopruebas: 386/428 sin navegador.** Las 42 restantes necesitan DOM real y están listadas en `check-selftests.cjs`; si añadís una que lo necesite, añadidla ahí con su nombre exacto.
+- **Autopruebas: 387/429 sin navegador.** Las 42 restantes necesitan DOM real y están listadas en `check-selftests.cjs`; si añadís una que lo necesite, añadidla ahí con su nombre exacto.
 - **Todo ejercicio practicable tiene desarrollo escrito**, y `check-exercises` falla si llega uno sin él: el botón de solución no debería volver a decir «Sin desarrollo escrito».
 - En un cambio grande, **comparad contra `main`**: ejecutad la batería en las dos versiones y restad los fallos. Lo que solo aparezca en vuestra rama es vuestro.
 - `check-modeled-plates.cjs` necesita `playwright` y **no está en el CI**; en una copia sin él falla igual en `main`.
@@ -64,6 +64,7 @@ En el CI de cada PR: `check-source`, `check-worked-solutions`, `check-mechanical
   - `"R"` · **desacoplo cinemático** (`makeWristAngles`, `ik.id==='wrist3'`, `ik.primera=4`). Se resuelve la muñeca: solo se compara la orientación, y hay dos soluciones.
 
   **No volver a exigir la T completa a un robot de tres ejes:** la 3.50 lo hacía y rechazaba el otro codo, que el libro da por bueno. El criterio se deduce del ejercicio y no se guarda, para que un examen empezado con otra versión se corrija igual. La lámina se dibuja en `IK_NOAP_REFERENCE`, nunca en la postura pedida. Son de solo enunciado. Para añadir un robot hacen falta sus candidatos en `ikNoapSolutions`, su desarrollo en `ikNoapSteps`, su postura de referencia y sus ecuaciones en `check-inverse.cjs`.
+- **Cinemática inversa completa** (`kind:'ik-chain'`, `matrixLayout:'ikChain'`, `makeInverseChain`). Dos partes: la tabla DH del mecanismo en la postura dibujada, y las coordenadas articulares que alcanzan lo pedido. Se construye sobre `makeInverseNoap` y usa su mismo `params.ik`. La respuesta es una matriz de cuatro columnas: n filas de tabla y una fila con las articulaciones; con tres ejes, la cuarta celda de esa fila va fija y oculta (`matrixCellPolicy`). `ikChainGrade` da 5 puntos a la tabla y reparte otros 5 entre las articulaciones, con arrastre: si la tabla está mal, valen las articulaciones que alcanzan lo pedido según esa tabla. Es de solo enunciado, pero **sí enseña las fichas** (`showsDataChips`), porque las dimensiones y la postura dibujada solo están ahí. Por eso `IK_NOAP_REFERENCE` usa en las prismáticas valores que el generador no sortea: la postura de las fichas no debe coincidir con la respuesta.
 - **Desacoplo cinemático.** Dos ejercicios sin lámina sobre el robot de seis ejes del libro (`wristRobotRows`): `makeWristCenter` (p_m = p − l₄·a, matriz 3×1 corriente) y `makeWristAngles` (q₄, q₅ y q₆ a partir de ³R₆; en los niveles 3 y 4, a partir de ⁰R₃ y [n o a]). `isWristExercise` los reconoce y los cuenta como «mecánicos» para que el selector de actividad no desaparezca al generarlos. **El elemento (2,3) de ³R₆ es s₄s₅.** En el ejemplar del libro que usa el curso está impreso −s₄c₅; la aplicación usa el valor que sale de multiplicar los tres bloques de giro, y la teoría lo avisa. `check-inverse.cjs` comprueba la matriz elemento a elemento.
 - **Desfases en la tabla DH.** `makeDhRowMatrix` saca en los niveles 3 y 4, una de cada tres veces, una fila con θ = q ± 90°, como la tercera del robot de seis ejes del libro. `params.row.theta` es el ángulo ya sumado; `params.q` y `params.desfase`, lo que ve el alumno.
 - **Columnas DH: θ, d, a, α.** El orden lo fija `DH_COLUMNS`. No indexéis columnas DH por posición: usad `dhRowCells`, `dhRowFromCells` o `dhColumnIndex('a')`.
@@ -511,3 +512,16 @@ Petición del usuario, con una captura de «Construir la tabla DH» del SCARA y 
 - De paso: «UI selecciona visual correcto» fallaba si el ejercicio en pantalla era de asignación de marcos, porque su condición no los contaba. No era de este cambio.
 
 Verificación: batería 386/428 sin navegador y 428/428 en la página, también con un ejercicio de tabla DH en pantalla; una autoprueba nueva y cuatro mutaciones detectadas; todos los controles del CI en local. En la página, el ejercicio de la captura: una frase, el plegable cerrado y ocho fichas.
+
+## 3.53.0 · Cinemática inversa completa (Claude)
+
+Petición del usuario: otra actividad con la cinemática inversa entera, «primero resolver por método D-H y luego aplicar cinemática inversa».
+
+- **Actividad nueva**, en el selector («Cinemática inversa completa · tabla DH y articulaciones»), en la práctica del tema y en la rotación del capítulo. Parte 1: asignar marcos y completar la tabla DH del mecanismo dibujado. Parte 2: con esa tabla, las coordenadas articulares que llevan el extremo a T = [n o a p], o al punto p en el antropomórfico. Los cinco robots de la inversa.
+- **Nota por partes:** tabla 5 y articulaciones 5, estas repartidas una a una. Un error de la tabla no se cobra dos veces. En examen suma a los puntos por partes.
+- **Enunciado breve**, como pidió: la tarea en una frase y los datos en las fichas; el convenio, plegado.
+- `check-inverse.cjs` cubre la actividad: la tabla pedida es la del mecanismo dibujado, la nota separa las dos partes y la postura de las fichas no regala ningún valor de la respuesta.
+
+Encontrado al probar con clics: las fichas no se veían, porque los ejercicios de solo enunciado las ocultan; y en el cilíndrico, dos desplazamientos de la respuesta coincidían a veces con los de la postura dibujada. Corregidas las dos cosas.
+
+Verificación: una autoprueba nueva y seis mutaciones detectadas (una, tras ampliar la prueba, que no la veía); batería 387/429 sin navegador y 429/429 en la página; en la página, una articulación mal (8,33 de 10), la otra postura del polar, y el examen con celdas en blanco (6,67 de 10, recuperadas al volver a la pregunta).

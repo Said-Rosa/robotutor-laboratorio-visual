@@ -4,7 +4,7 @@ Esta sección describe el proyecto **tal como está hoy**. Todo lo que sigue a �
 
 ## Versión y publicación
 
-- **3.53.0**, publicada en https://said-rosa.github.io/robotutor-laboratorio-visual/ .
+- **3.54.0**, publicada en https://said-rosa.github.io/robotutor-laboratorio-visual/ .
 - **GitHub Pages es el único destino.** Las copias de `chatgpt.site` y de Sites que aparecen en el historial ya no se actualizan.
 
 ## Cómo se trabaja
@@ -34,7 +34,7 @@ Regla de repositorio **«Proteger main»**, sin excepciones para nadie: **no se 
 
 En el CI de cada PR: `check-source`, `check-worked-solutions`, `check-mechanical-plates`, `check-architectures`, `check-inverse`, `check-kinematics`, `check-selftests`, `check-exercises` y `check-security`, más el build en sus dos modos y `check-source`/`check-security` sobre cada uno.
 
-- **Autopruebas: 387/429 sin navegador.** Las 42 restantes necesitan DOM real y están listadas en `check-selftests.cjs`; si añadís una que lo necesite, añadidla ahí con su nombre exacto.
+- **Autopruebas: 388/430 sin navegador.** Las 42 restantes necesitan DOM real y están listadas en `check-selftests.cjs`; si añadís una que lo necesite, añadidla ahí con su nombre exacto.
 - **Todo ejercicio practicable tiene desarrollo escrito**, y `check-exercises` falla si llega uno sin él: el botón de solución no debería volver a decir «Sin desarrollo escrito».
 - En un cambio grande, **comparad contra `main`**: ejecutad la batería en las dos versiones y restad los fallos. Lo que solo aparezca en vuestra rama es vuestro.
 - `check-modeled-plates.cjs` necesita `playwright` y **no está en el CI**; en una copia sin él falla igual en `main`.
@@ -525,3 +525,18 @@ Petición del usuario: otra actividad con la cinemática inversa entera, «prime
 Encontrado al probar con clics: las fichas no se veían, porque los ejercicios de solo enunciado las ocultan; y en el cilíndrico, dos desplazamientos de la respuesta coincidían a veces con los de la postura dibujada. Corregidas las dos cosas.
 
 Verificación: una autoprueba nueva y seis mutaciones detectadas (una, tras ampliar la prueba, que no la veía); batería 387/429 sin navegador y 429/429 en la página; en la página, una articulación mal (8,33 de 10), la otra postura del polar, y el examen con celdas en blanco (6,67 de 10, recuperadas al volver a la pregunta).
+
+## 3.54.0 · Teoría: n, o, a, p y la inversa en el espacio, con ejemplos resueltos (Claude)
+
+Petición del usuario: «en la teoría explica noap, da más detalles sobre resolver cinemática inversa (3D)». Solo teoría; ningún ejercicio cambia.
+
+Todo en el tema «Cinemática inversa»:
+
+- **n, o, a y p.** Qué es cada vector, con una figura de la pinza; que son direcciones y no puntos, que van expresados en la base y que n = o × a. Cómo escribir T a partir de una frase («entrando desde arriba, con los dedos cerrándose a lo largo de y») y cómo comprobar que una T está bien escrita.
+- **Procedimiento en siete pasos** para un robot espacial, y una tabla con lo que queda en el plano tras fijar la base en cada uno de los cinco robots.
+- **Tres ejemplos resueltos con números:** el brazo articulado por el método geométrico, con sus dos codos dibujados y las cuatro soluciones; el SCARA, donde q₄ solo sale de n; y el robot de seis ejes completo por desacoplo, de T a los seis ángulos.
+- **Glosario:** «noap (n, o, a, p)», «Centro de la muñeca» y «Desacoplo cinemático».
+
+Los números de los ejemplos están escritos a mano en la teoría. La autoprueba «Los ejemplos resueltos de la teoría de la inversa dan lo que dicen» los recalcula con el motor y comprueba además que el texto los cita: si alguien cambia un ejemplo, tiene que cambiar los dos sitios. La prueba busca el tema por su nombre, no por su número, porque el número en pantalla no es el de la clave.
+
+Verificación: batería 388/430 sin navegador y 430/430 en la página, que incluye el dibujo de las dos láminas nuevas; 58 fórmulas del tema sin errores de KaTeX.

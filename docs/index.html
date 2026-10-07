@@ -184,6 +184,7 @@
     }
     select:focus,input:focus{border-color:var(--cyan);box-shadow:0 0 0 4px rgba(24,191,210,.12)}
     .statement{font-size:1.02rem;line-height:1.65;padding:13px 0;cursor:default}
+    .statement-notes{margin:10px 0 0;border:1px solid var(--line);border-radius:10px;background:var(--soft)}.statement-notes summary{padding:8px 12px;cursor:pointer;font-weight:700;font-size:.84rem;color:var(--muted)}.statement-notes p{margin:0;padding:0 12px 10px;font-size:.9rem;line-height:1.55}
     .chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 16px}
     .chip,.data-chip{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.82rem;padding:7px 9px;background:var(--chip-bg);color:var(--chip-text);border:1px solid var(--chip-border);border-radius:10px}
     .matrix-wrap{display:flex;justify-content:center;align-items:stretch;gap:7px;overflow:auto;padding:6px 0}
@@ -2914,7 +2915,7 @@ const roadmap = [
    en este punto y renombra el archivo en consecuencia.
    Ojo: `progress.version` es otra cosa — numera el esquema de datos guardados en
    localStorage y avanza solo cuando cambia la forma de ese objeto. */
-const APP_VERSION="3.51.0";
+const APP_VERSION="3.52.0";
 const APP_STAGE="láminas claras · verdadero/falso y respuestas abiertas";
 /* Los cuatro niveles del curso. Toda comprobación de dificultad debe leer de aquí:
    el selector, las preferencias guardadas, la política pedagógica y los bancos. */
@@ -4833,9 +4834,10 @@ function dhChainExercise(base,k,def){
  const n=base.rows,T=k.cumulative.at(-1).map(fila=>fila.map(Number)),p=[T[0][3],T[1][3],T[2][3],1];
  const puntos=DH_CHAIN_PARTS.map(x=>`${x.nombre} ${x.peso}`).join(" · ");
  const statement=base.statement.replace("Asigna los marcos y completa la tabla DH del robot mostrado.",
-  `Asigna los marcos y resuelve la cinemática directa del robot mostrado en tres partes: <strong>1)</strong> la tabla DH; <strong>2)</strong> la matriz T=⁰A${dhIndexDigits(n,DH_SUBINDICES)}=[n o a p], que lleva de la base al efector en la postura dada; <strong>3)</strong> la posición del efector E respecto de la base. Puntuación sobre 10: ${puntos}. Un error de la tabla no se cobra dos veces: T y la posición se corrigen también contra lo que hayas escrito antes.`);
+  `Resuelve el robot mostrado en tres partes: <strong>1)</strong> la tabla DH; <strong>2)</strong> la matriz T=⁰A${dhIndexDigits(n,DH_SUBINDICES)}=[n o a p]; <strong>3)</strong> la posición de E respecto de la base.`);
  if(statement===base.statement)throw Error("cambió el enunciado de la tabla DH: revisa dhChainExercise");
  return{...base,id:`dh_chain_${def.id}`,kind:"dh-chain",matrixLayout:"dhChain",
+  notes:`Puntuación sobre 10: ${puntos}. Un error de la tabla no se cobra dos veces: T y la posición se corrigen también contra lo que hayas escrito antes. ${base.notes}`,
   title:"Problema completo: tabla DH, T y posición",
   rows:n+5,cols:4,answer:[...base.answer.map(f=>[...f]),...T,p],
   params:{...base.params,chainRows:n},statement,
@@ -4977,16 +4979,16 @@ function makeArchitectureExercise(diff,id='any',task='dh',question=null){
  const fixed=dimensions.map((label,i)=>label&&!/^q/.test(label)?`${label}=${fmt(rows[i].a||rows[i].d,2)} m`:null).filter(Boolean);
  const steps=rows.map((r,i)=>`Fila ${i+1}. ${def.types[i]==='R'?'Revoluta: θ recibe el ángulo dado; d es fijo.':'Prismática: d recibe el desplazamiento dado; θ es fijo.'} Con la normal común y los sentidos del montaje: θ=${r.theta}°, d=${r.d} m, a=${r.a} m, α=${r.alpha}°.`);
  const closingFrame='Para cerrar la tabla, toma z del marco final paralelo y con el mismo sentido que el último eje articular; si el último movimiento es prismático, conserva también x del marco anterior. Cuando dos ejes sean opuestos, expresa la torsión como +180°.';
- const base={id:`dh_architecture_${def.id}`,kind:'dh-assignment',chapter:4,difficulty:diff,model:k.model,visual:'dhAssignment',geometryTopic:'4.3',matrixLayout:'dh',dhColumns:DH_COLUMN_ORDER,title:'Asignar marcos a partir del mecanismo',type:'matrix',rows:n,cols:4,answer:rows.map(dhRowCells),tolerance:.05,params,chips:[...fixed,...coords],convention:'DH estándar, terna dextrógira y vectores columna. El marco base es el único dibujado.',plateNote:'Mecanismo completo en una sola vista. No se entregan marcos locales ni numeración sobre sus piezas.',statement:`Asigna los marcos y completa la tabla DH del robot mostrado. ${description} Coordenadas de la postura, en orden desde la base: ${coords.join('; ')}. La apertura de la pinza no forma parte de la cadena. ${DH_ASSIGN_CONVENTION} ${closingFrame}`,hints:['Distingue los cojinetes giratorios de los carros guiados antes de construir las transformaciones.','Usa el sentido de cada eje y la convención declarada para medir los cuatro parámetros de cada fila.'],steps,commonErrors:['confundir un carro deslizante con un cojinete de giro','añadir la apertura de la pinza a los grados de libertad del brazo'],concepts:['identificación de articulaciones','asignación de marcos DH']};
+ const base={id:`dh_architecture_${def.id}`,kind:'dh-assignment',chapter:4,difficulty:diff,model:k.model,visual:'dhAssignment',geometryTopic:'4.3',matrixLayout:'dh',dhColumns:DH_COLUMN_ORDER,title:'Asignar marcos a partir del mecanismo',type:'matrix',rows:n,cols:4,answer:rows.map(dhRowCells),tolerance:.05,params,chips:[...(params.H&&!fixed.some(x=>x.startsWith('H='))?[`H=${fmt(params.H,2)} m`]:[]),...fixed,...coords],convention:'DH estándar, terna dextrógira y vectores columna. El marco base es el único dibujado.',plateNote:'Mecanismo completo en una sola vista. No se entregan marcos locales ni numeración sobre sus piezas.',statement:'Asigna los marcos y completa la tabla DH del robot mostrado.',notes:`${description} La apertura de la pinza no forma parte de la cadena. ${DH_ASSIGN_CONVENTION} ${closingFrame}`,hints:['Distingue los cojinetes giratorios de los carros guiados antes de construir las transformaciones.','Usa el sentido de cada eje y la convención declarada para medir los cuatro parámetros de cada fila.'],steps,commonErrors:['confundir un carro deslizante con un cojinete de giro','añadir la apertura de la pinza a los grados de libertad del brazo'],concepts:['identificación de articulaciones','asignación de marcos DH']};
  if(task==='identify'){
   const ask=question||pick(['sequence','mobility','family']),family=def.id.startsWith('cartesian')?'Cartesiano':def.id.startsWith('cylindrical')?'Cilíndrico':def.id.startsWith('anthropomorphic')?'Antropomórfico':def.id==='scara4'?'SCARA':'Polar o esférico';
   const sequence=def.types.split('').join('–'),options=ask==='family'?['Cartesiano','Cilíndrico','Polar o esférico','SCARA','Antropomórfico']:ask==='mobility'?['3','4','5','6']:[sequence,...['R'.repeat(n),'P'.repeat(n),'R'+'P'.repeat(n-1),'P'+'R'.repeat(n-1),'RR'+'P'.repeat(n-2)].map(s=>s.split('').join('–'))].filter((s,i,a)=>a.indexOf(s)===i).slice(0,4);
   const correct=ask==='sequence'?sequence:ask==='mobility'?String(n):family;
   const rationale={clave:`La cadena tiene ${n} articulaciones independientes, en orden ${sequence}. Sus tres primeras articulaciones y la orientación de sus ejes corresponden a la arquitectura ${family}. La apertura de la pinza no se cuenta.`,fallos:Object.fromEntries(options.filter(o=>o!==correct).map(o=>[o,ask==='mobility'?`El valor ${o} no corresponde al número de articulaciones independientes: la cadena contiene ${n}. Cuenta los carros y los cojinetes desde la base; excluye los dedos.`:ask==='sequence'?`La secuencia ${o} no coincide con los movimientos físicos del dibujo: desde la base la cadena es ${sequence}. Un cojinete gira; un carro se desplaza dentro de una guía.`:`${o} no corresponde al montaje de las tres primeras articulaciones; en esta figura forman un robot ${family}. La muñeca modifica la orientación de la herramienta, no la familia de posicionamiento.`]))};
-  return{...base,id:`forward_identify_${def.id}_${ask}`,kind:'robot-identification',visual:'spatialRobot',geometryTopic:'4.1',matrixLayout:undefined,kinematics:k,type:'choice',rows:undefined,cols:undefined,title:'Reconocer el robot de la figura',statement:ask==='sequence'?'Identifica la secuencia de articulaciones desde la base hasta la herramienta. R significa revoluta y P prismática. No incluyas la apertura de los dedos.':ask==='mobility'?'¿Cuántos grados de libertad independientes tiene la cadena mecánica del robot? Considera cada articulación actuada y excluye la apertura de la pinza.':'Identifica la arquitectura que forman las tres primeras articulaciones del robot; no incluyas la muñeca ni la apertura de la pinza.',answer:ask==='sequence'?sequence:ask==='mobility'?String(n):family,options:shuffle(options),rationale,chips:[],convention:'Observa la estructura completa. La pinza se considera una herramienta fija para contar la movilidad del brazo.',identify:{ask,sequence,family,dof:n},steps:[`Desde la base: ${def.types.split('').map((t,i)=>`${i+1}: ${t==='R'?'giro en cojinete':'traslación en guía'}`).join('; ')}.`,`Cada articulación es independiente: ${n} coordenadas articulares. La pinza no añade otra a esta cadena.`,`La arquitectura de posicionamiento es ${family}; secuencia completa ${sequence}.`]};
+  return{...base,id:`forward_identify_${def.id}_${ask}`,kind:'robot-identification',visual:'spatialRobot',geometryTopic:'4.1',matrixLayout:undefined,notes:undefined,kinematics:k,type:'choice',rows:undefined,cols:undefined,title:'Reconocer el robot de la figura',statement:ask==='sequence'?'Identifica la secuencia de articulaciones desde la base hasta la herramienta. R significa revoluta y P prismática. No incluyas la apertura de los dedos.':ask==='mobility'?'¿Cuántos grados de libertad independientes tiene la cadena mecánica del robot? Considera cada articulación actuada y excluye la apertura de la pinza.':'Identifica la arquitectura que forman las tres primeras articulaciones del robot; no incluyas la muñeca ni la apertura de la pinza.',answer:ask==='sequence'?sequence:ask==='mobility'?String(n):family,options:shuffle(options),rationale,chips:[],convention:'Observa la estructura completa. La pinza se considera una herramienta fija para contar la movilidad del brazo.',identify:{ask,sequence,family,dof:n},steps:[`Desde la base: ${def.types.split('').map((t,i)=>`${i+1}: ${t==='R'?'giro en cojinete':'traslación en guía'}`).join('; ')}.`,`Cada articulación es independiente: ${n} coordenadas articulares. La pinza no añade otra a esta cadena.`,`La arquitectura de posicionamiento es ${family}; secuencia completa ${sequence}.`]};
  }
  if(task==='chain')return dhChainExercise(base,k,def);
- if(task==='direct')return{...base,id:`forward_architecture_${def.id}`,kind:'architecture-direct',visual:'spatialRobot',geometryTopic:'4.1',matrixLayout:undefined,kinematics:k,title:'Cinemática directa · '+def.name,type:'matrix',rows:3,cols:1,answer:k.pose.slice(0,3).map(r=>[r[3]]),statement:`Determina la posición [X; Y; Z] de E respecto de la base. ${description} Usa la tabla DH dada.${dhTableMarkup(rows)}`,convention:'La tabla DH fija la geometría y los sentidos. E señala el punto cuya posición se pide.'};
+ if(task==='direct')return{...base,id:`forward_architecture_${def.id}`,kind:'architecture-direct',visual:'spatialRobot',geometryTopic:'4.1',matrixLayout:undefined,kinematics:k,title:'Cinemática directa · '+def.name,type:'matrix',rows:3,cols:1,answer:k.pose.slice(0,3).map(r=>[r[3]]),statement:`Determina la posición [X; Y; Z] de E respecto de la base con la tabla DH dada.${dhTableMarkup(rows)}`,notes:description,convention:'La tabla DH fija la geometría y los sentidos. E señala el punto cuya posición se pide.'};
  return base;
 }
 
@@ -7253,7 +7255,8 @@ function makeDhAssignment(diff){
   visual:'dhAssignment',geometryTopic:'4.3',matrixLayout:'dh',dhColumns:DH_COLUMN_ORDER,
   title:'Asignar los marcos y completar la tabla DH',
   type:'matrix',rows:3,cols:4,answer,tolerance:.05,
-  statement:`La lámina entrega <strong>solo el marco base</strong>; los marcos 1, 2 y 3 los asignas tú. El brazo articulado tiene una columna vertical de <strong>H=${fmt(H,2)} m</strong> y dos eslabones de <strong>L₂=${fmt(L2,2)} m</strong> y <strong>L₃=${fmt(L3,2)} m</strong>. Sus tres articulaciones son de revolución: la primera gira en acimut alrededor de la vertical y las otras dos cabecean sobre ejes paralelos entre sí. La postura dibujada corresponde a q₁=${q[0]}°, q₂=${q[1]}° y q₃=${q[2]}°.<br><br>Completa las tres filas de la <strong>tabla DH</strong>, en el orden (aᵢ, αᵢ, dᵢ, θᵢ). ${DH_ASSIGN_CONVENTION}`,
+  statement:'Asigna los marcos 1, 2 y 3 y completa la tabla DH del brazo mostrado.',
+  notes:`La lámina entrega solo el marco base. Las tres articulaciones son de revolución: la primera gira en acimut alrededor de la vertical y las otras dos cabecean sobre ejes paralelos entre sí. H es la altura de la columna, y L₂ y L₃ las longitudes de los dos eslabones. ${DH_ASSIGN_CONVENTION}`,
   chips:[`H=${fmt(H,2)} m`,`L₂=${fmt(L2,2)} m`,`L₃=${fmt(L3,2)} m`,formatAngle(q[0],'q₁'),formatAngle(q[1],'q₂'),formatAngle(q[2],'q₃')],
   params:{H,L2,L3,q,kinematics,dimensions:['H','L₂','L₃']},
   convention:'DH estándar, terna dextrógira y vectores columna. El marco base es el único dibujado.',
@@ -7297,7 +7300,8 @@ function makeDhAssignment6R(diff){
   visual:'dhAssignment',geometryTopic:'4.3',matrixLayout:'dh',dhColumns:DH_COLUMN_ORDER,
   title:'Asignar los marcos de un brazo de seis ejes',
   type:'matrix',rows:6,cols:4,answer,tolerance:.05,
-  statement:`La lámina entrega <strong>solo el marco base</strong>; los seis marcos los asignas tú. El brazo tiene una columna vertical de <strong>H=${fmt(H,2)} m</strong>, un brazo de <strong>L₂=${fmt(L2,2)} m</strong> y un antebrazo de <strong>L₃=${fmt(L3,2)} m</strong>. La base gira en acimut y el hombro y el codo cabecean sobre ejes paralelos entre sí. En la punta del antebrazo hay una <strong>muñeca esférica</strong>: los ejes 4, 5 y 6 se cortan en un mismo punto, por lo que entre ellos no hay ninguna distancia que recorrer. La herramienta sobresale <strong>L₆=${fmt(L6,2)} m</strong> desde ese punto, a lo largo del último eje. La postura dibujada corresponde a q₁=${q[0]}°, q₂=${q[1]}°, q₃=${q[2]}°, q₄=${q[3]}°, q₅=${q[4]}° y q₆=${q[5]}°.<br><br>Completa las seis filas de la <strong>tabla DH</strong>, en el orden (aᵢ, αᵢ, dᵢ, θᵢ). ${DH_ASSIGN_CONVENTION}`,
+  statement:'Asigna los seis marcos y completa la tabla DH del brazo mostrado.',
+  notes:`La lámina entrega solo el marco base. La base gira en acimut, y el hombro y el codo cabecean sobre ejes paralelos entre sí. H es la altura de la columna, L₂ la longitud del brazo y L₃ la del antebrazo. En la punta del antebrazo hay una muñeca esférica: los ejes 4, 5 y 6 se cortan en un mismo punto, por lo que entre ellos no hay ninguna distancia que recorrer. La herramienta sobresale L₆ desde ese punto, a lo largo del último eje. ${DH_ASSIGN_CONVENTION}`,
   chips:[`H=${fmt(H,2)} m`,`L₂=${fmt(L2,2)} m`,`L₃=${fmt(L3,2)} m`,`L₆=${fmt(L6,2)} m`].concat(q.map((valor,i)=>formatAngle(valor,`q${'₁₂₃₄₅₆'[i]}`))),
   params:{H,L2,L3,L6,q,kinematics,dimensions:['H','L₂','L₃','','','L₆']},
   convention:'DH estándar, terna dextrógira y vectores columna. El marco base es el único dibujado; la flecha de cada eje da su sentido positivo.',
@@ -9223,14 +9227,17 @@ function makeInverseNoap(diff,id="any"){
  if(Array.isArray(geometria.q))geometria.q=[...ref];
  const lamina={...KinematicsEngine.serialDH(ikNoapRows(ik,ref)),model:k.model,architectureId:k.architectureId,jointTypes:k.jointTypes,jointAxes:k.jointAxes,geometry:geometria};
  Object.freeze(ik.solutions);
- const geometrico=ik.dato==="p",completa=ikNoapCriterion(ik).orientacion,cabecera=`El robot ${IK_NOAP_NAMES[id]} de la figura tiene esta tabla DH, con sus coordenadas articulares q₁ a q${dhIndexDigits(n,DH_SUBINDICES)} todavía sin valor:${ikNoapTableMarkup(ik)}`;
+ const geometrico=ik.dato==="p",completa=ikNoapCriterion(ik).orientacion,ultima=`q${dhIndexDigits(n,DH_SUBINDICES)}`,cabecera=`Tabla DH del robot ${IK_NOAP_NAMES[id]}:${ikNoapTableMarkup(ik)}`;
  const unidades=ik.types.includes("P")?"Ángulos en grados y distancias en metros; las articulaciones prismáticas son positivas.":"Ángulos en grados.";
  const enunciado=geometrico
-  ?`${cabecera}Se quiere llevar su extremo al punto <strong>p</strong>, en metros:${ikNoapPointMarkup(ik.T)}<strong>Calcula las coordenadas articulares</strong> por el método geométrico. El robot tiene tres grados de libertad: se impone la posición, y la orientación queda determinada por ella. Vale cualquier postura que alcance p. ${unidades}`
-  :`${cabecera}Se quiere llevar su extremo a la localización <strong>T = [n o a p]</strong>:${ikNoapTargetMarkup(ik.T)}<strong>Calcula las coordenadas articulares</strong> por el método de la matriz homogénea. ${completa?"El robot tiene cuatro grados de libertad: la respuesta debe reproducir la T completa, con su orientación.":"El robot tiene tres grados de libertad: basta con que el extremo alcance la posición p, y vale cualquier solución que lo haga."} ${unidades}`;
+  ?`${cabecera}Posición pedida <strong>p</strong>, en metros:${ikNoapPointMarkup(ik.T)}<strong>Calcula q₁ a ${ultima}</strong> por el método geométrico.`
+  :`${cabecera}Localización pedida <strong>T = [n o a p]</strong>:${ikNoapTargetMarkup(ik.T)}<strong>Calcula q₁ a ${ultima}</strong> por el método de la matriz homogénea.`;
+ const aclaraciones=geometrico
+  ?`El robot tiene tres grados de libertad: se impone la posición, y la orientación queda determinada por ella. Vale cualquier postura que alcance p. ${unidades}`
+  :`${completa?"El robot tiene cuatro grados de libertad: la respuesta debe reproducir la T completa, con su orientación.":"El robot tiene tres grados de libertad: basta con que el extremo alcance la posición p, y vale cualquier solución que lo haga."} ${unidades}`;
  return{id:`ik_noap_${id}`,kind:"ik-noap",chapter:4,difficulty:nivel,model:k.model,visual:"dhAssignment",geometryTopic:"4.4",matrixLayout:"ikNoap",
   title:geometrico?"Cinemática inversa · método geométrico":"Cinemática inversa · método de la matriz homogénea",type:"matrix",rows:n,cols:1,answer:ik.solutions[0].map(v=>[v]),tolerance:IK_NOAP_TOL.longitud,
-  statement:enunciado,
+  statement:enunciado,notes:aclaraciones,
   chips:[],params:{...geometria,dimensions:base.params.dimensions,kinematics:lamina,ik},
   convention:geometrico?"DH estándar. p es la posición del extremo respecto de la base; d₁ es la altura del hombro, y a₂ y a₃ las longitudes del brazo y del antebrazo.":"DH estándar. T = [n o a p]: n, o y a son la orientación del extremo y p su posición, todos respecto de la base.",
   plateNote:"Esquema del robot en una postura cualquiera, para reconocer sus articulaciones y el sentido de sus ejes. No representa la localización que se pide.",
@@ -9263,7 +9270,8 @@ function makeWristCenter(diff){
  const f=x=>fmt(x,4),linea=(nombre,v)=>`${nombre} = (${v.map(f).join(", ")})`;
  return{id:"wrist_center",kind:"wrist-center",chapter:4,difficulty:nivel,model:"SphericalWrist6R",geometryTopic:"4.4",
   title:"Desacoplo cinemático · centro de la muñeca",type:"matrix",rows:3,cols:1,answer:pm,tolerance:.003,
-  statement:`Un robot de seis ejes con muñeca esférica debe llevar su herramienta a la localización <strong>T = [n o a p]</strong>:${ikNoapTargetMarkup(T)}El extremo está a <strong>l₄ = ${fmt(L.l4,3)} m</strong> del centro de la muñeca, medidos sobre el último eje, z₆. Calcula la posición <strong>p<sub>m</sub> = [x; y; z]</strong> del centro de la muñeca, en metros.`,
+  statement:`Localización pedida <strong>T = [n o a p]</strong> de un robot de seis ejes con muñeca esférica:${ikNoapTargetMarkup(T)}<strong>Calcula el centro de la muñeca, p<sub>m</sub> = [x; y; z]</strong>, en metros.`,
+  notes:"l₄ es la distancia del centro de la muñeca al extremo, medida sobre el último eje, z₆.",
   chips:[`l₄=${fmt(L.l4,3)} m`],params:{rows,lengths:L,T},
   convention:"DH estándar. T = [n o a p] respecto de la base; a es el eje z₆ del extremo, el de aproximación de la herramienta.",
   concepts:["desacoplo cinemático","centro de la muñeca","vectores n, o, a y p"],
@@ -9293,17 +9301,23 @@ function makeWristAngles(diff){
  const q0=[q4,q5,q6];
  ik.solutions=Object.freeze([q0,...ikNoapSolutions(ik).filter(sol=>!ikNoapSame(ik,sol,q0))]);
  const dato=ik.R03
-  ?`Las tres primeras articulaciones ya están resueltas, y con ellas se conoce el giro del sistema 3 respecto de la base, <strong>⁰R₃</strong>:${ikNoapRotationMarkup(ik.R03,"Matriz de giro del sistema 3 respecto de la base")}La herramienta debe quedar con la orientación <strong>[n o a]</strong>:${ikNoapRotationMarkup(ik.noa,"Orientación pedida, con sus columnas n, o y a",["n","o","a"])}`
-  :`Una vez colocadas las tres primeras articulaciones, la orientación que le queda por dar a la muñeca es <strong>³R₆ = (⁰R₃)ᵀ·[n o a]</strong>:${ikNoapRotationMarkup(T,"Matriz de giro del extremo respecto del sistema 3")}`;
+  ?`<strong>⁰R₃</strong>, con q₁, q₂ y q₃ ya resueltas:${ikNoapRotationMarkup(ik.R03,"Matriz de giro del sistema 3 respecto de la base")}Orientación pedida <strong>[n o a]</strong>:${ikNoapRotationMarkup(ik.noa,"Orientación pedida, con sus columnas n, o y a",["n","o","a"])}`
+  :`<strong>³R₆ = (⁰R₃)ᵀ·[n o a]</strong>:${ikNoapRotationMarkup(T,"Matriz de giro del extremo respecto del sistema 3")}`;
  return{id:"ik_noap_wrist3",kind:"ik-noap",chapter:4,difficulty:nivel,model:"SphericalWrist6R",geometryTopic:"4.4",matrixLayout:"ikNoap",
   title:"Desacoplo cinemático · giros de la muñeca",type:"matrix",rows:3,cols:1,answer:q0.map(v=>[v]),tolerance:IK_NOAP_TOL.longitud,
-  statement:`La muñeca esférica de un robot de seis ejes tiene estas tres filas en su tabla DH:${ikNoapTableMarkup(ik)}${dato}<strong>Calcula q₄, q₅ y q₆</strong>, en grados. Hay dos soluciones y vale cualquiera de las dos.`,
+  statement:`Tabla DH de la muñeca esférica de un robot de seis ejes:${ikNoapTableMarkup(ik)}${dato}<strong>Calcula q₄, q₅ y q₆</strong>, en grados.`,
+  notes:"³R₆ es la orientación que le queda por dar a la muñeca una vez colocadas las tres primeras articulaciones. Hay dos soluciones y vale cualquiera de las dos.",
   chips:[],params:{ik},
   convention:"DH estándar. ³R₆ es el giro del extremo respecto del sistema 3, y es el producto de los bloques de giro de las tres filas de la muñeca.",
   concepts:["desacoplo cinemático","muñeca esférica","vectores n, o, a y p"],
   commonErrors:["usar ⁰R₃ sin trasponer","leer los elementos de ³R₆ por columnas donde van por filas","tomar el arco coseno de q₅ y dar por única esa solución","usar arctan en lugar de atan2 y perder el cuadrante de q₄ o de q₆"],
   hints:[],steps:ikNoapSteps(ik)};
 }
+/* El enunciado dice qué se pide, y los datos van en las fichas de debajo. Lo
+   demás —el convenio que hace única la respuesta, cómo está montado el
+   mecanismo, cómo se puntúa— va en `notes` y se pinta plegado: está a un
+   clic, pero no hay que leerlo entero antes de cada ejercicio. */
+function statementNotesMarkup(e){return e?.notes?`<details class="statement-notes"><summary>Convenio y aclaraciones</summary><p>${e.notes}</p></details>`:""}
 function hasMechanicalWorkedSolution(e){return Boolean(isMechanicalWorksheet(e)||(e?.visual==='dhAssignment'&&e.kind!=='ik-noap'))}
 /* Teaching calculations are derived from the input parameters. They do not
    replace the verifier or round intermediate values used by the engine. */
@@ -9472,7 +9486,7 @@ function renderExercise(){
  renderTopicPracticeContext();
  setActiveChapter(exercise.chapter);
  document.getElementById("exerciseTitle").textContent=exercise.title;
- document.getElementById("statement").innerHTML=exercise.statement;
+ document.getElementById("statement").innerHTML=exercise.statement+statementNotesMarkup(exercise);
  document.getElementById("chips").innerHTML=(worksheet?[]:exercise.chips).map(x=>`<span class="data-chip">${x}</span>`).join("");
  renderExerciseTheory(exercise);
  const area=document.getElementById("answerArea");
@@ -12281,7 +12295,8 @@ function runSelfTests(){
    /* Las clasificaciones también pintan lámina —es su enunciado— y faltaban en
       la condición, así que la prueba dependía de que el ejercicio cargado al
       arrancar no fuera una de ellas. */
-   const necesita=is2RExercise(e)||isSpatialExercise(e)||isWorkspaceExercise(e)||e?.visual==="frames3d"||e?.visual==="classification";
+   /* Y las de asignación de marcos: con una en pantalla, la prueba fallaba. */
+   const necesita=is2RExercise(e)||isSpatialExercise(e)||isWorkspaceExercise(e)||e?.visual==="frames3d"||e?.visual==="classification"||e?.visual==="dhAssignment";
    return document.getElementById("exerciseVisual").hidden===!necesita;
   }],
   ["El pie declara una única versión",()=>{
@@ -14816,7 +14831,7 @@ function runSelfTests(){
     const mismoPunto=[0,1,2].every(r=>Math.abs(T[r][3]-ik.T[r][3])<1e-3),normalAlReves=[0,1,2].every(r=>Math.abs(T[r][0]+ik.T[r][0])<1e-3);
     /* mismo punto, herramienta girada media vuelta: vale, y con la nota entera */
     if(!mismoPunto||!normalAlReves||!ikNoapReaches(ik,otra)||ikNoapGrade(e,otra.map(v=>[v])).nota!==1)return false;
-    if(!e.statement.includes("basta con que el extremo alcance la posición p"))return false;
+    if(!e.notes.includes("basta con que el extremo alcance la posición p"))return false;
    }
    for(let i=0;i<8;i++){
     /* el otro codo del antropomórfico, calculado aquí y no por el resolvedor */
@@ -14834,7 +14849,7 @@ function runSelfTests(){
    const T=KinematicsEngine.serialDH(ikNoapRows(ik,girada)).cumulative.at(-1);
    if(![0,1,2].every(r=>Math.abs(T[r][3]-ik.T[r][3])<1e-6))return false;
    const g=ikNoapGrade(e,girada.map(v=>[v]));
-   return !ikNoapReaches(ik,girada)&&g.aciertos===3&&!g.partes[3]&&e.statement.includes("debe reproducir la T completa");
+   return !ikNoapReaches(ik,girada)&&g.aciertos===3&&!g.partes[3]&&e.notes.includes("debe reproducir la T completa");
   }],
   ["Los ejemplos del libro que cita la teoría se cumplen con números",()=>{
    const c=x=>Math.cos(rad(x)),sn=x=>Math.sin(rad(x)),igual=(A,B)=>A.every((f,i)=>f.every((v,j)=>Math.abs(Number(v)-B[i][j])<1e-9));
@@ -14874,6 +14889,32 @@ function runSelfTests(){
    /* en los niveles bajos no aparece */
    for(let i=0;i<60;i++)if(makeDhRowMatrix(pick([1,2])).params.desfase)return false;
    return vistos===12;
+  }],
+  ["El enunciado es breve: la tarea y los datos; el convenio va plegado",()=>{
+   const texto=h=>String(h).replace(/<div class="table-wrap[\s\S]*?<\/div>/g," ").replace(/<[^>]+>/g," ").replace(/\s+/g," ").trim();
+   const casos=[];
+   for(const nivel of DIFFICULTY_LEVELS){
+    for(const def of ROBOT_ARCHITECTURES)for(const tarea of ["dh","chain","direct"])casos.push(makeArchitectureExercise(nivel,def.id,tarea));
+    for(const id of Object.keys(IK_NOAP_REFERENCE))casos.push(makeInverseNoap(nivel,id));
+    casos.push(makeDhAssignment(nivel),makeDhAssignment6R(nivel),makeWristCenter(nivel),makeWristAngles(nivel));
+   }
+   for(const e of casos){
+    /* sin contar las tablas, el enunciado cabe en dos líneas */
+    if(texto(e.statement).length>190)return false;
+    /* lo que se quitó no se ha perdido: está en las notas, y se pinta plegado */
+    if(!e.notes||/undefined|NaN/.test(e.notes))return false;
+    const pintado=statementNotesMarkup(e);
+    if(!pintado.startsWith('<details class="statement-notes">')||pintado.includes("<details open")||!pintado.includes(e.notes))return false;
+    /* los datos con número que nombran las notas están a la vista, en las fichas */
+    const fichas=e.chips.join(" ");
+    for(const [dato] of e.notes.matchAll(/[HLl][₀-₉]?=\d+(?:[.,]\d+)?/g))if(!fichas.includes(dato))return false;
+   }
+   /* la tabla DH sigue necesitando su convenio para tener una sola respuesta */
+   const dh=makeArchitectureExercise(2,"scara4","dh");
+   if(!dh.notes.includes("flecha de cada eje")||!dh.notes.includes("+180°")||!dh.chips.some(x=>x.startsWith("H=")))return false;
+   if(!makeArchitectureExercise(2,"scara4","chain").notes.includes("Puntuación sobre 10"))return false;
+   /* y un ejercicio sin notas no pinta un plegable vacío */
+   return statementNotesMarkup(makeDhRowMatrix(2))===""&&statementNotesMarkup(makeArchitectureExercise(2,"scara4","identify"))===""&&statementNotesMarkup(null)==="";
   }],
   ["El centro de la muñeca no depende de sus tres giros",()=>{
    for(const nivel of DIFFICULTY_LEVELS)for(let i=0;i<4;i++){

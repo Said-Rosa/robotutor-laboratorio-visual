@@ -4,7 +4,7 @@ Esta sección describe el proyecto **tal como está hoy**. Todo lo que sigue a �
 
 ## Versión y publicación
 
-- **3.51.0**, publicada en https://said-rosa.github.io/robotutor-laboratorio-visual/ .
+- **3.52.0**, publicada en https://said-rosa.github.io/robotutor-laboratorio-visual/ .
 - **GitHub Pages es el único destino.** Las copias de `chatgpt.site` y de Sites que aparecen en el historial ya no se actualizan.
 
 ## Cómo se trabaja
@@ -34,7 +34,7 @@ Regla de repositorio **«Proteger main»**, sin excepciones para nadie: **no se 
 
 En el CI de cada PR: `check-source`, `check-worked-solutions`, `check-mechanical-plates`, `check-architectures`, `check-inverse`, `check-kinematics`, `check-selftests`, `check-exercises` y `check-security`, más el build en sus dos modos y `check-source`/`check-security` sobre cada uno.
 
-- **Autopruebas: 385/427 sin navegador.** Las 42 restantes necesitan DOM real y están listadas en `check-selftests.cjs`; si añadís una que lo necesite, añadidla ahí con su nombre exacto.
+- **Autopruebas: 386/428 sin navegador.** Las 42 restantes necesitan DOM real y están listadas en `check-selftests.cjs`; si añadís una que lo necesite, añadidla ahí con su nombre exacto.
 - **Todo ejercicio practicable tiene desarrollo escrito**, y `check-exercises` falla si llega uno sin él: el botón de solución no debería volver a decir «Sin desarrollo escrito».
 - En un cambio grande, **comparad contra `main`**: ejecutad la batería en las dos versiones y restad los fallos. Lo que solo aparezca en vuestra rama es vuestro.
 - `check-modeled-plates.cjs` necesita `playwright` y **no está en el CI**; en una copia sin él falla igual en `main`.
@@ -56,6 +56,7 @@ En el CI de cada PR: `check-source`, `check-worked-solutions`, `check-mechanical
 
   **En textos para el alumno, citad los temas por su nombre**, no por número.
 - **T = [n o a p].** La matriz del robot se nombra por sus columnas: n (normal, eje x del extremo), o (orientación, eje y), a (aproximación, eje z) y p (posición). Es la notación del curso y la que usa la cinemática inversa. Las celdas de T se nombran así en el diagnóstico (`px`, `az`).
+- **Enunciados breves.** El usuario lo pidió el 6 de octubre: «solo los datos, no explicando todo el ejercicio». `statement` lleva la tarea en una frase; los datos van en `chips` o en tablas. El convenio que hace única la respuesta, la descripción del montaje y las reglas de puntuación van en **`notes`**, que `statementNotesMarkup` pinta plegado bajo el enunciado («Convenio y aclaraciones»). No se borra nada de eso: se mueve. La autoprueba «El enunciado es breve…» limita el texto a 190 caracteres sin contar tablas, y exige que todo dato con número citado en las notas esté también en las fichas.
 - **El libro del curso es *Fundamentos de robótica* (Barrientos, Peñín, Balaguer y Aracil), y manda.** El usuario lo fijó el 6 de octubre como criterio: lo que venga de otras fuentes solo entra si casa con él. La cinemática es su capítulo 4. De él salen el orden θ, d, a, α de la tabla, el algoritmo de 16 pasos, T = [n o a p] y los tres métodos de cinemática inversa. La teoría lo cita por sección y lo explica con palabras propias: no se copia su texto.
 - **Cinemática inversa** (`kind:'ik-noap'`, `matrixLayout:'ikNoap'`). La respuesta es un vector de coordenadas articulares y **no se compara con una solución guardada:** `ikNoapReaches` comprueba con la cinemática directa que lleva el extremo adonde se pide, y `ikNoapGrade` puntúa por articulación contra la solución válida más parecida. Qué es «adonde se pide» lo decide `ikNoapCriterion`, con el criterio del libro, a partir de `ik.dato`:
   - `"p"` · **método geométrico** (`makeInverseNoap` con el antropomórfico). El enunciado da solo la posición. Valen las dos posturas del codo y las dos de la base: hasta cuatro soluciones.
@@ -499,3 +500,14 @@ Petición del usuario: el libro principal es *Fundamentos de robótica* (Barrien
 - **Prueba inestable, arreglada de paso.** «El tiempo se acumula en la pregunta donde se está» usaba el reloj de verdad con medio segundo de margen: lo que tardaba en pintarse cada pregunta se cargaba a la anterior, y con la máquina ocupada fallaba una de cada treinta veces. Ahora detiene el reloj y compara exacto. No era de este cambio, pero podía tumbar el CI al azar.
 
 Verificación: `check-inverse.cjs` ampliado (criterio escrito aparte, sin preguntarle a la aplicación; 19.600 ejercicios en local), seis autopruebas nuevas o reescritas, nueve mutaciones detectadas, batería 385/427 sin navegador y 427/427 en la página. Con clics: el otro codo y la otra postura del polar se aceptan, el SCARA con la herramienta mal girada da 3 de 4, las dos partes del desacoplo, la teoría y el examen.
+
+## 3.52.0 · Enunciados breves (Claude)
+
+Petición del usuario, con una captura de «Construir la tabla DH» del SCARA y su párrafo de ocho líneas: «no asignes tanto texto, solo los datos, no explicando todo el ejercicio».
+
+- El enunciado queda en una frase («Asigna los marcos y completa la tabla DH del robot mostrado.») y los datos, en las fichas. Faltaba la de H en el SCARA, el polar y los cartesianos con muñeca: se añadió.
+- El convenio DH, cómo está montado el mecanismo, la regla para cerrar la tabla y la puntuación del problema completo pasan a `notes`, plegado. Siguen haciendo falta para que la tabla tenga una sola respuesta.
+- Mismo tratamiento para la asignación de marcos 3R y 6R, el problema completo, la cinemática directa por arquitectura, la inversa y las dos partes del desacoplo.
+- De paso: «UI selecciona visual correcto» fallaba si el ejercicio en pantalla era de asignación de marcos, porque su condición no los contaba. No era de este cambio.
+
+Verificación: batería 386/428 sin navegador y 428/428 en la página, también con un ejercicio de tabla DH en pantalla; una autoprueba nueva y cuatro mutaciones detectadas; todos los controles del CI en local. En la página, el ejercicio de la captura: una frase, el plegable cerrado y ocho fichas.

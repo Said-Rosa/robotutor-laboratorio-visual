@@ -18,7 +18,9 @@
  *    una respuesta con una articulación equivocada o con celdas en blanco;
  *  · que la lámina no está dibujada en la postura que se pide;
  *  · en el desacoplo: que el centro de la muñeca es el punto donde se cortan
- *    sus ejes, y que los giros reproducen ³R₆ = (⁰R₃)ᵀ·[n o a].
+ *    sus ejes, y que los giros reproducen ³R₆ = (⁰R₃)ᵀ·[n o a];
+ *  · en la inversa completa: que la tabla pedida es la del mecanismo dibujado
+ *    y que la nota separa la tabla de las articulaciones.
  *
  * Uso: node scripts/check-inverse.cjs [ruta/al/robotutor.html]
  *      SORTEOS=150 node scripts/check-inverse.cjs   (más muestreo)
@@ -26,7 +28,7 @@
 const assert=require('node:assert/strict');
 const {cargar,RUTA_POR_DEFECTO}=require('./sandbox.cjs');
 
-const P=cargar(['makeInverseNoap','makeWristCenter','makeWristAngles','IK_NOAP_REFERENCE','ikNoapGrade','ikNoapSolutions','ikNoapSummary','mul','hom','rot','translation4',
+const P=cargar(['makeInverseNoap','makeInverseChain','ikChainGrade','ikChainSummary','dhRowFromCells','makeWristCenter','makeWristAngles','IK_NOAP_REFERENCE','ikNoapGrade','ikNoapSolutions','ikNoapSummary','mul','hom','rot','translation4',
  'identityMatrix','mechanicalPlateSvg','solutionHasContent','exerciseTopicKey','isStatementOnlyExercise',
  'hasMechanicalWorkedSolution','answerIsCorrect','examQuestionScore','buildPedagogyTrace'],process.argv[2]||RUTA_POR_DEFECTO);
 
@@ -214,4 +216,54 @@ for(const nivel of [1,2,3,4])for(let rep=0;rep<SORTEOS;rep++){
  assert.match(w.statement,/q<sub>4<\/sub>/,lugar+': las articulaciones de la muñeca son la 4, la 5 y la 6');
 }
 
-console.log(`Cinemática inversa validada: ${casos} ejercicios de 5 robots y ${muneca*2} de desacoplo; cada solución lleva el extremo adonde se pide por un cálculo independiente, con el criterio del libro, y las ecuaciones del desarrollo se cumplen.`);
+/* ---------- Inversa completa: tabla DH y articulaciones ---------- */
+let completas=0;
+for(const id of Object.keys(P.IK_NOAP_REFERENCE))for(const nivel of [1,2,3,4])for(let rep=0;rep<Math.max(3,SORTEOS/8);rep++){
+ const e=P.makeInverseChain(nivel,id),ik=e.params.ik,n=ik.types.length,donde=`inversa completa · ${id} · nivel ${nivel}`,ref=P.IK_NOAP_REFERENCE[id];
+ completas++;
+ assert.ok(e.rows===n+1&&e.cols===4&&e.answer.length===n+1,donde+': forma de la respuesta');
+ /* La tabla pedida: mismas constantes que la del problema, con la postura
+    dibujada —la de las fichas— en las celdas variables. */
+ const filas=e.answer.slice(0,n).map(f=>P.dhRowFromCells(f));
+ filas.forEach((f,i)=>{
+  const g=ik.rows[i],variable=ik.types[i]==='R'?'theta':'d';
+  for(const clave of ['theta','d','a','alpha'])assert.ok(cerca(f[clave],clave===variable?ref[i]:g[clave]),`${donde}: fila ${i+1}, ${clave}`);
+ });
+ /* Con esa tabla, el extremo cae donde lo dibuja la lámina. */
+ const Tl=directa({rows:filas,types:ik.types},ref),fin=e.params.kinematics.positions.at(-1);
+ assert.ok(cerca(Tl[0][3],fin.x,1e-3)&&cerca(Tl[1][3],fin.y,1e-3)&&cerca(Tl[2][3],fin.z,1e-3),donde+': la tabla no es la del mecanismo dibujado');
+ /* Las fichas dan la postura dibujada, no la que se pide. */
+ const fichas=e.chips.join(' ');
+ ref.forEach((v,i)=>assert.ok(fichas.includes(`=${String(Number(v.toFixed(2)))}${ik.types[i]==='R'?'°':' m'}`),donde+': falta la postura en las fichas'));
+ assert.equal(/<th>n<\/th>/.test(e.statement),id!=='anthropomorphic3',donde+': dato del enunciado');
+ /* La postura de las fichas no regala ningún desplazamiento de la respuesta:
+    la de referencia usa valores que el generador no sortea. */
+ ik.solutions[0].forEach((v,i)=>{if(ik.types[i]==='P')assert.ok(!cerca(v,ref[i],1e-6),`${donde}: q${i+1} de la respuesta coincide con la postura dibujada`)});
+ /* Nota: 10 con todo bien y cualquier solución; 5 y 5 por separado. */
+ const tabla=()=>e.answer.slice(0,n).map(f=>[...f]),relleno=Array(4-n).fill(0);
+ for(const sol of ik.solutions){
+  const Ts=directa(ik,sol);
+  for(let i=0;i<3;i++)for(const j of COLUMNAS[id])assert.ok(cerca(Ts[i][j],ik.T[i][j],2e-3),donde+': una solución no alcanza lo pedido');
+  const a=[...tabla(),[...sol,...relleno]];
+  assert.equal(P.ikChainGrade(e,a).puntos,10,donde+': todo bien no da 10');
+  assert.ok(P.answerIsCorrect(e,a),donde+': todo bien no cuenta como acierto');
+ }
+ const soloTabla=[...tabla(),[null,null,null,null]];
+ assert.equal(P.ikChainGrade(e,soloTabla).puntos,5,donde+': solo la tabla no da 5');
+ assert.ok(cerca(P.examQuestionScore(e,soloTabla),.5),donde+': nota de examen con solo la tabla');
+ const soloQ=[...Array.from({length:n},()=>[NaN,NaN,NaN,NaN]),[...ik.solutions[0],...relleno]];
+ assert.equal(P.ikChainGrade(e,soloQ).puntos,5,donde+': solo las articulaciones no da 5');
+ const tablaMal=tabla();tablaMal[0][0]+=33;tablaMal[0][2]+=1.7;
+ const gm=P.ikChainGrade(e,[...tablaMal,[...ik.solutions[0],...relleno]]);
+ assert.ok(!gm.tabla.ok&&gm.puntos===5&&!gm.q.arrastre,donde+': una tabla equivocada puntúa');
+ assert.ok(!P.answerIsCorrect(e,[...tablaMal,[...ik.solutions[0],...relleno]]),donde+': una tabla equivocada cuenta como acierto');
+ assert.match(P.ikChainSummary(gm),/Tabla DH: por revisar/,donde+': resumen');
+ assert.equal(P.exerciseTopicKey(e),'4.4',donde+': tema');
+ assert.ok(P.isStatementOnlyExercise(e)&&!P.hasMechanicalWorkedSolution(e),donde+': no debe revelar el valor esperado');
+ assert.ok(P.solutionHasContent({...e,attempted:true}),donde+': sin desarrollo escrito');
+ assert.ok(!e.steps.some(t=>String(t).split('\n')[0].includes('<')),donde+': un paso lleva el signo menor que en su primera línea');
+ assert.doesNotMatch(e.steps.join(' ')+e.statement+e.notes,/undefined|NaN/,donde+': texto');
+ if(rep<1)assert.doesNotMatch(P.mechanicalPlateSvg({...e,kinematics:e.params.kinematics}),/NaN|undefined|Infinity/,donde+': lámina');
+}
+
+console.log(`Cinemática inversa validada: ${casos} ejercicios de 5 robots, ${completas} completos y ${muneca*2} de desacoplo; cada solución lleva el extremo adonde se pide por un cálculo independiente, con el criterio del libro, y las ecuaciones del desarrollo se cumplen.`);

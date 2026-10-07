@@ -4,7 +4,7 @@ Esta sección describe el proyecto **tal como está hoy**. Todo lo que sigue a �
 
 ## Versión y publicación
 
-- **3.54.0**, publicada en https://said-rosa.github.io/robotutor-laboratorio-visual/ .
+- **3.55.0**, publicada en https://said-rosa.github.io/robotutor-laboratorio-visual/ .
 - **GitHub Pages es el único destino.** Las copias de `chatgpt.site` y de Sites que aparecen en el historial ya no se actualizan.
 
 ## Cómo se trabaja
@@ -34,7 +34,7 @@ Regla de repositorio **«Proteger main»**, sin excepciones para nadie: **no se 
 
 En el CI de cada PR: `check-source`, `check-worked-solutions`, `check-mechanical-plates`, `check-architectures`, `check-inverse`, `check-kinematics`, `check-selftests`, `check-exercises` y `check-security`, más el build en sus dos modos y `check-source`/`check-security` sobre cada uno.
 
-- **Autopruebas: 388/430 sin navegador.** Las 42 restantes necesitan DOM real y están listadas en `check-selftests.cjs`; si añadís una que lo necesite, añadidla ahí con su nombre exacto.
+- **Autopruebas: 390/432 sin navegador.** Las 42 restantes necesitan DOM real y están listadas en `check-selftests.cjs`; si añadís una que lo necesite, añadidla ahí con su nombre exacto.
 - **Todo ejercicio practicable tiene desarrollo escrito**, y `check-exercises` falla si llega uno sin él: el botón de solución no debería volver a decir «Sin desarrollo escrito».
 - En un cambio grande, **comparad contra `main`**: ejecutad la batería en las dos versiones y restad los fallos. Lo que solo aparezca en vuestra rama es vuestro.
 - `check-modeled-plates.cjs` necesita `playwright` y **no está en el CI**; en una copia sin él falla igual en `main`.
@@ -65,6 +65,9 @@ En el CI de cada PR: `check-source`, `check-worked-solutions`, `check-mechanical
 
   **No volver a exigir la T completa a un robot de tres ejes:** la 3.50 lo hacía y rechazaba el otro codo, que el libro da por bueno. El criterio se deduce del ejercicio y no se guarda, para que un examen empezado con otra versión se corrija igual. La lámina se dibuja en `IK_NOAP_REFERENCE`, nunca en la postura pedida. Son de solo enunciado. Para añadir un robot hacen falta sus candidatos en `ikNoapSolutions`, su desarrollo en `ikNoapSteps`, su postura de referencia y sus ecuaciones en `check-inverse.cjs`.
 - **Cinemática inversa completa** (`kind:'ik-chain'`, `matrixLayout:'ikChain'`, `makeInverseChain`). Dos partes: la tabla DH del mecanismo en la postura dibujada, y las coordenadas articulares que alcanzan lo pedido. Se construye sobre `makeInverseNoap` y usa su mismo `params.ik`. La respuesta es una matriz de cuatro columnas: n filas de tabla y una fila con las articulaciones; con tres ejes, la cuarta celda de esa fila va fija y oculta (`matrixCellPolicy`). `ikChainGrade` da 5 puntos a la tabla y reparte otros 5 entre las articulaciones, con arrastre: si la tabla está mal, valen las articulaciones que alcanzan lo pedido según esa tabla. Es de solo enunciado, pero **sí enseña las fichas** (`showsDataChips`), porque las dimensiones y la postura dibujada solo están ahí. Por eso `IK_NOAP_REFERENCE` usa en las prismáticas valores que el generador no sortea: la postura de las fichas no debe coincidir con la respuesta.
+- **Ecuaciones de cada robot: `IK_EQ`.** La T con letras de los cinco robots de la inversa y sus ecuaciones inversas están escritas una sola vez, en la sintaxis de `ikeqEvaluate`. De ahí salen el desarrollo simbólico de todas las soluciones de la inversa (`ikSymbolicSteps`, que `ikNoapSteps` antepone a los pasos numéricos), las respuestas de la actividad de ecuaciones y lo que `check-inverse.cjs` contrasta con el motor. Si se cambia la tabla DH de un robot, hay que cambiar su entrada.
+- **Actividad de ecuaciones** (`kind:'ik-equations'`, `type:'symbolic'`, `symbolEngine:'evalua'`, `makeInverseEquations`). El alumno escribe las ecuaciones de la posición y las de las articulaciones. **No se comparan como álgebra, sino dándoles valores** (`ikeqCanonical`): dos expresiones son la misma si dan lo mismo en las posturas de prueba de `IK_EQ[id].muestras`, que son fijas para que un examen guardado se corrija igual otro día. Los ángulos se comparan sin contar vueltas. `usa` limita las variables de cada respuesta; sin eso valdría «q3 = q3». Las muestras están en la rama principal, donde las formas del libro con arctan coinciden con atan2. **El analizador es propio y no ejecuta texto:** la política de contenido prohíbe `eval` y `Function`, y así debe seguir. Las etiquetas de los campos van sin marcado, porque también salen en avisos que escapan lo que reciben.
+- **La solución de la inversa completa va entera** (`makeInverseChain`): los ejes de cada articulación, una fila cada vez con el porqué de sus cuatro parámetros (`dhRowReasoning`, que lo deduce de la propia tabla), la tabla, las matrices con letras (`dhSymbolicMatrix`), su producto T = [n o a p] y, solo entonces, los números.
 - **Desacoplo cinemático.** Dos ejercicios sin lámina sobre el robot de seis ejes del libro (`wristRobotRows`): `makeWristCenter` (p_m = p − l₄·a, matriz 3×1 corriente) y `makeWristAngles` (q₄, q₅ y q₆ a partir de ³R₆; en los niveles 3 y 4, a partir de ⁰R₃ y [n o a]). `isWristExercise` los reconoce y los cuenta como «mecánicos» para que el selector de actividad no desaparezca al generarlos. **El elemento (2,3) de ³R₆ es s₄s₅.** En el ejemplar del libro que usa el curso está impreso −s₄c₅; la aplicación usa el valor que sale de multiplicar los tres bloques de giro, y la teoría lo avisa. `check-inverse.cjs` comprueba la matriz elemento a elemento.
 - **Desfases en la tabla DH.** `makeDhRowMatrix` saca en los niveles 3 y 4, una de cada tres veces, una fila con θ = q ± 90°, como la tercera del robot de seis ejes del libro. `params.row.theta` es el ángulo ya sumado; `params.q` y `params.desfase`, lo que ve el alumno.
 - **Columnas DH: θ, d, a, α.** El orden lo fija `DH_COLUMNS`. No indexéis columnas DH por posición: usad `dhRowCells`, `dhRowFromCells` o `dhColumnIndex('a')`.
@@ -540,3 +543,14 @@ Todo en el tema «Cinemática inversa»:
 Los números de los ejemplos están escritos a mano en la teoría. La autoprueba «Los ejemplos resueltos de la teoría de la inversa dan lo que dicen» los recalcula con el motor y comprueba además que el texto los cita: si alguien cambia un ejemplo, tiene que cambiar los dos sitios. La prueba busca el tema por su nombre, no por su número, porque el número en pantalla no es el de la clave.
 
 Verificación: batería 388/430 sin navegador y 430/430 en la página, que incluye el dibujo de las dos láminas nuevas; 58 fórmulas del tema sin errores de KaTeX.
+
+## 3.55.0 · Actividad de ecuaciones y solución completa de la inversa (Claude)
+
+Petición del usuario, sobre «Cinemática inversa completa»: otra actividad con ecuaciones, y que la solución enseñe paso a paso cómo se saca todo.
+
+- **Actividad nueva: «Cinemática inversa · ecuaciones del robot».** Se da la tabla DH con las articulaciones y las dimensiones como letras. Parte 1: las ecuaciones de la posición, px, py y pz, en función de las articulaciones. Parte 2: las articulaciones en función de la posición. Los cinco robots; en el SCARA entra también el giro de la herramienta, que sale de n. Cada ecuación se marca por separado, y en examen puntúa su fracción.
+- **Cómo se corrige.** Dándole valores a la expresión, no comparando su forma: vale `atan(py/px)` donde se espera `atan2(py, px)`, la forma del libro para q₂ y q₃ del polar, senos desarrollados, subíndices y el menos tipográfico. Lo mal escrito no se da por malo: se dice qué no se entiende.
+- **Solución de la inversa completa**, rehecha: antes listaba la tabla y saltaba a los números. Ahora razona cada fila, escribe las matrices con letras, las multiplica y solo después sustituye. La inversa sencilla gana también las matrices y T con letras.
+- `check-inverse.cjs` evalúa cada ecuación esperada con JavaScript, no con el analizador de la aplicación, en posturas sorteadas y con las dimensiones de cada ejercicio; y comprueba que los dos evaluadores coinciden.
+
+Verificación: tres autopruebas nuevas o ampliadas, nueve mutaciones detectadas, batería 390/432 sin navegador y 432/432 en la página; 13.200 ejercicios en local. Con clics: una ecuación mal escrita (aviso con el motivo), dos mal de ocho (señaladas, «6 de 8»), todas bien con las formas del libro, la solución y el examen (cinco de seis, 0,83).

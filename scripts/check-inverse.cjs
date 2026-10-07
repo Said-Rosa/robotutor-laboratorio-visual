@@ -20,7 +20,10 @@
  *  · en el desacoplo: que el centro de la muñeca es el punto donde se cortan
  *    sus ejes, y que los giros reproducen ³R₆ = (⁰R₃)ᵀ·[n o a];
  *  · en la inversa completa: que la tabla pedida es la del mecanismo dibujado
- *    y que la nota separa la tabla de las articulaciones.
+ *    y que la nota separa la tabla de las articulaciones;
+ *  · en la actividad de ecuaciones: que cada ecuación esperada es cierta. Se
+ *    evalúa aquí con el motor de JavaScript, no con el analizador de la
+ *    aplicación, en posturas sorteadas y con las dimensiones del ejercicio.
  *
  * Uso: node scripts/check-inverse.cjs [ruta/al/robotutor.html]
  *      SORTEOS=150 node scripts/check-inverse.cjs   (más muestreo)
@@ -28,7 +31,7 @@
 const assert=require('node:assert/strict');
 const {cargar,RUTA_POR_DEFECTO}=require('./sandbox.cjs');
 
-const P=cargar(['makeInverseNoap','makeInverseChain','ikChainGrade','ikChainSummary','dhRowFromCells','makeWristCenter','makeWristAngles','IK_NOAP_REFERENCE','ikNoapGrade','ikNoapSolutions','ikNoapSummary','mul','hom','rot','translation4',
+const P=cargar(['makeInverseEquations','IK_EQ','ikeqEvaluate','wsFieldCanonical','makeInverseNoap','makeInverseChain','ikChainGrade','ikChainSummary','dhRowFromCells','makeWristCenter','makeWristAngles','IK_NOAP_REFERENCE','ikNoapGrade','ikNoapSolutions','ikNoapSummary','mul','hom','rot','translation4',
  'identityMatrix','mechanicalPlateSvg','solutionHasContent','exerciseTopicKey','isStatementOnlyExercise',
  'hasMechanicalWorkedSolution','answerIsCorrect','examQuestionScore','buildPedagogyTrace'],process.argv[2]||RUTA_POR_DEFECTO);
 
@@ -266,4 +269,60 @@ for(const id of Object.keys(P.IK_NOAP_REFERENCE))for(const nivel of [1,2,3,4])fo
  if(rep<1)assert.doesNotMatch(P.mechanicalPlateSvg({...e,kinematics:e.params.kinematics}),/NaN|undefined|Infinity/,donde+': lámina');
 }
 
-console.log(`Cinemática inversa validada: ${casos} ejercicios de 5 robots, ${completas} completos y ${muneca*2} de desacoplo; cada solución lleva el extremo adonde se pide por un cálculo independiente, con el criterio del libro, y las ecuaciones del desarrollo se cumplen.`);
+/* ---------- Ecuaciones del robot ---------- */
+/* Evaluador independiente: traduce la expresión a JavaScript. Solo se usa
+   aquí, sobre las expresiones del propio código fuente; la aplicación no
+   ejecuta texto. */
+const NOMBRES_JS={sin:'Math.sin',cos:'Math.cos',sqrt:'Math.sqrt',atan2:'Math.atan2',atan:'Math.atan',acos:'Math.acos',abs:'Math.abs',pi:'Math.PI'};
+function evaluaAparte(expr,vars){
+ const js=expr.replace(/\^/g,'**').replace(/[a-z][a-z0-9]*/g,m=>NOMBRES_JS[m]||`v.${m}`);
+ /* −x**2 no es JavaScript válido: en estas expresiones el signo va siempre
+    delante de un producto o de un paréntesis, así que basta con agrupar. */
+ return Function('v',`"use strict";return (${js.replace(/(^|[(,+\-*/])-(v\.[a-z0-9]+)\*\*/g,'$1-1*$2**')});`)(vars);
+}
+const azar=(a,b)=>a+Math.random()*(b-a),vuelta=x=>Math.atan2(Math.sin(x),Math.cos(x));
+/* Posturas de la rama principal, la que declaran las notas del ejercicio. */
+const RAMA={
+ cartesian3:()=>[azar(.3,3),azar(.3,3),azar(.3,3)],
+ cylindrical3:()=>[azar(-1.3,1.3),azar(.3,3),azar(.3,3)],
+ polar3:()=>[azar(.15,1.4),azar(-1.4,-.15),azar(.5,4)],
+ anthropomorphic3:()=>{const q2=azar(.15,.9),q23=azar(-.9,1.2);return[azar(.15,1.4),q2,q23-q2]},
+ scara4:()=>[azar(-3,3),azar(-2.8,2.8),azar(.3,2),azar(-3,3)]
+};
+let ecuaciones=0;
+for(const id of Object.keys(P.IK_EQ))for(const nivel of [1,2,3,4])for(let rep=0;rep<Math.max(3,SORTEOS/8);rep++){
+ const e=P.makeInverseEquations(nivel,id),ik=e.params.ik,spec=P.IK_EQ[id],donde=`ecuaciones · ${id} · nivel ${nivel}`,n=ik.types.length;
+ ecuaciones++;
+ /* Las dimensiones de este ejercicio, con el nombre que les da la tabla. */
+ const v=Object.fromEntries(Object.entries(spec.constantes).map(([k,[fila,col]])=>[k,ik.rows[fila][col]]));
+ const postura=RAMA[id]();postura.forEach((x,i)=>{v[`q${i+1}`]=x});
+ const Td=directa(ik,postura.map((x,i)=>ik.types[i]==='R'?x*180/Math.PI:x));
+ /* T con letras, las doce componentes. */
+ [['n',0],['o',1],['a',2],['p',3]].forEach(([clave,col])=>spec.T[clave].forEach((expr,r)=>{
+  assert.ok(cerca(evaluaAparte(expr,v),Td[r][col],1e-6),`${donde}: ${clave}[${r+1}] = ${expr}`);
+  assert.ok(cerca(P.ikeqEvaluate(expr,v),evaluaAparte(expr,v),1e-9),`${donde}: el analizador no coincide con JavaScript en ${expr}`);
+ }));
+ /* Cada ecuación esperada, con los datos que le corresponden. */
+ const datos={...v,px:Td[0][3],py:Td[1][3],pz:Td[2][3],nx:Td[0][0],ny:Td[1][0]};
+ for(const f of e.symbolFields){
+  const expr=e.answer[f.key],valor=evaluaAparte(expr,datos);
+  assert.ok(Number.isFinite(valor),`${donde}: ${f.key} no da un número`);
+  assert.ok(!f.usa.includes(f.key),`${donde}: ${f.key} se puede contestar consigo misma`);
+  const usadas=expr.match(/[a-z][a-z0-9]*/g).filter(m=>!NOMBRES_JS[m]);
+  assert.ok(usadas.every(m=>f.usa.includes(m)),`${donde}: ${f.key} usa una variable que no se permite`);
+  const esperado=f.key==='fi'?Math.atan2(Td[1][0],Td[0][0]):/^p[xyz]$/.test(f.key)?datos[f.key]:/^c\d$/.test(f.key)?Math.cos(postura[Number(f.key[1])-1]):postura[Number(f.key[1])-1];
+  assert.ok(Math.abs(f.angulo?vuelta(valor-esperado):valor-esperado)<1e-6,`${donde}: ${f.key} = ${expr} no se cumple`);
+  /* La respuesta esperada pasa su propia corrección, y una equivocada no. */
+  assert.equal(P.wsFieldCanonical(expr,e,f),P.wsFieldCanonical(`(${expr})*1+0`,e,f),donde+': una forma equivalente no se reconoce');
+  assert.notEqual(P.wsFieldCanonical(expr,e,f),P.wsFieldCanonical(`(${expr})+0.01`,e,f),donde+': una ecuación distinta se da por buena');
+ }
+ const bien=Object.fromEntries(e.symbolFields.map(f=>[f.key,P.wsFieldCanonical(e.answer[f.key],e,f)]));
+ assert.ok(P.answerIsCorrect(e,bien)&&P.examQuestionScore(e,bien)===1,donde+': las ecuaciones esperadas no dan la nota entera');
+ assert.equal(e.symbolFields.length,n+3+(spec.extra||[]).length,donde+': número de ecuaciones');
+ assert.equal(P.exerciseTopicKey(e),'4.4',donde+': tema');
+ assert.ok(!P.hasMechanicalWorkedSolution(e)&&P.solutionHasContent({...e,attempted:true})&&e.hints.length>0,donde+': desarrollo y pistas');
+ assert.ok(!e.steps.some(t=>String(t).split('\n')[0].includes('<')),donde+': un paso lleva el signo menor que en su primera línea');
+ assert.doesNotMatch(e.steps.join(' ')+e.statement+e.notes,/undefined|NaN/,donde+': texto');
+}
+
+console.log(`Cinemática inversa validada: ${casos} ejercicios de 5 robots, ${completas} completos, ${ecuaciones} de ecuaciones y ${muneca*2} de desacoplo; cada solución lleva el extremo adonde se pide por un cálculo independiente, con el criterio del libro, y las ecuaciones del desarrollo se cumplen.`);

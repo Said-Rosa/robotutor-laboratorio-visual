@@ -23,7 +23,10 @@
  *    y que la nota separa la tabla de las articulaciones;
  *  · en la actividad de ecuaciones: que cada ecuación esperada es cierta. Se
  *    evalúa aquí con el motor de JavaScript, no con el analizador de la
- *    aplicación, en posturas sorteadas y con las dimensiones del ejercicio.
+ *    aplicación, en posturas sorteadas y con las dimensiones del ejercicio;
+ *  · en el robot de seis ejes completo: que sus ocho soluciones reproducen T,
+ *    que la nota separa las tres partes y que la figura de posturas dibuja
+ *    esqueletos que acaban en el punto pedido.
  *
  * Uso: node scripts/check-inverse.cjs [ruta/al/robotutor.html]
  *      SORTEOS=150 node scripts/check-inverse.cjs   (más muestreo)
@@ -31,7 +34,7 @@
 const assert=require('node:assert/strict');
 const {cargar,RUTA_POR_DEFECTO}=require('./sandbox.cjs');
 
-const P=cargar(['makeInverseEquations','IK_EQ','ikeqEvaluate','wsFieldCanonical','makeInverseNoap','makeInverseChain','ikChainGrade','ikChainSummary','dhRowFromCells','makeWristCenter','makeWristAngles','IK_NOAP_REFERENCE','ikNoapGrade','ikNoapSolutions','ikNoapSummary','mul','hom','rot','translation4',
+const P=cargar(['makeInverseSixAxis','ikSixGrade','ikSixSummary','solutionPosturesMarkup','ikPostures','makeInverseEquations','IK_EQ','ikeqEvaluate','wsFieldCanonical','makeInverseNoap','makeInverseChain','ikChainGrade','ikChainSummary','dhRowFromCells','makeWristCenter','makeWristAngles','IK_NOAP_REFERENCE','ikNoapGrade','ikNoapSolutions','ikNoapSummary','mul','hom','rot','translation4',
  'identityMatrix','mechanicalPlateSvg','solutionHasContent','exerciseTopicKey','isStatementOnlyExercise',
  'hasMechanicalWorkedSolution','answerIsCorrect','examQuestionScore','buildPedagogyTrace'],process.argv[2]||RUTA_POR_DEFECTO);
 
@@ -325,4 +328,64 @@ for(const id of Object.keys(P.IK_EQ))for(const nivel of [1,2,3,4])for(let rep=0;
  assert.doesNotMatch(e.steps.join(' ')+e.statement+e.notes,/undefined|NaN/,donde+': texto');
 }
 
-console.log(`Cinemática inversa validada: ${casos} ejercicios de 5 robots, ${completas} completos, ${ecuaciones} de ecuaciones y ${muneca*2} de desacoplo; cada solución lleva el extremo adonde se pide por un cálculo independiente, con el criterio del libro, y las ecuaciones del desarrollo se cumplen.`);
+/* ---------- Seis ejes completo ---------- */
+let seisEjes=0;
+for(const nivel of [1,2,3,4])for(let rep=0;rep<Math.max(4,SORTEOS/4);rep++){
+ const e=P.makeInverseSixAxis(nivel),{ik,lengths:L,pm,arms}=e.params,donde=`seis ejes · nivel ${nivel}`,T=ik.T,resp=q=>[pm,q.slice(0,3),q.slice(3)];
+ seisEjes++;
+ /* El robot es el de la teoría. */
+ assert.equal(JSON.stringify(ik.rows.map(f=>[f.d,f.a,f.alpha])),JSON.stringify([[L.l1,0,-90],[0,L.l2,0],[0,0,90],[L.l3,0,-90],[0,0,90],[L.l4,0,0]]),donde+': tabla');
+ assert.equal(ik.solutions.length,8,donde+': número de soluciones');
+ assert.equal(arms.length,4,donde+': posturas del brazo');
+ const seis={rows:ik.rows,types:ik.types};
+ for(const q of ik.solutions){
+  const Tq=directa(seis,q);
+  for(let i=0;i<3;i++)for(let j=0;j<4;j++)assert.ok(cerca(Tq[i][j],T[i][j],2e-3),`${donde}: una solución no reproduce T en (${i+1},${j+1})`);
+  assert.equal(P.ikSixGrade(e,resp(q)).puntos,10,donde+': una solución válida no da 10');
+  assert.ok(P.answerIsCorrect(e,resp(q)),donde+': una solución válida no cuenta como acierto');
+  /* El centro de la muñeca no depende de q₄, q₅ ni q₆: con la muñeca a cero, el sistema 4 sigue ahí. */
+  const T4=directa({rows:ik.rows.slice(0,4),types:['R','R','R','R']},[q[0],q[1],q[2],0]);
+  [0,1,2].forEach(i=>assert.ok(cerca(T4[i][3],pm[i],1e-4),donde+': el brazo no deja la muñeca en su centro'));
+ }
+ ik.solutions.forEach((u,a)=>ik.solutions.forEach((v,b)=>{if(a<b)assert.ok(u.some((x,i)=>!mismoAngulo(x,v[i],.5)),donde+': dos soluciones repetidas')}));
+ [0,1,2].forEach(i=>assert.ok(cerca(pm[i],T[i][3]-L.l4*T[i][2],1e-9),donde+': p − d6·a'));
+ /* Nota por partes: 2, 4 y 4. */
+ const blanco=[null,null,null],q0=ik.solutions[0];
+ assert.equal(P.ikSixGrade(e,[pm,blanco,blanco]).puntos,2,donde+': solo el centro');
+ assert.equal(P.ikSixGrade(e,[blanco,q0.slice(0,3),blanco]).puntos,4,donde+': solo el brazo');
+ assert.ok(cerca(P.examQuestionScore(e,[pm,q0.slice(0,3),blanco]),.6),donde+': nota de examen sin la muñeca');
+ /* La muñeca sola no puntúa: sin brazo no hay con qué orientarla. Coincide
+    con la solución guardada, así que se le reconoce por comparación. */
+ const otro=ik.solutions.find(q=>!mismoAngulo(q[0],q0[0],90)&&!mismoAngulo(q[1],q0[1],.5));
+ const cruzada=P.ikSixGrade(e,[pm,q0.slice(0,3),otro.slice(3)]);
+ assert.ok(cruzada.nota<1&&!cruzada.partes.muneca.partes.every(Boolean),donde+': se acepta la muñeca de otro brazo');
+ const brazoMal=P.ikSixGrade(e,[pm,[q0[0]+20,q0[1],q0[2]],q0.slice(3)]);
+ assert.ok(brazoMal.nota<1&&!brazoMal.partes.brazo.partes[0]&&!P.answerIsCorrect(e,[pm,[q0[0]+20,q0[1],q0[2]],q0.slice(3)]),donde+': un ángulo del brazo equivocado da la nota entera');
+ assert.match(P.ikSixSummary(brazoMal),/q₁, q₂ y q₃: 2 de 3/,donde+': resumen');
+ /* La figura: dos esqueletos, y los dos acaban en el extremo pedido. */
+ const posturas=P.ikPostures(e);
+ assert.equal(posturas.length,2,donde+': esqueletos distintos');
+ for(const x of posturas){
+  const fin=x.pts[x.pts.length-1];
+  [0,1,2].forEach(i=>assert.ok(cerca(fin[i],T[i][3],2e-3),donde+': un esqueleto no acaba en el extremo'));
+  assert.ok(x.pts.some(q=>cerca(q[0],pm[0],2e-3)&&cerca(q[1],pm[1],2e-3)&&cerca(q[2],pm[2],2e-3)),donde+': el esqueleto no pasa por el centro de la muñeca');
+ }
+ if(rep<2)assert.doesNotMatch(P.solutionPosturesMarkup(e),/NaN|undefined|Infinity/,donde+': figura');
+ assert.equal(P.exerciseTopicKey(e),'4.4',donde+': tema');
+ assert.ok(P.isStatementOnlyExercise(e)&&!P.hasMechanicalWorkedSolution(e),donde+': no debe revelar el valor esperado');
+ assert.ok(P.solutionHasContent({...e,attempted:true}),donde+': sin desarrollo escrito');
+ assert.ok(!e.steps.some(t=>String(t).split('\n')[0].includes('<')),donde+': un paso lleva el signo menor que en su primera línea');
+ assert.doesNotMatch(e.steps.join(' ')+e.statement+e.notes,/undefined|NaN/,donde+': texto');
+}
+/* La figura en los cinco robots: lo que dibuja acaba donde se pide. */
+for(const id of Object.keys(P.IK_NOAP_REFERENCE))for(let rep=0;rep<Math.max(4,SORTEOS/4);rep++){
+ const e=P.makeInverseNoap(pick4(),id),ik=e.params.ik,posturas=P.ikPostures(e),donde=`figura · ${id}`;
+ assert.ok(posturas.length>=1&&posturas.length<=ik.solutions.length,donde+': número de esqueletos');
+ for(const x of posturas){const fin=x.pts[x.pts.length-1];[0,1,2].forEach(i=>assert.ok(cerca(fin[i],ik.T[i][3],.02),donde+': un esqueleto no acaba en el punto pedido'))}
+ const figura=P.solutionPosturesMarkup(e);
+ assert.equal(figura!=='',ik.solutions.length>1,donde+': la figura aparece cuando no debe, o falta');
+ assert.doesNotMatch(figura,/NaN|undefined|Infinity/,donde+': figura');
+}
+function pick4(){return 1+Math.floor(Math.random()*4)}
+
+console.log(`Cinemática inversa validada: ${casos} ejercicios de 5 robots, ${completas} completos, ${ecuaciones} de ecuaciones, ${seisEjes} de seis ejes y ${muneca*2} de desacoplo; cada solución lleva el extremo adonde se pide por un cálculo independiente, con el criterio del libro, y las ecuaciones del desarrollo se cumplen.`);

@@ -4,7 +4,7 @@ Esta sección describe el proyecto **tal como está hoy**. Todo lo que sigue a �
 
 ## Versión y publicación
 
-- **3.55.0**, publicada en https://said-rosa.github.io/robotutor-laboratorio-visual/ .
+- **3.56.0**, publicada en https://said-rosa.github.io/robotutor-laboratorio-visual/ .
 - **GitHub Pages es el único destino.** Las copias de `chatgpt.site` y de Sites que aparecen en el historial ya no se actualizan.
 
 ## Cómo se trabaja
@@ -34,7 +34,7 @@ Regla de repositorio **«Proteger main»**, sin excepciones para nadie: **no se 
 
 En el CI de cada PR: `check-source`, `check-worked-solutions`, `check-mechanical-plates`, `check-architectures`, `check-inverse`, `check-kinematics`, `check-selftests`, `check-exercises` y `check-security`, más el build en sus dos modos y `check-source`/`check-security` sobre cada uno.
 
-- **Autopruebas: 390/432 sin navegador.** Las 42 restantes necesitan DOM real y están listadas en `check-selftests.cjs`; si añadís una que lo necesite, añadidla ahí con su nombre exacto.
+- **Autopruebas: 392/434 sin navegador.** Las 42 restantes necesitan DOM real y están listadas en `check-selftests.cjs`; si añadís una que lo necesite, añadidla ahí con su nombre exacto.
 - **Todo ejercicio practicable tiene desarrollo escrito**, y `check-exercises` falla si llega uno sin él: el botón de solución no debería volver a decir «Sin desarrollo escrito».
 - En un cambio grande, **comparad contra `main`**: ejecutad la batería en las dos versiones y restad los fallos. Lo que solo aparezca en vuestra rama es vuestro.
 - `check-modeled-plates.cjs` necesita `playwright` y **no está en el CI**; en una copia sin él falla igual en `main`.
@@ -68,6 +68,8 @@ En el CI de cada PR: `check-source`, `check-worked-solutions`, `check-mechanical
 - **Ecuaciones de cada robot: `IK_EQ`.** La T con letras de los cinco robots de la inversa y sus ecuaciones inversas están escritas una sola vez, en la sintaxis de `ikeqEvaluate`. De ahí salen el desarrollo simbólico de todas las soluciones de la inversa (`ikSymbolicSteps`, que `ikNoapSteps` antepone a los pasos numéricos), las respuestas de la actividad de ecuaciones y lo que `check-inverse.cjs` contrasta con el motor. Si se cambia la tabla DH de un robot, hay que cambiar su entrada.
 - **Actividad de ecuaciones** (`kind:'ik-equations'`, `type:'symbolic'`, `symbolEngine:'evalua'`, `makeInverseEquations`). El alumno escribe las ecuaciones de la posición y las de las articulaciones. **No se comparan como álgebra, sino dándoles valores** (`ikeqCanonical`): dos expresiones son la misma si dan lo mismo en las posturas de prueba de `IK_EQ[id].muestras`, que son fijas para que un examen guardado se corrija igual otro día. Los ángulos se comparan sin contar vueltas. `usa` limita las variables de cada respuesta; sin eso valdría «q3 = q3». Las muestras están en la rama principal, donde las formas del libro con arctan coinciden con atan2. **El analizador es propio y no ejecuta texto:** la política de contenido prohíbe `eval` y `Function`, y así debe seguir. Las etiquetas de los campos van sin marcado, porque también salen en avisos que escapan lo que reciben.
 - **La solución de la inversa completa va entera** (`makeInverseChain`): los ejes de cada articulación, una fila cada vez con el porqué de sus cuatro parámetros (`dhRowReasoning`, que lo deduce de la propia tabla), la tabla, las matrices con letras (`dhSymbolicMatrix`), su producto T = [n o a p] y, solo entonces, los números.
+- **Seis ejes completo** (`kind:'ik-six'`, `matrixLayout:'ikSix'`, `makeInverseSixAxis`). De T a los seis ángulos sobre el robot del libro (`wristRobotRows`). La respuesta es una matriz 3×3, una fila por parte: centro de la muñeca, brazo y muñeca. `ikSixGrade` puntúa 2, 4 y 4, repartidos entre los tres valores de cada parte, y **juzga cada parte por lo que consigue**: el brazo, por llevar el centro de la muñeca a su sitio (`ikSixWristCenter`); la muñeca, por dejar la herramienta orientada como pide T **con el brazo que haya escrito el alumno**. De ahí salen solos el arrastre y que la muñeca de otra postura del brazo no valga. Siempre tiene ocho soluciones: el generador descarta los casos degenerados. Sale en la práctica y en la rotación solo en los niveles 3 y 4. No tiene lámina.
+- **Posturas dibujadas en la solución** (`solutionPosturesMarkup`, entre el razonamiento y los pasos; también en el informe del examen). Es un esqueleto que sale de la tabla DH (`ikSkeletonPoints`), en planta y en alzado: la solución desarrollada en trazo continuo y las demás translúcidas. **Dos soluciones pueden dar el mismo esqueleto:** girar la base media vuelta e inclinar el hombro al lado contrario deja los eslabones donde estaban. Por eso el polar tiene dos soluciones y un solo dibujo, y el de seis ejes ocho soluciones y dos dibujos; el pie de la figura lo dice. No usa las láminas ni el generador 3D.
 - **Desacoplo cinemático.** Dos ejercicios sin lámina sobre el robot de seis ejes del libro (`wristRobotRows`): `makeWristCenter` (p_m = p − l₄·a, matriz 3×1 corriente) y `makeWristAngles` (q₄, q₅ y q₆ a partir de ³R₆; en los niveles 3 y 4, a partir de ⁰R₃ y [n o a]). `isWristExercise` los reconoce y los cuenta como «mecánicos» para que el selector de actividad no desaparezca al generarlos. **El elemento (2,3) de ³R₆ es s₄s₅.** En el ejemplar del libro que usa el curso está impreso −s₄c₅; la aplicación usa el valor que sale de multiplicar los tres bloques de giro, y la teoría lo avisa. `check-inverse.cjs` comprueba la matriz elemento a elemento.
 - **Desfases en la tabla DH.** `makeDhRowMatrix` saca en los niveles 3 y 4, una de cada tres veces, una fila con θ = q ± 90°, como la tercera del robot de seis ejes del libro. `params.row.theta` es el ángulo ya sumado; `params.q` y `params.desfase`, lo que ve el alumno.
 - **Columnas DH: θ, d, a, α.** El orden lo fija `DH_COLUMNS`. No indexéis columnas DH por posición: usad `dhRowCells`, `dhRowFromCells` o `dhColumnIndex('a')`.
@@ -554,3 +556,16 @@ Petición del usuario, sobre «Cinemática inversa completa»: otra actividad co
 - `check-inverse.cjs` evalúa cada ecuación esperada con JavaScript, no con el analizador de la aplicación, en posturas sorteadas y con las dimensiones de cada ejercicio; y comprueba que los dos evaluadores coinciden.
 
 Verificación: tres autopruebas nuevas o ampliadas, nueve mutaciones detectadas, batería 390/432 sin navegador y 432/432 en la página; 13.200 ejercicios en local. Con clics: una ecuación mal escrita (aviso con el motivo), dos mal de ocho (señaladas, «6 de 8»), todas bien con las formas del libro, la solución y el examen (cinco de seis, 0,83).
+
+## 3.56.0 · Seis ejes completo y posturas dibujadas (Claude)
+
+El usuario pegó una hoja de ruta de mejoras, pidió opinión y eligió las dos primeras de la lista que se le propuso.
+
+- **«Desacoplo cinemático completo · de T a los seis ángulos»**, en el selector, en la práctica del tema y en la rotación del capítulo (niveles 3 y 4). Tres partes: centro de la muñeca, q₁ a q₃ y q₄ a q₆, con nota 2, 4 y 4. Vale cualquiera de las ocho soluciones, siempre que la muñeca sea la del brazo escrito. Solución en diez pasos con los números del ejercicio.
+- **Figura de posturas** en la solución de toda la cinemática inversa: en planta y en alzado, la postura desarrollada y, translúcidas, las demás que llegan al mismo punto.
+
+Lo que se aprendió al hacerlo: en un robot sin desplazamiento lateral del hombro, las soluciones «de frente» y «de espaldas» dejan los eslabones exactamente en el mismo sitio. La figura no puede distinguirlas, y no debe intentarlo: lo dice en el pie.
+
+El resto de la hoja de ruta se descartó o se aplazó, y conviene no reabrirlo sin motivo: el conmutador de DH modificado (el curso usa el estándar), los modelos CAD reales (rompen el archivo único sin red), el jacobiano (fuera del temario) y la exportación a MATLAB o LaTeX. Quedan propuestos, sin pedir: marcos visibles al abrir la solución de la tabla DH, práctica para los dos temas del capítulo 3 que no tienen, diagnóstico más fino en la inversa y un aviso de versión nueva.
+
+Verificación: dos autopruebas nuevas, ocho mutaciones detectadas, batería 392/434 sin navegador y 434/434 en la página; `check-inverse.cjs` cubre el ejercicio y la figura (9.460 casos en local). Con clics: la muñeca de otro brazo da 6 de 10, otra de las ocho soluciones da la nota entera, y en examen las celdas en blanco se conservan y el informe lleva la figura.

@@ -184,6 +184,7 @@
     }
     select:focus,input:focus{border-color:var(--cyan);box-shadow:0 0 0 4px rgba(24,191,210,.12)}
     .statement{font-size:1.02rem;line-height:1.65;padding:13px 0;cursor:default}
+    .solution-postures{margin:14px 0;padding:12px;background:var(--soft);border:1px solid var(--line);border-radius:12px}.solution-postures svg{display:block;width:100%;height:auto;max-width:600px;margin:0 auto}.solution-postures figcaption{margin-top:8px;font-size:.86rem;line-height:1.55;color:var(--muted)}
     .statement-notes{margin:10px 0 0;border:1px solid var(--line);border-radius:10px;background:var(--soft)}.statement-notes summary{padding:8px 12px;cursor:pointer;font-weight:700;font-size:.84rem;color:var(--muted)}.statement-notes p{margin:0;padding:0 12px 10px;font-size:.9rem;line-height:1.55}
     .chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 16px}
     .chip,.data-chip{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.82rem;padding:7px 9px;background:var(--chip-bg);color:var(--chip-text);border:1px solid var(--chip-border);border-radius:10px}
@@ -900,7 +901,7 @@ var RoboTutorMechanical3D=(()=>{var Ka=Object.defineProperty;var Bh=Object.getOw
         <div class="statement" id="statement"></div>
         <div class="chips" id="chips"></div>
         <div class="exercise-variants" id="exerciseVariants">
-          <section id="mechanicalFormats" class="reflection-formats" hidden aria-label="Robots para identificación y cinemática"><label for="mechanicalModel">Robot para practicar</label><select id="mechanicalModel"><option value="any" selected>Cualquier modelo · sortea uno distinto</option><option value="scara">SCARA · 4 articulaciones</option><option value="cylindrical">Cilíndrico · 4 articulaciones</option><option value="anthropomorphic">Antropomórfico · 6 articulaciones</option></select><label for="mechanicalTask">Actividad</label><select id="mechanicalTask"><option value="identify">Identificar el robot</option><option value="dh">Construir la tabla DH</option><option value="chain">Problema completo · tabla, T y posición</option><option value="inverse">Cinemática inversa · de la localización a las articulaciones</option><option value="ikchain">Cinemática inversa completa · tabla DH y articulaciones</option><option value="ikeq">Cinemática inversa · ecuaciones del robot</option><option value="wrist">Desacoplo cinemático · muñeca de seis ejes</option><option value="direct" selected>Calcular la posición</option></select><button id="newMechanical" class="btn soft" type="button">Nuevo ejercicio</button></section>
+          <section id="mechanicalFormats" class="reflection-formats" hidden aria-label="Robots para identificación y cinemática"><label for="mechanicalModel">Robot para practicar</label><select id="mechanicalModel"><option value="any" selected>Cualquier modelo · sortea uno distinto</option><option value="scara">SCARA · 4 articulaciones</option><option value="cylindrical">Cilíndrico · 4 articulaciones</option><option value="anthropomorphic">Antropomórfico · 6 articulaciones</option></select><label for="mechanicalTask">Actividad</label><select id="mechanicalTask"><option value="identify">Identificar el robot</option><option value="dh">Construir la tabla DH</option><option value="chain">Problema completo · tabla, T y posición</option><option value="inverse">Cinemática inversa · de la localización a las articulaciones</option><option value="ikchain">Cinemática inversa completa · tabla DH y articulaciones</option><option value="ikeq">Cinemática inversa · ecuaciones del robot</option><option value="wrist">Desacoplo cinemático · muñeca de seis ejes</option><option value="six">Desacoplo cinemático completo · de T a los seis ángulos</option><option value="direct" selected>Calcular la posición</option></select><button id="newMechanical" class="btn soft" type="button">Nuevo ejercicio</button></section>
           <section id="planarGeometryFormat" class="reflection-formats" hidden aria-label="Método geométrico planar"><strong>Planar 2R · método geométrico</strong><button id="newPlanarNumeric" class="btn soft" type="button">Con datos numéricos</button><button id="newPlanarSymbolic" class="btn soft" type="button">Deducir ecuaciones</button></section>
           <section id="reflectionFormats" class="reflection-formats" hidden aria-label="Preguntas de teoría"><strong>Preguntas de teoría</strong><button id="newVF" class="btn soft" type="button">Verdadero / Falso</button><button id="newOpen" class="btn soft" type="button">Pregunta abierta</button></section>
         </div>
@@ -3004,7 +3005,7 @@ const roadmap = [
    en este punto y renombra el archivo en consecuencia.
    Ojo: `progress.version` es otra cosa — numera el esquema de datos guardados en
    localStorage y avanza solo cuando cambia la forma de ese objeto. */
-const APP_VERSION="3.55.0";
+const APP_VERSION="3.56.0";
 const APP_STAGE="láminas claras · verdadero/falso y respuestas abiertas";
 /* Los cuatro niveles del curso. Toda comprobación de dificultad debe leer de aquí:
    el selector, las preferencias guardadas, la política pedagógica y los bancos. */
@@ -4864,7 +4865,7 @@ function makeTextbookExercise(diff,model='scara'){
    tres barras la consultan y una autoprueba la recorre entera. */
 function exerciseVariantKind(exercise){
  if(!exercise)return null;
- if(isMechanicalWorksheet(exercise)||exercise.visual==='dhAssignment'||isWristExercise(exercise))return 'mechanical';
+ if(isMechanicalWorksheet(exercise)||exercise.visual==='dhAssignment'||isWristExercise(exercise)||isIkSixExercise(exercise))return 'mechanical';
  if(exercise.kind==='geometric-2r')return 'planar';
  if(exercise.kind==='reflection')return 'reflection';
  return null;
@@ -4989,6 +4990,7 @@ function examQuestionScore(pregunta,valor){
  if(isIkNoapExercise(pregunta))return Array.isArray(valor)?ikNoapGrade(pregunta,valor).nota:0;
  if(isIkChainExercise(pregunta))return Array.isArray(valor)?ikChainGrade(pregunta,valor).nota:0;
  if(isIkEquationsExercise(pregunta))return ikEquationsScore(pregunta,valor);
+ if(isIkSixExercise(pregunta))return Array.isArray(valor)?ikSixGrade(pregunta,valor).nota:0;
  return answerIsCorrect(pregunta,valor)?1:0;
 }
 function dhChainAnswerMarkup(e){
@@ -5407,7 +5409,7 @@ function renderMechanicalWorksheet(e){
 function renderMechanicalControls(){
  const host=document.getElementById('mechanicalFormats'),e=appState.currentExercise;if(host)host.hidden=examEnCurso()||exerciseVariantKind(e)!=='mechanical';
  if(e?.kind==='robot-identification')document.getElementById('mechanicalModel').value='any';
- if(e)document.getElementById('mechanicalTask').value=e.kind==='robot-identification'?'identify':isWristExercise(e)?'wrist':e.kind==='ik-chain'?'ikchain':e.kind==='ik-equations'?'ikeq':e.kind==='ik-noap'?'inverse':e.kind==='dh-chain'?'chain':e.visual==='dhAssignment'?'dh':'direct';
+ if(e)document.getElementById('mechanicalTask').value=e.kind==='robot-identification'?'identify':isIkSixExercise(e)?'six':isWristExercise(e)?'wrist':e.kind==='ik-chain'?'ikchain':e.kind==='ik-equations'?'ikeq':e.kind==='ik-noap'?'inverse':e.kind==='dh-chain'?'chain':e.visual==='dhAssignment'?'dh':'direct';
 }
 /* Pulsar «Nuevo ejercicio» repetía siempre el mismo mecanismo: solo cambiaban
    los números. Con «Cualquier modelo» se sortea uno, y nunca el que acaba de
@@ -5428,6 +5430,10 @@ function initMechanicalControls(){
   const inversa=task==='inverse'||task==='ikchain'||task==='ikeq';
   /* El desacoplo no depende del robot elegido: usa siempre el de seis ejes con
      muñeca esférica, y alterna sus dos partes. */
+  if(task==='six'){
+   appState.practiceTopicKey='4.4';appState.currentExercise=makeInverseSixAxis(diff);
+   document.getElementById('feedback').className='feedback';renderExercise();return;
+  }
   if(task==='wrist'){
    ultimoDesacoplo=ultimoDesacoplo==='centro'?'giros':'centro';
    appState.practiceTopicKey='4.4';appState.currentExercise=ultimoDesacoplo==='centro'?makeWristCenter(diff):makeWristAngles(diff);
@@ -6362,7 +6368,7 @@ function nsInputs(exercise){const rows=[...new Set(exercise.symbolFields.map(f=>
 
 
 function isNarrativeExercise(exercise){return Boolean(exercise?.chapter===3&&exercise.kind==="narrative")}
-function isStatementOnlyExercise(exercise){return isMechanicalWorksheet(exercise)||exercise?.kind==="geometric-2r"||exercise?.kind==="reflection"||Boolean(exercise?.calculationTopic)||exercise?.kind==="classification"||wsIsExercise(exercise)||isNarrativeExercise(exercise)||exercise?.kind==="ik-noap"||exercise?.kind==="ik-chain"}
+function isStatementOnlyExercise(exercise){return isMechanicalWorksheet(exercise)||exercise?.kind==="geometric-2r"||exercise?.kind==="reflection"||Boolean(exercise?.calculationTopic)||exercise?.kind==="classification"||wsIsExercise(exercise)||isNarrativeExercise(exercise)||exercise?.kind==="ik-noap"||exercise?.kind==="ik-chain"||exercise?.kind==="ik-six"}
 function narrativeChainSteps(diff,frameMode,count){
  if(![3,4,5].includes(count))throw new Error("El parcial requiere 3, 4 o 5 matrices.");
  if(!["fixed","mobile","mixed"].includes(frameMode))throw new Error("Referencia no válida.");
@@ -8193,6 +8199,7 @@ function kinematicsCandidates(diff){
  if(diff>=2)lista.push({family:"3d",make:makeDhAssignment6R});
  const conceptuales=Math.max(1,Math.round(lista.length*(CONCEPT_SHARE[diff]??.3)));
  for(let i=0;i<conceptuales;i++)lista.push({family:"concepto",make:d=>makeChoice(4,d)});
+ if(diff>=3)lista.push({family:'3d',make:makeInverseSixAxis});
  lista.push({family:'3d',make:makeInverseNoap},{family:'3d',make:makeInverseChain},{family:'3d',make:makeInverseEquations},{family:'3d',make:makeWristCenter},{family:'3d',make:makeWristAngles},{family:'3d',make:makeDhRowMatrix},{family:'3d',make:d=>makeArchitectureExercise(d,'any','chain')},{family:'3d',make:d=>makeArchitectureExercise(d,'any','dh')},{family:'3d',make:d=>makeArchitectureExercise(d,'any','direct')},{family:'concepto',make:d=>makeArchitectureExercise(d,'any','identify')});
  return lista;
 }
@@ -8246,7 +8253,8 @@ function legacyTopicNumericGenerators(key,diff){
  /* La inversa del 2R por método geométrico estaba archivada en «Asignación de
     marcos DH», con el que no tiene relación; los temas de cinemática inversa,
     mientras tanto, no ofrecían ni un ejercicio de cálculo. */
- if(key==="4.4")return[d=>makeGeometric2R(d,'inverse'),makeInverseNoap,makeInverseNoap,makeInverseChain,makeInverseEquations,makeWristCenter,makeWristAngles];
+ /* El de seis ejes completo es largo: solo sale en los dos niveles altos. */
+ if(key==="4.4")return[d=>makeGeometric2R(d,'inverse'),makeInverseNoap,makeInverseNoap,makeInverseChain,makeInverseEquations,makeWristCenter,makeWristAngles,...(diff>=3?[makeInverseSixAxis]:[])];
  if(key==="4.2")return diff>=3?[makeDhRowMatrix,plausibleSpatial(makeDh3R)]:[makeDhRowMatrix];
  if(key==="3.13")return[makeWorkspaceExercise];
  if(key.startsWith("3."))return topicChapter3Kinds(key,diff).map(kind=>d=>makeChapter3Kind(d,kind));
@@ -9026,6 +9034,7 @@ const SOLUTION_REASONING=Object.freeze({
  "ik_noap":{idea:"La localización deseada se escribe como T = [n o a p] y se iguala al producto de las matrices de la tabla. Al premultiplicar por la inversa de la primera matriz, a un lado queda solo la primera articulación y al otro las demás: entre los doce elementos siempre hay alguno con una constante a la derecha, y de él sale esa articulación. Las ecuaciones más cómodas son las de la cuarta columna, las de p. Con tres grados de libertad bastan; n, o y a hacen falta cuando el robot tiene más ejes.",comprobacion:"Sustituye la solución en la tabla y multiplica las matrices: tiene que salir el mismo vector p y, si el robot tiene más de tres ejes, también los mismos n, o y a."},
  "ik_chain":{idea:"El método D-H y la cinemática inversa son las dos mitades de un mismo problema. La tabla describe el robot: con las coordenadas articulares como datos da la localización del extremo, que es la cinemática directa. La inversa usa esa misma descripción al revés: la localización pasa a ser el dato y las coordenadas articulares, las incógnitas. Por eso la tabla va primero, y un error en ella se arrastra a todo lo demás.",comprobacion:"Sustituye las coordenadas que has calculado en tu propia tabla y multiplica las matrices: el extremo tiene que caer en la localización pedida. Si no cae, el fallo está en la segunda parte; si cae pero la tabla no coincide con la del mecanismo, está en la primera."},
  "ik_equations":{idea:"Las ecuaciones de un robot se sacan una sola vez y sirven para cualquier postura. Primero, la directa: multiplicar las matrices de la tabla con las articulaciones como letras, y leer la posición en la cuarta columna. Después, la inversa: buscar en esas ecuaciones la combinación que deja sola una articulación —dividir dos componentes para quitar un factor común, o sumar cuadrados para quitar un ángulo— y despejarlas una a una.",comprobacion:"Dales valores: elige unas articulaciones, calcula la posición con las ecuaciones directas y métela en las inversas. Si no devuelven las articulaciones de partida, alguna está mal despejada."},
+ "ik_six":{idea:"Seis incógnitas a la vez no se despejan. El desacoplo las parte en dos grupos de tres gracias a un punto: el centro de la muñeca, donde se cortan los tres últimos ejes. Ese punto solo depende de las tres primeras articulaciones, y se conoce desde el principio porque está a una distancia fija del extremo sobre el vector a. Con él se resuelve el brazo como un robot de tres ejes; y lo que le falta a la orientación, que es ³R₆ = (⁰R₃)ᵀ·[n o a], lo pone la muñeca.",comprobacion:"Sustituye los seis ángulos en la tabla y multiplica: tiene que salir la T pedida entera. Si la posición sale bien y la orientación no, el fallo está en la muñeca; si falla la posición, en el centro o en el brazo."},
  "ik_geometric":{idea:"El giro de la base mete todo el brazo en un plano vertical, y dentro de ese plano el hombro, el codo y el extremo forman un triángulo del que se conocen los tres lados. El teorema del coseno da el ángulo del codo, con dos signos posibles para su seno: son las dos posturas, codo arriba y codo abajo. El dato es solo la posición, porque con tres grados de libertad no se puede elegir además la orientación.",comprobacion:"Sustituye cada postura en la cinemática directa: las dos tienen que dar el mismo punto. Si el coseno del codo sale mayor que 1 en valor absoluto, el punto está fuera del alcance del brazo."},
  "ik_wrist":{idea:"En un robot con muñeca esférica la orientación se reparte: las tres primeras articulaciones ponen ⁰R₃ y la muñeca pone el resto, ³R₆ = (⁰R₃)ᵀ·[n o a]. Esa matriz tiene una forma conocida, y en su tercera columna y su tercera fila cada elemento es un producto de dos senos o cosenos: de ahí salen los tres giros con atan2.",comprobacion:"Multiplica los tres bloques de giro de la muñeca con la solución: tiene que salir ³R₆. Si sen q₅ vale 0, q₄ y q₆ giran sobre la misma recta y solo se puede conocer su suma: es la singularidad de la muñeca."},
  "wrist_center":{idea:"Los tres ejes de una muñeca esférica se cortan en un punto, y ese punto no se mueve al girarlos: solo depende de las tres primeras articulaciones. Como el extremo está a una distancia fija de él sobre el último eje, que es el vector a, basta retroceder esa distancia desde p. Así el problema de seis incógnitas se parte en dos de tres.",comprobacion:"La distancia entre p y el centro de la muñeca tiene que ser exactamente l₄, porque a es unitario. Y si cambias n y o sin tocar a ni p, el centro de la muñeca no debe moverse."},
@@ -9054,6 +9063,7 @@ function solutionReasoning(exercise){
  if(!exercise)return null;
  if(exercise.kind==='ik-chain')return SOLUTION_REASONING.ik_chain;
  if(exercise.kind==='ik-equations')return SOLUTION_REASONING.ik_equations;
+ if(exercise.kind==='ik-six')return SOLUTION_REASONING.ik_six;
  if(exercise.kind==='ik-noap')return SOLUTION_REASONING[{p:'ik_geometric',R:'ik_wrist'}[exercise.params?.ik?.dato]||'ik_noap'];
  if(exercise.kind==='dh-chain')return SOLUTION_REASONING.dh_chain;
  if(isNarrativeExercise(exercise))return SOLUTION_REASONING.narrative;
@@ -9223,6 +9233,77 @@ function ikNoapAnswerMarkup(e){
  return`<label>Coordenadas articulares:</label>
   <div class="dh-table-wrap"><table class="dh-table"><thead><tr><th>Articulación</th><th>Qué mide</th><th>Valor</th></tr></thead><tbody>${ik.types.map((tipo,i)=>`<tr><th scope="row">q<sub>${i+ikNoapFirst(ik)}</sub></th><td>${tipo==="R"?"giro (°)":"desplazamiento (m)"}</td><td>${matrixInputMarkup(e,i)}</td></tr>`).join("")}</tbody></table></div>
   <p class="cell-hint">${ik.types.includes("P")?"Ángulos en grados y distancias en metros.":"Ángulos en grados."} ${ik.solutions.length>1?"Hay más de una solución: vale cualquiera. ":""}Cada articulación puntúa por separado.${examEnCurso()?" Las respuestas se guardan automáticamente.":""}</p>`;
+}
+/* ---------- LAS POSTURAS DE LA INVERSA, DIBUJADAS ----------
+   Que una inversa tenga varias soluciones se entiende mejor viéndolas: la
+   solución que desarrolla el texto va en trazo continuo y las demás, encima y
+   translúcidas, llegando al mismo punto.
+   No usa las láminas: es un esqueleto que sale de la tabla DH, así que sirve
+   para cualquier robot, también para el de seis ejes, que no tiene lámina. */
+/* De cada origen se sube d por el eje z anterior y se avanza a por el eje x
+   nuevo. Si una fila tiene las dos cosas, el codo intermedio también se
+   dibuja: sin él, la columna de un SCARA saldría en diagonal. */
+function ikSkeletonPoints(rows){
+ const k=KinematicsEngine.serialDH(rows),pts=[[0,0,0]];
+ let previa=identityMatrix(4);
+ rows.forEach((r,i)=>{
+  const T=k.cumulative[i].map(f=>f.map(Number));
+  if(Math.abs(r.d)>1e-9&&Math.abs(r.a)>1e-9)pts.push([0,1,2].map(j=>previa[j][3]+r.d*previa[j][2]));
+  pts.push([T[0][3],T[1][3],T[2][3]]);
+  previa=T;
+ });
+ return pts;
+}
+/* Posturas distintas de un ejercicio. Dos soluciones que solo difieren en la
+   muñeca dan el mismo esqueleto y cuentan como una. */
+function ikPostures(e){
+ const ik=e?.params?.ik;
+ if(!ik||ik.dato==="R"||!Array.isArray(ik.solutions)||!Array.isArray(ik.rows))return[];
+ const unicas=[];
+ for(const q of ik.solutions){
+  const pts=ikSkeletonPoints(ikNoapRows(ik,q));
+  if(!unicas.some(u=>u.pts.length===pts.length&&u.pts.every((a,i)=>a.every((v,j)=>Math.abs(v-pts[i][j])<1e-6))))unicas.push({q,pts});
+ }
+ return unicas;
+}
+function solutionPosturesMarkup(e){
+ const posturas=ikPostures(e);
+ /* Con una sola solución no hay nada que comparar. Con varias que dejan los
+    eslabones en el mismo sitio —el polar, o un brazo que llega estirado— la
+    figura se dibuja igual: que coincidan es justo lo que hay que ver. */
+ if(!posturas.length||e.params.ik.solutions.length<2||e.kind==="ik-equations")return"";
+ const ik=e.params.ik,fin=posturas[0].pts.at(-1),fi=Math.hypot(fin[0],fin[1])>1e-6?Math.atan2(fin[1],fin[0]):0,c=Math.cos(fi),sn=Math.sin(fi);
+ const W=280,H=230,M=36,n=x=>Number(x.toFixed(1));
+ const vistas=[{titulo:"Planta · desde arriba",ejes:["X","Y"],f:p=>[p[0],p[1]]},{titulo:"Alzado · plano vertical del extremo",ejes:["r","Z"],f:p=>[p[0]*c+p[1]*sn,p[2]]}];
+ const panel=(v,idx)=>{
+  const todos=posturas.flatMap(x=>x.pts.map(v.f)),xs=todos.map(q=>q[0]),ys=todos.map(q=>q[1]);
+  const x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys),ancho=W-2*M,alto=H-2*M-16;
+  const esc=Math.min(ancho/Math.max(x1-x0,1e-6),alto/Math.max(y1-y0,1e-6));
+  const X=x=>idx*W+M+(ancho-(x1-x0)*esc)/2+(x-x0)*esc,Y=y=>H-M-(alto-(y1-y0)*esc)/2-(y-y0)*esc;
+  const punto=q=>{const [a,b]=v.f(q);return[n(X(a)),n(Y(b))]};
+  /* El número de cada postura va en la articulación que más se aparta de la
+     principal: ahí es donde se distinguen. Si en esta vista coinciden, la
+     translúcida no lleva número, y la principal lo lleva en su codo. */
+  const proyectadas=posturas.map(x=>x.pts.map(punto)),separacion=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
+  const masLejos=i=>proyectadas[i].reduce((mejor,q,j)=>proyectadas[0][j]&&separacion(q,proyectadas[0][j])>separacion(proyectadas[i][mejor],proyectadas[0][mejor])?j:mejor,0);
+  const lejos=proyectadas.length>1?masLejos(1):0,centro=Math.floor(proyectadas[0].length/2);
+  const marca=proyectadas.length>1&&separacion(proyectadas[1][lejos],proyectadas[0][lejos])>10?lejos:centro;
+  const dibujo=(x,i)=>{
+   const pts=proyectadas[i],principal=i===0,j=principal?marca:masLejos(i),medio=pts[j],visible=principal||separacion(pts[j],proyectadas[0][j])>10;
+   return`<g opacity="${principal?1:.42}"><polyline points="${pts.map(q=>q.join(",")).join(" ")}" fill="none" stroke="${principal?"var(--text)":"var(--cyan)"}" stroke-width="${principal?4:3.5}" stroke-linejoin="round" stroke-linecap="round"${principal?"":' stroke-dasharray="7 5"'}/>${pts.slice(1,-1).map(q=>`<circle cx="${q[0]}" cy="${q[1]}" r="${principal?4:3.5}" fill="var(--card)" stroke="${principal?"var(--text)":"var(--cyan)"}" stroke-width="2"/>`).join("")}</g>${visible?`<text x="${n(medio[0]+8)}" y="${n(medio[1]-8)}" font-size="13" font-weight="700" fill="var(--text)" opacity="${principal?1:.75}">${i+1}</text>`:""}`;
+  };
+  const base=punto([0,0,0]),meta=punto(fin);
+  /* primero las translúcidas, para que la principal quede encima */
+  const orden=posturas.map((x,i)=>[x,i]).reverse().map(([x,i])=>dibujo(x,i)).join("");
+  return`<g><text x="${idx*W+W/2}" y="16" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--text)">${v.titulo}</text><path d="M${idx*W+8} ${H-8}h22M${idx*W+8} ${H-8}v-22" fill="none" stroke="var(--muted)" stroke-width="1.5"/><text x="${idx*W+33}" y="${H-5}" font-size="11" fill="var(--muted)">${v.ejes[0]}</text><text x="${idx*W+5}" y="${H-34}" font-size="11" fill="var(--muted)">${v.ejes[1]}</text>${orden}<rect x="${n(base[0]-5)}" y="${n(base[1]-5)}" width="10" height="10" fill="var(--text)"/><circle cx="${meta[0]}" cy="${meta[1]}" r="6.5" fill="none" stroke="#d64545" stroke-width="2.5"/></g>`;
+ };
+ const total=ik.solutions.length,lista=posturas.map((x,i)=>`${i+1} · ${ikNoapSolutionText(ik,x.q)}`).join("; ");
+ /* Girar la base media vuelta e inclinar el hombro al lado contrario deja los
+    eslabones donde estaban: son soluciones distintas con el mismo dibujo. */
+ const resto=total>posturas.length?` Hay ${total} soluciones: las que faltan dejan los eslabones en ${posturas.length>1?"estos mismos sitios":"este mismo sitio"}, con la base girada media vuelta${ik.types.length>4?" o con la muñeca por el otro lado":""}.`:"";
+ const titulo=posturas.length>1?`Las ${posturas.length} posturas que llegan al mismo punto.`:`Las ${total} soluciones colocan los eslabones igual.`;
+ const leyenda=posturas.length>1?"En trazo continuo, la que desarrolla la solución; translúcidas, las demás. ":"";
+ return`<figure class="solution-postures"><svg viewBox="0 0 ${2*W} ${H}" role="img" aria-label="Posturas que alcanzan el punto pedido, en planta y en alzado"><title>Posturas que alcanzan lo pedido</title>${vistas.map(panel).join("")}</svg><figcaption><strong>${titulo}</strong> ${leyenda}El cuadrado es la base y el círculo rojo, el punto pedido. ${lista}.${resto}</figcaption></figure>`;
 }
 /* ---------- ECUACIONES DE CADA ROBOT ----------
    La T simbólica de los cinco robots de la inversa y sus ecuaciones inversas,
@@ -9725,6 +9806,141 @@ function makeWristAngles(diff){
    mecanismo, cómo se puntúa— va en `notes` y se pinta plegado: está a un
    clic, pero no hay que leerlo entero antes de cada ejercicio. */
 function statementNotesMarkup(e){return e?.notes?`<details class="statement-notes"><summary>Convenio y aclaraciones</summary><p>${e.notes}</p></details>`:""}
+/* ---------- SEIS EJES COMPLETO · de T a las seis articulaciones ----------
+   El problema entero de desacoplo cinemático, sobre el robot de seis ejes del
+   libro. Tres partes, y cada una se apoya en la anterior: el centro de la
+   muñeca, las tres articulaciones que lo sitúan y las tres que orientan.
+   La respuesta es una matriz de 3×3: una fila por parte. */
+const IK_SIX_PARTS=Object.freeze([
+ Object.freeze({key:"centro",nombre:"Centro de la muñeca",pasos:"con p y a",peso:2,celdas:["x","y","z"]}),
+ Object.freeze({key:"brazo",nombre:"q₁, q₂ y q₃",pasos:"método geométrico",peso:4,celdas:["q₁","q₂","q₃"]}),
+ Object.freeze({key:"muneca",nombre:"q₄, q₅ y q₆",pasos:"con [n o a]",peso:4,celdas:["q₄","q₅","q₆"]})
+]);
+const IK_SIX_TOL=Object.freeze({centro:.003,posicion:.005});
+function isIkSixExercise(e){return Boolean(e?.type==="matrix"&&e.matrixLayout==="ikSix"&&e.params?.ik&&e.params?.lengths&&Array.isArray(e.params?.pm))}
+/* Dónde dejan el centro de la muñeca las tres primeras articulaciones, y qué
+   giro le dan al sistema 3. No dependen de la muñeca. */
+function ikSixWristCenter(L,q){const k=KinematicsEngine.serialDH(wristRobotRows(L,[q[0],q[1],q[2],0,0,0]).slice(0,4));return[0,1,2].map(i=>Number(k.cumulative[3][i][3]))}
+function ikSixR03(L,q){const k=KinematicsEngine.serialDH(wristRobotRows(L,[q[0],q[1],q[2],0,0,0]).slice(0,3));return k.cumulative[2].slice(0,3).map(f=>f.slice(0,3).map(Number))}
+/* Método geométrico. En este robot el hombro sube con q₂ negativo y el
+   antebrazo sale perpendicular con q₃ = 0: midiendo la altura hacia abajo,
+   z′ = l₁ − z, y llamando q₃′ = q₃ − 90°, queda el triángulo de siempre. */
+function ikSixArmSolutions(L,pm){
+ const g=ikDegrees,salida=[],z=L.l1-pm[2],base=Math.atan2(pm[1],pm[0]),h=Math.hypot(pm[0],pm[1]);
+ for(const [q1,r] of [[g(base),h],[g(base+Math.PI),-h]]){
+  const c3=(r*r+z*z-L.l2*L.l2-L.l3*L.l3)/(2*L.l2*L.l3);
+  if(Math.abs(c3)>1+1e-9)continue;
+  for(const signo of [1,-1]){
+   const s3=signo*Math.sqrt(Math.max(0,1-c3*c3));
+   salida.push([q1,g(Math.atan2(z,r)-Math.atan2(L.l3*s3,L.l2+L.l3*c3)),g(Math.atan2(s3,c3)+Math.PI/2)]);
+  }
+ }
+ return salida.filter(q=>Math.hypot(...ikSixWristCenter(L,q).map((v,i)=>v-pm[i]))<1e-6);
+}
+function ikSixR36(R03,noa){return[0,1,2].map(i=>[0,1,2].map(j=>R03[0][i]*noa[0][j]+R03[1][i]*noa[1][j]+R03[2][i]*noa[2][j]))}
+function ikSixWristSolutions(R03,noa){
+ const R=ikSixR36(R03,noa),g=ikDegrees,s5=Math.hypot(R[0][2],R[1][2]);
+ return[1,-1].map(signo=>[g(Math.atan2(signo*R[1][2],signo*R[0][2])),g(Math.atan2(signo*s5,R[2][2])),g(Math.atan2(signo*R[2][1],-signo*R[2][0]))]);
+}
+function makeInverseSixAxis(diff){
+ const nivel=Number(diff)||1;
+ for(let intento=0;intento<80;intento++){
+  const L=wristRobotLengths();
+  const q0=[pick([-135,-60,-30,30,45,60,120]),pick([-75,-60,-45,-30,-15]),pick([20,40,60,110,130]),pick([-120,-60,-45,30,45,60,120]),pick([30,45,60,-30,-45,-60]),pick([-90,-45,-30,30,45,60,90])];
+  const rows=wristRobotRows(L,q0),T=KinematicsEngine.serialDH(rows).cumulative.at(-1).map(f=>f.map(Number));
+  const pm=[0,1,2].map(i=>T[i][3]-L.l4*T[i][2]);
+  /* Sobre el eje de la base, el primer giro queda indeterminado. */
+  if(Math.hypot(pm[0],pm[1])<.2)continue;
+  const ik={id:"six6",dato:"T",types:Array(6).fill("R"),rows:rows.map(r=>({...r})),T};
+  const arms=ikSixArmSolutions(L,pm),noa=T.slice(0,3).map(f=>f.slice(0,3));
+  const todas=arms.flatMap(b=>ikSixWristSolutions(ikSixR03(L,b),noa).map(w=>[...b,...w])).filter(q=>ikNoapReaches(ik,q));
+  /* Se quieren las ocho: cuatro posturas del brazo, y dos de la muñeca en cada una. */
+  if(arms.length!==4||todas.length!==8||!todas.some(q=>ikNoapSame(ik,q,q0)))continue;
+  ik.solutions=Object.freeze([q0,...todas.filter(q=>!ikNoapSame(ik,q,q0))]);
+  const puntos=IK_SIX_PARTS.map(x=>`${x.nombre} ${x.peso}`).join(" · ");
+  return{id:"ik_six_axis",kind:"ik-six",chapter:4,difficulty:nivel,model:"SphericalWrist6R",geometryTopic:"4.4",matrixLayout:"ikSix",
+   title:"Desacoplo cinemático completo · robot de seis ejes",type:"matrix",rows:3,cols:3,answer:[pm,q0.slice(0,3),q0.slice(3)],tolerance:IK_SIX_TOL.centro,
+   statement:`Tabla DH de un robot de seis ejes con muñeca esférica:${ikNoapTableMarkup(ik)}Localización pedida <strong>T = [n o a p]</strong>:${ikNoapTargetMarkup(T)}<strong>Resuélvelo por desacoplo cinemático:</strong> 1) el centro de la muñeca; 2) q₁, q₂ y q₃; 3) q₄, q₅ y q₆.`,
+   notes:`Puntuación sobre 10: ${puntos}; cada parte se reparte entre sus tres valores. Hay ocho soluciones, cuatro posturas del brazo y dos de la muñeca en cada una, y vale cualquiera. Un error no se cobra dos veces: el brazo se corrige también contra el centro que hayas escrito, y la muñeca, contra tu brazo. La longitud del último eslabón es d₆, la de la sexta fila. Distancias en metros y ángulos en grados.`,
+   chips:[],params:{ik,lengths:L,pm,arms},
+   convention:"DH estándar. T = [n o a p] respecto de la base; a es el eje z₆ del extremo.",
+   concepts:["desacoplo cinemático","muñeca esférica","vectores n, o, a y p","método geométrico"],
+   commonErrors:["sumar d₆·a en lugar de restarlo","resolver el brazo con p en vez de con el centro de la muñeca","medir la altura desde la base y no desde el hombro","usar ⁰R₃ sin trasponer","calcular la muñeca con el ⁰R₃ de otra postura del brazo"],
+   hints:[],steps:ikSixSteps({ik,lengths:L,pm})};
+ }
+ throw Error("No se pudo generar un robot de seis ejes resoluble");
+}
+/* Nota por partes. Cada parte se juzga por lo que consigue: el centro, por su
+   valor; el brazo, por llevar el centro de la muñeca a su sitio; y la muñeca,
+   por dejar la herramienta orientada como pide T con el brazo que haya puesto
+   el alumno. */
+function ikSixGrade(e,a){
+ const {ik,lengths:L,pm:ref,arms}=e.params,num=v=>typeof v==="number"&&Number.isFinite(v);
+ const fila=i=>[0,1,2].map(j=>Array.isArray(a)&&Array.isArray(a[i])?a[i][j]:NaN),pm=fila(0),brazo=fila(1),mun=fila(2);
+ const cuenta=x=>x.filter(Boolean).length,angulo=(v,r)=>num(v)&&Math.abs(ikAngleDiff(v,r))<=IK_NOAP_TOL.angulo;
+ const parecida=(q,sols)=>sols.map(s0=>s0.map((r,i)=>angulo(q[i],r))).reduce((mejor,x)=>cuenta(x)>cuenta(mejor)?x:mejor,[false,false,false]);
+ const llega=(q,objetivo)=>q.every(num)&&Math.hypot(...ikSixWristCenter(L,q).map((v,i)=>v-objetivo[i]))<=IK_SIX_TOL.posicion;
+ const centro=pm.map((v,i)=>num(v)&&Math.abs(v-ref[i])<=IK_SIX_TOL.centro),centroOk=cuenta(centro)===3;
+ /* Arrastre: con el centro mal, un brazo que lleva la muñeca a ese centro está bien calculado. */
+ const brazoOk=llega(brazo,ref),brazoArrastre=!brazoOk&&!centroOk&&pm.every(num)&&llega(brazo,pm);
+ const todos=[...brazo,...mun],noa=ik.T.slice(0,3).map(f=>f.slice(0,3));
+ let orienta=false;
+ if(todos.every(num)){
+  const T=KinematicsEngine.serialDH(wristRobotRows(L,todos)).cumulative.at(-1);
+  orienta=[0,1,2].every(i=>[0,1,2].every(j=>Math.abs(Number(T[i][j])-ik.T[i][j])<=IK_NOAP_TOL.orientacion));
+ }
+ const partes={
+  centro:{partes:centro,arrastre:false},
+  brazo:{partes:brazoOk||brazoArrastre?[true,true,true]:parecida(brazo,arms),arrastre:brazoArrastre},
+  /* y una muñeca que orienta bien con un brazo equivocado también: es la de ese brazo */
+  muneca:{partes:orienta?[true,true,true]:parecida(mun,brazo.every(num)?ikSixWristSolutions(ikSixR03(L,brazo),noa):ik.solutions.map(s0=>s0.slice(3))),arrastre:orienta&&!brazoOk}
+ };
+ const vacias={centro:pm.map(v=>!num(v)),brazo:brazo.map(v=>!num(v)),muneca:mun.map(v=>!num(v))};
+ const total=IK_SIX_PARTS.reduce((suma,x)=>suma+x.peso,0),puntos=IK_SIX_PARTS.reduce((suma,x)=>suma+x.peso*cuenta(partes[x.key].partes)/3,0);
+ return{partes,vacias,puntos,total,nota:puntos/total};
+}
+function ikSixSummary(g){
+ return`Nota por partes: ${fmt(g.puntos,2)}/${g.total}. `+IK_SIX_PARTS.map(x=>{
+  const parte=g.partes[x.key],bien=parte.partes.filter(Boolean).length,vacias=g.vacias[x.key];
+  const detalle=bien===3?"":` (${x.celdas.filter((_,i)=>!parte.partes[i]).map((nombre,i)=>nombre).join(", ")} ${vacias.every(Boolean)?"sin responder":"por revisar"})`;
+  return`${x.nombre}: ${bien} de 3${parte.arrastre?", bien por arrastre":""}${detalle}`;
+ }).join(" · ")+".";
+}
+function ikSixSolutionText(e){
+ const ik=e.params.ik;
+ return`Centro de la muñeca: (${e.params.pm.map(v=>fmt(v,4)).join("; ")}) m · articulaciones: ${ik.solutions.map(sol=>ikNoapSolutionText(ik,sol)).join(" · o bien ")}`;
+}
+function ikSixAnswerMarkup(e){
+ const celda=i=>matrixInputMarkup(e,i);
+ const parte=(x,r,titulo,unidad)=>`<section class="dh-chain-part" data-dh-part="${x.key}"><h4>${titulo} <small>${x.pasos} · ${x.peso} puntos</small></h4><div class="dh-table-wrap"><table class="dh-table"><thead><tr>${x.celdas.map(nombre=>`<th>${nombre} (${unidad})</th>`).join("")}</tr></thead><tbody><tr>${[0,1,2].map(c=>`<td>${celda(r*3+c)}</td>`).join("")}</tr></tbody></table></div></section>`;
+ const [pc,pb,pw]=IK_SIX_PARTS;
+ return`<label>Resuelve las tres partes:</label>
+  ${parte(pc,0,"1 · Centro de la muñeca, p<sub>m</sub>","m")}
+  ${parte(pb,1,"2 · Las tres primeras articulaciones","°")}
+  ${parte(pw,2,"3 · Las tres de la muñeca","°")}
+  <p class="cell-hint">Admite decimales y expresiones como pi/2 o sin(30). Hay ocho soluciones: vale cualquiera, siempre que la muñeca sea la de tu brazo.${examEnCurso()?" Las respuestas se guardan automáticamente.":""}</p>`;
+}
+/* Desarrollo del problema, con los números de la solución generadora. */
+function ikSixSteps({ik,lengths:L,pm}){
+ const T=ik.T,q0=ik.solutions[0],f=x=>fmt(x,4),ang=x=>`${fmt(x,2)}°`,c=x=>Math.cos(rad(x)),sn=x=>Math.sin(rad(x));
+ const col=j=>[T[0][j],T[1][j],T[2][j]],a=col(2),p=col(3),vec=v=>`(${v.map(f).join(", ")})`,mat=M=>M.map(fila=>`[ ${fila.map(f).join("   ")} ]`).join("\n");
+ const [q1,q2,q3,q4,q5,q6]=q0,otroQ1=ikDegrees(rad(q1+180)),r=c(q1)*pm[0]+sn(q1)*pm[1],z=L.l1-pm[2],c3=(r*r+z*z-L.l2*L.l2-L.l3*L.l3)/(2*L.l2*L.l3),s3=Math.sqrt(Math.max(0,1-c3*c3));
+ const q3p=ikDegrees(rad(q3-90)),beta=ikDegrees(Math.atan2(z,r)),alfa=ikDegrees(Math.atan2(L.l3*sn(q3p),L.l2+L.l3*c(q3p)));
+ const otroCodo=ik.solutions.find(s0=>Math.abs(ikAngleDiff(s0[0],q1))<1&&Math.abs(ikAngleDiff(s0[2],q3))>1);
+ const R03=ikSixR03(L,q0),R36=ikSixR36(R03,T.slice(0,3).map(fila=>fila.slice(0,3))),s5=Math.hypot(R36[0][2],R36[1][2]);
+ const otraMuneca=ik.solutions.find(s0=>[0,1,2].every(i=>Math.abs(ikAngleDiff(s0[i],q0[i]))<1)&&Math.abs(ikAngleDiff(s0[4],q5))>1);
+ return[
+  `Separa de T los dos vectores que hacen falta para empezar: la posición del extremo y la dirección de su último eje.\n p = ${vec(p)}\n a = ${vec(a)}`,
+  `Parte 1 · Centro de la muñeca. Los tres últimos ejes se cortan en un punto, que no se mueve al girarlos. El extremo está a d₆ = ${f(L.l4)} de él sobre z₆, que es el vector a: se retrocede esa distancia.\np_m = p − d₆·a\nx = ${f(p[0])} − ${f(L.l4)}·(${f(a[0])}) = ${f(pm[0])}\ny = ${f(p[1])} − ${f(L.l4)}·(${f(a[1])}) = ${f(pm[1])}\nz = ${f(p[2])} − ${f(L.l4)}·(${f(a[2])}) = ${f(pm[2])}`,
+  `Parte 2 · Las tres primeras articulaciones solo tienen que llevar el centro de la muñeca a p_m. El giro de la base mete el brazo en el plano vertical que contiene a ese punto. Lo cumplen dos ángulos separados media vuelta: con el segundo, el brazo trabaja echado hacia atrás.\nq₁ = atan2(${f(pm[1])}, ${f(pm[0])}) = ${ang(ikDegrees(Math.atan2(pm[1],pm[0])))} · o bien ${ang(ikDegrees(Math.atan2(pm[1],pm[0])+Math.PI))}\nSe desarrolla con q₁ = ${ang(q1)}`,
+  `Pasa al plano del brazo. r es la distancia horizontal del eje de la base a p_m, con signo; z′, la altura medida hacia abajo desde el hombro, porque en este robot el hombro sube con q₂ negativo.\nr = c₁·x + s₁·y = ${f(r)}\nz′ = d₁ − z = ${f(L.l1)} − ${f(pm[2])} = ${f(z)}`,
+  `El hombro, el codo y el centro de la muñeca forman un triángulo de lados a₂ = ${f(L.l2)}, d₄ = ${f(L.l3)} y raíz(r² + z′²). Como el antebrazo sale perpendicular cuando q₃ = 0, el ángulo del triángulo es q₃′ = q₃ − 90°. Teorema del coseno:\nr² + z′² = ${f(r*r+z*z)}\ncos q₃′ = (${f(r*r+z*z)} − ${f(L.l2*L.l2)} − ${f(L.l3*L.l3)}) / ${f(2*L.l2*L.l3)} = ${f(c3)}\nsen q₃′ = ± ${f(s3)}\nq₃′ = ${ang(q3p)} · o bien ${ang(-q3p)}\nq₃ = q₃′ + 90° = ${ang(q3)}${otroCodo?` · o bien ${ang(otroCodo[2])}`:""}`,
+  `El hombro es la diferencia de dos ángulos: β, el de la recta que va del hombro a p_m, y α, el que esa recta forma con el brazo.\nβ = atan2(z′, r) = ${ang(beta)}\nα = atan2(d₄·sen q₃′, a₂ + d₄·cos q₃′) = ${ang(alfa)}\nq₂ = β − α = ${ang(q2)}${otroCodo?`\nCon el otro codo: q₂ = ${ang(otroCodo[1])}`:""}`,
+  `Parte 3 · La muñeca pone la orientación que falta. Con (q₁; q₂; q₃) = (${ang(q1)}; ${ang(q2)}; ${ang(q3)}), multiplica los bloques de giro de las tres primeras filas de la tabla:\n⁰R₃ =\n${mat(R03)}`,
+  `La orientación total es [n o a] = ⁰R₃·³R₆. La inversa de una matriz de giro es su traspuesta, así que:\n³R₆ = (⁰R₃)ᵀ·[n o a] =\n${mat(R36)}`,
+  `³R₆ tiene (c₄·s₅, s₄·s₅, c₅) en la tercera columna y (−s₅·c₆, s₅·s₆, c₅) en la tercera fila. De ahí salen los tres giros; el signo de sen q₅ no lo fija la matriz.\ncos q₅ = r₃₃ = ${f(R36[2][2])} · sen q₅ = ± ${f(s5)}\nq₅ = ${ang(q5)}\nq₄ = atan2(${q5>0?"r₂₃, r₁₃":"−r₂₃, −r₁₃"}) = ${ang(q4)}\nq₆ = atan2(${q5>0?"r₃₂, −r₃₁":"−r₃₂, r₃₁"}) = ${ang(q6)}${otraMuneca?`\nCon el otro signo: (q₄; q₅; q₆) = (${ang(otraMuneca[3])}; ${ang(otraMuneca[4])}; ${ang(otraMuneca[5])})`:""}`,
+  `Comprueba con la cinemática directa: sustituye los seis ángulos en la tabla y multiplica las seis matrices. Tiene que salir la T pedida, con sus cuatro vectores. Si cambias de postura del brazo, ⁰R₃ cambia y la muñeca hay que calcularla otra vez.\n${ik.solutions.map((s0,i)=>`Solución ${i+1}: ${ikNoapSolutionText(ik,s0)}`).join("\n")}`];
+}
 function hasMechanicalWorkedSolution(e){return Boolean(isMechanicalWorksheet(e)||(e?.visual==='dhAssignment'&&e.kind!=='ik-noap'&&e.kind!=='ik-chain'&&e.kind!=='ik-equations'))}
 /* Teaching calculations are derived from the input parameters. They do not
    replace the verifier or round intermediate values used by the engine. */
@@ -9846,7 +10062,7 @@ function solutionProcedureMarkup(exercise){
    aporta texto: razonamiento, procedimiento, pasos o errores frecuentes. */
 function solutionHasContent(exercise){
  if(!exercise)return false;
- const html=solutionReasoningMarkup(exercise)+solutionProcedureMarkup(exercise)+solutionStepsMarkup(exercise)+solutionPitfallsMarkup(exercise);
+ const html=solutionReasoningMarkup(exercise)+solutionPosturesMarkup(exercise)+solutionProcedureMarkup(exercise)+solutionStepsMarkup(exercise)+solutionPitfallsMarkup(exercise);
  return html.replace(/<[^>]*>/g,"").trim().length>0;
 }
 function solutionStepsMarkup(exercise){
@@ -9903,6 +10119,7 @@ function renderExercise(){
  else if(isIkNoapExercise(exercise)){area.innerHTML=ikNoapAnswerMarkup(exercise)}
  else if(isDhChainExercise(exercise)){area.innerHTML=dhChainAnswerMarkup(exercise)}
  else if(isIkChainExercise(exercise)){area.innerHTML=ikChainAnswerMarkup(exercise)}
+ else if(isIkSixExercise(exercise)){area.innerHTML=ikSixAnswerMarkup(exercise)}
  else if(exercise.type==="matrix"&&exercise.matrixLayout==="dh"){
   /* Una tabla DH no es una matriz: sin cabeceras no se sabe qué columna es aᵢ
      y cuál αᵢ. Las celdas conservan el mismo orden y la misma clase que en el
@@ -9932,7 +10149,7 @@ function renderExercise(){
  renderMechanicalControls();renderPlanarControls();renderReflectionControls();renderReviewBanner();
  renderQuickInputs();
  document.getElementById("solutionLevel").textContent=solutionRevealPolicy(exercise.difficulty).label;
- document.getElementById("solutionSteps").innerHTML=solutionReasoningMarkup(exercise)+solutionProcedureMarkup(exercise)+solutionStepsMarkup(exercise)+solutionPitfallsMarkup(exercise);
+ document.getElementById("solutionSteps").innerHTML=solutionReasoningMarkup(exercise)+solutionPosturesMarkup(exercise)+solutionProcedureMarkup(exercise)+solutionStepsMarkup(exercise)+solutionPitfallsMarkup(exercise);
  renderMatrixBreakdown(exercise);
  renderVisualPanelForExercise(exercise);
  if(exercise.solutionSeen&&exercise.attempted&&hasMechanicalWorkedSolution(exercise))revealMechanicalWorkedSolution(exercise);
@@ -9975,6 +10192,7 @@ function answerIsCorrect(exercise,a){
  if(isDhChainExercise(exercise))return dhChainGrade(exercise,a).nota===1;
  if(isIkNoapExercise(exercise))return ikNoapGrade(exercise,a).nota===1;
  if(isIkChainExercise(exercise))return ikChainGrade(exercise,a).nota===1;
+ if(isIkSixExercise(exercise))return ikSixGrade(exercise,a).nota===1;
  return eq(a,exercise.answer,baseTolerance(exercise));
 }
 /* Un pulso, no una sacudida: señala sin reprender. */
@@ -10044,6 +10262,16 @@ function check(){
    });
    celdas.slice(n*4+n).forEach(c=>c.classList.remove("ok","bad"));
   }
+  /* En el de seis ejes, cada celda se pinta por la nota de su parte: otra
+     solución válida es verde, y lo coherente con un fallo anterior, de arrastre. */
+  if(isIkSixExercise(exercise)){
+   const g=ikSixGrade(exercise,a),celdas=[...document.querySelectorAll("#answerArea .cell")];
+   IK_SIX_PARTS.forEach((x,r)=>g.partes[x.key].partes.forEach((bien,i)=>{
+    const c=celdas[r*3+i];if(!c)return;
+    c.classList.remove("ok","bad","carry");c.classList.add(bien?(g.partes[x.key].arrastre?"carry":"ok"):"bad");c.setAttribute("aria-invalid",String(!bien));
+    c.title=bien?(g.partes[x.key].arrastre?"Coherente con lo que escribiste antes (arrastre)":"Correcta"):"Revisa este valor";
+   }));
+  }
   exercise.lastDiffs=diffs;
   pulseWrongCells();
  }
@@ -10078,6 +10306,7 @@ function check(){
  if(!ok&&hasMechanicalWorkedSolution(exercise)){revealMechanicalWorkedSolution(exercise);feedback("bad",(isDhChainExercise(exercise)?dhChainSummary(dhChainGrade(exercise,a))+" ":"La respuesta no es correcta. ")+"Debajo tienes el desarrollo completo, paso a paso.")}
  if(!ok&&isIkNoapExercise(exercise))feedback("bad",ikNoapSummary(ikNoapGrade(exercise,a))+" Puedes corregirlo y volver a comprobar, o abrir la solución.");
  if(!ok&&isIkChainExercise(exercise))feedback("bad",ikChainSummary(ikChainGrade(exercise,a))+" Puedes corregirlo y volver a comprobar, o abrir la solución.");
+ if(!ok&&isIkSixExercise(exercise))feedback("bad",ikSixSummary(ikSixGrade(exercise,a))+" Puedes corregirlo y volver a comprobar, o abrir la solución.");
  if(!ok&&isIkEquationsExercise(exercise)){
   const total=exercise.symbolFields.length,bien=Math.round(ikEquationsScore(exercise,a)*total);
   feedback("bad",`${bien} de ${total} ecuaciones bien. Las que hay que revisar están señaladas; vale cualquier forma equivalente a la esperada. Puedes corregirlas y volver a comprobar, o abrir la solución.`);
@@ -10624,7 +10853,7 @@ function captureExamAnswer(){
  /* El problema completo DH se puntúa por partes: una celda vacía no puede
     anular la respuesta entera, porque quien deja T en blanco conserva la nota
     de su tabla. Cada celda ilegible queda como NaN y la juzga su parte. */
- if(isDhChainExercise(pregunta)||isIkNoapExercise(pregunta)||isIkChainExercise(pregunta))valor=Array.from({length:pregunta.rows},(_,i)=>Array.from({length:pregunta.cols},(_,j)=>{try{return new Parser(textos[i*pregunta.cols+j]||"",unidad).parse()}catch(err){return NaN}}));
+ if(isDhChainExercise(pregunta)||isIkNoapExercise(pregunta)||isIkChainExercise(pregunta)||isIkSixExercise(pregunta))valor=Array.from({length:pregunta.rows},(_,i)=>Array.from({length:pregunta.cols},(_,j)=>{try{return new Parser(textos[i*pregunta.cols+j]||"",unidad).parse()}catch(err){return NaN}}));
  else try{valor=Array.from({length:pregunta.rows},(_,i)=>Array.from({length:pregunta.cols},(_,j)=>new Parser(textos[i*pregunta.cols+j]||"",unidad).parse()))}
  catch(err){valor=null}
  ex.respuestas[ex.actual]={crudo:textos,valor};
@@ -15356,7 +15585,7 @@ function runSelfTests(){
    for(const nivel of DIFFICULTY_LEVELS){
     for(const def of ROBOT_ARCHITECTURES)for(const tarea of ["dh","chain","direct"])casos.push(makeArchitectureExercise(nivel,def.id,tarea));
     for(const id of Object.keys(IK_NOAP_REFERENCE))casos.push(makeInverseNoap(nivel,id));
-    casos.push(makeDhAssignment(nivel),makeDhAssignment6R(nivel),makeWristCenter(nivel),makeWristAngles(nivel),makeInverseChain(nivel));
+    casos.push(makeDhAssignment(nivel),makeDhAssignment6R(nivel),makeWristCenter(nivel),makeWristAngles(nivel),makeInverseChain(nivel),makeInverseSixAxis(nivel));
    }
    for(const e of casos){
     /* sin contar las tablas, el enunciado cabe en dos líneas */
@@ -15492,6 +15721,72 @@ function runSelfTests(){
    if(!falla(polar,"q3","q3")||!falla(polar,"px","-q3 cos(q1) sin(q2)")||!falla(polar,"q1","atan2(py)")||!falla(polar,"q1","")||!falla(polar,"q1","atan2(py,px")||!falla(polar,"q1","py$px"))return false;
    /* el analizador no ejecuta nada: un nombre que no es variable ni función se rechaza */
    return falla(polar,"q1","alert(1)")&&falla(polar,"q1","constructor")&&falla(polar,"q1","__proto__")&&ikeqEvaluate("2^3^2",{})===512&&ikeqEvaluate("-2^2",{})===-4&&Math.abs(ikeqEvaluate("atan2(1;1)*4",{})-Math.PI)<1e-12;
+  }],
+  ["El robot de seis ejes admite sus ocho soluciones y se puntúa por partes",()=>{
+   const directa=(filas,q)=>filas.reduce((T,f,i)=>mul(T,mul(mul(mul(hom(rot("z",q[i]),[0,0,0]),translation4(0,0,f.d)),translation4(f.a,0,0)),hom(rot("x",f.alpha),[0,0,0]))),identityMatrix(4));
+   for(const nivel of DIFFICULTY_LEVELS)for(let rep=0;rep<3;rep++){
+    const e=makeInverseSixAxis(nivel),{ik,lengths:L,pm,arms}=e.params,resp=q=>[pm,q.slice(0,3),q.slice(3)];
+    if(!isIkSixExercise(e)||isIkNoapExercise(e)||isIkChainExercise(e)||e.rows!==3||e.cols!==3||ik.solutions.length!==8||arms.length!==4)return false;
+    /* las ocho reproducen T, con un producto hecho aquí; son distintas y todas dan 10 */
+    for(const q of ik.solutions){
+     const T=directa(ik.rows,q);
+     for(let r=0;r<3;r++)for(let c=0;c<4;c++)if(Math.abs(T[r][c]-ik.T[r][c])>2e-3)return false;
+     if(ikSixGrade(e,resp(q)).puntos!==10||!answerIsCorrect(e,resp(q)))return false;
+    }
+    if(ik.solutions.some((u,a)=>ik.solutions.some((v,b)=>a<b&&u.every((x,i)=>Math.abs(ikAngleDiff(x,v[i]))<.5))))return false;
+    /* el centro de la muñeca está a d₆ del extremo y es donde lo deja cada brazo */
+    if(Math.abs(Math.hypot(...pm.map((v,i)=>v-ik.T[i][3]))-L.l4)>1e-9)return false;
+    const q0=ik.solutions[0],otroBrazo=ik.solutions.find(q=>Math.abs(ikAngleDiff(q[0],q0[0]))>90);
+    /* solo el centro: 2 puntos; con el brazo, 6; y la muñeca completa los 10 */
+    const blanco=[null,null,null];
+    if(ikSixGrade(e,[pm,blanco,blanco]).puntos!==2||ikSixGrade(e,[pm,q0.slice(0,3),blanco]).puntos!==6||examQuestionScore(e,[pm,q0.slice(0,3),blanco])!==.6)return false;
+    const soloBrazo=ikSixGrade(e,[blanco,q0.slice(0,3),[NaN,NaN,NaN]]);
+    if(soloBrazo.puntos!==4||!soloBrazo.vacias.centro.every(Boolean)||!soloBrazo.vacias.muneca.every(Boolean))return false;
+    /* la muñeca de otro brazo no orienta la herramienta con este */
+    const cruzada=ikSixGrade(e,[pm,q0.slice(0,3),otroBrazo.slice(3)]);
+    if(cruzada.nota===1||cruzada.partes.muneca.partes.every(Boolean)||!cruzada.partes.brazo.partes.every(Boolean))return false;
+    /* un ángulo del brazo mal: se pierde el suyo, y la muñeca ya no encaja */
+    const brazoMal=[q0[0],q0[1]+20,q0[2]],g1=ikSixGrade(e,[pm,brazoMal,q0.slice(3)]);
+    if(g1.partes.brazo.partes.filter(Boolean).length!==2||g1.partes.brazo.partes[1]||g1.partes.muneca.partes.every(Boolean)||answerIsCorrect(e,[pm,brazoMal,q0.slice(3)]))return false;
+    /* arrastre: con el centro mal, el brazo que lleva la muñeca a ese centro y
+       la muñeca que orienta con ese brazo están bien calculados */
+    const centroMal=[pm[0]+.08,pm[1],pm[2]],suBrazo=ikSixArmSolutions(L,centroMal)[0];
+    if(suBrazo){
+     const suMuneca=ikSixWristSolutions(ikSixR03(L,suBrazo),ik.T.slice(0,3).map(f=>f.slice(0,3)))[0],g2=ikSixGrade(e,[centroMal,suBrazo,suMuneca]);
+     if(!g2.partes.brazo.arrastre||!g2.partes.muneca.arrastre||g2.partes.centro.partes[0]||Math.abs(g2.puntos-(2*2/3+8))>1e-9||!ikSixSummary(g2).includes("arrastre"))return false;
+     /* pero ese brazo, con el centro bien escrito, no vale */
+     if(ikSixGrade(e,[pm,suBrazo,suMuneca]).partes.brazo.partes.every(Boolean))return false;
+    }
+    if(exerciseTopicKey(e)!=="4.4"||!isStatementOnlyExercise(e)||hasMechanicalWorkedSolution(e)||exerciseVariantKind(e)!=="mechanical"||!solutionHasContent({...e,attempted:true}))return false;
+    const partes=["Parte 1","Parte 2","Parte 3"].map(t=>e.steps.findIndex(x=>x.startsWith(t)));
+    if(partes.some(i=>i<0)||!(partes[0]<partes[1]&&partes[1]<partes[2])||e.steps.some(t=>String(t).split("\n")[0].includes("<"))||/undefined|NaN/.test(e.steps.join(" ")+e.statement+e.notes))return false;
+   }
+   /* sale en la práctica del tema y en la rotación solo en los niveles altos */
+   return !topicNumericGenerators("4.4",2).includes(makeInverseSixAxis)&&topicNumericGenerators("4.4",3).includes(makeInverseSixAxis);
+  }],
+  ["La solución de la inversa dibuja las posturas que llegan al mismo punto",()=>{
+   const trazos=h=>(h.match(/<polyline/g)||[]).length;
+   for(let rep=0;rep<6;rep++){
+    /* SCARA: dos codos, dos esqueletos; cada vista los dibuja */
+    const s=makeInverseNoap(3,"scara4"),fs=solutionPosturesMarkup(s);
+    if(ikPostures(s).length!==2||trazos(fs)!==4||/NaN|undefined|Infinity/.test(fs)||!fs.includes("Las 2 posturas")||!fs.includes('stroke-dasharray'))return false;
+    /* todas las posturas dibujadas acaban en el mismo punto */
+    if(!ikPostures(s).every(x=>x.pts.at(-1).every((v,i)=>Math.abs(v-s.params.ik.T[i][3])<.02)))return false;
+    /* el codo de la columna se dibuja: el esqueleto pasa por lo alto del eje de la base */
+    const pts=ikSkeletonPoints(ikNoapRows(s.params.ik,s.params.ik.solutions[0]));
+    if(!pts.some(q=>Math.abs(q[0])<1e-9&&Math.abs(q[1])<1e-9&&Math.abs(q[2]-s.params.ik.rows[0].d)<1e-9))return false;
+    /* una sola solución: no hay nada que comparar */
+    if(solutionPosturesMarkup(makeInverseNoap(1,"cartesian3"))!==""||solutionPosturesMarkup(makeInverseNoap(1,"cylindrical3"))!=="")return false;
+    /* polar: dos soluciones con los eslabones en el mismo sitio; se dibuja y se dice */
+    const pol=makeInverseNoap(2,"polar3"),fp=solutionPosturesMarkup(pol);
+    if(ikPostures(pol).length!==1||trazos(fp)!==2||!fp.includes("Las 2 soluciones colocan los eslabones igual")||!fp.includes("base girada media vuelta"))return false;
+    /* seis ejes: ocho soluciones, dos esqueletos */
+    const seis=makeInverseSixAxis(3),f6=solutionPosturesMarkup(seis);
+    if(ikPostures(seis).length!==2||trazos(f6)!==4||!f6.includes("Hay 8 soluciones")||!f6.includes("muñeca por el otro lado")||/NaN|undefined|Infinity/.test(f6))return false;
+    /* la inversa completa la hereda; la muñeca suelta y las ecuaciones, no */
+    if(!solutionPosturesMarkup(makeInverseChain(3,"scara4"))||solutionPosturesMarkup(makeInverseEquations(3,"scara4"))!==""||solutionPosturesMarkup(makeWristAngles(3))!==""||solutionPosturesMarkup(makeDhRowMatrix(2))!==""||solutionPosturesMarkup(null)!=="")return false;
+   }
+   return true;
   }],
   ["El centro de la muñeca no depende de sus tres giros",()=>{
    for(const nivel of DIFFICULTY_LEVELS)for(let i=0;i<4;i++){
@@ -17205,6 +17500,10 @@ function examAnswerText(pregunta,respuesta){
   const b=dhChainBlocks(pregunta),filas=(i,j)=>Array.from({length:j-i},(_,k)=>`[ ${respuesta.crudo.slice((i+k)*4,(i+k)*4+4).map(t=>String(t==null?"":t).trim()||"·").join("  ")} ]`).join(" ");
   return`Tabla: ${filas(...b.tabla)} · T: ${filas(...b.T)} · posición: ${filas(...b.p)}`;
  }
+ if(isIkSixExercise(pregunta)&&Array.isArray(respuesta.crudo)){
+  const texto=t=>String(t==null?"":t).trim()||"·";
+  return IK_SIX_PARTS.map((x,r)=>`${x.nombre}: [ ${respuesta.crudo.slice(r*3,r*3+3).map(texto).join("  ")} ]`).join(" · ");
+ }
  if(isIkChainExercise(pregunta)&&Array.isArray(respuesta.crudo)){
   const n=pregunta.params.chainRows,texto=t=>String(t==null?"":t).trim()||"·";
   return`Tabla: ${Array.from({length:n},(_,k)=>`[ ${respuesta.crudo.slice(k*4,k*4+4).map(texto).join("  ")} ]`).join(" ")} · articulaciones: [ ${respuesta.crudo.slice(n*4,n*4+n).map(texto).join("  ")} ]`;
@@ -17221,6 +17520,7 @@ function examSolutionText(pregunta){
  if(pregunta.type==="number")return fmt(pregunta.answer,5);
  if(isIkNoapExercise(pregunta))return pregunta.params.ik.solutions.map(sol=>ikNoapSolutionText(pregunta.params.ik,sol)).join(" · o bien ");
  if(isIkChainExercise(pregunta))return ikChainSolutionText(pregunta);
+ if(isIkSixExercise(pregunta))return ikSixSolutionText(pregunta);
  if(isDhChainExercise(pregunta)){
   const b=dhChainBlocks(pregunta),filas=(i,j)=>pregunta.answer.slice(i,j).map(fila=>`[ ${fila.map(v=>fmt(v,4)).join("  ")} ]`).join(" ");
   return`Tabla: ${filas(...b.tabla)} · T: ${filas(...b.T)} · posición: ${filas(...b.p)}`;
@@ -17281,12 +17581,13 @@ function renderExamReport(){
      <div class="statement">${d.pregunta.statement}</div>
      ${isDhChainExercise(d.pregunta)?`<p class="exam-hint">${traceHtmlEscape(dhChainSummary(dhChainGrade(d.pregunta,Array.isArray(d.respuesta?.valor)?d.respuesta.valor:[])))}</p>`:""}
      ${isIkChainExercise(d.pregunta)?`<p class="exam-hint">${traceHtmlEscape(ikChainSummary(ikChainGrade(d.pregunta,Array.isArray(d.respuesta?.valor)?d.respuesta.valor:[])))}</p>`:""}
+     ${isIkSixExercise(d.pregunta)?`<p class="exam-hint">${traceHtmlEscape(ikSixSummary(ikSixGrade(d.pregunta,Array.isArray(d.respuesta?.valor)?d.respuesta.valor:[])))}</p>`:""}
      ${isIkNoapExercise(d.pregunta)?`<p class="exam-hint">${traceHtmlEscape(ikNoapSummary(ikNoapGrade(d.pregunta,Array.isArray(d.respuesta?.valor)?d.respuesta.valor:[])))}</p>`:""}
      <div class="exam-answers">
       <div><strong>Tu respuesta:</strong><br>${traceHtmlEscape(examAnswerText(d.pregunta,d.respuesta))}</div>
       <div><strong>Correcta:</strong><br>${traceHtmlEscape(examSolutionText(d.pregunta))}</div>
      </div>
-     <details><summary>Cómo se resuelve</summary>${solutionReasoningMarkup(d.pregunta)}${solutionStepsMarkup(d.pregunta)}${solutionPitfallsMarkup(d.pregunta)}</details>
+     <details><summary>Cómo se resuelve</summary>${solutionReasoningMarkup(d.pregunta)}${solutionPosturesMarkup(d.pregunta)}${solutionStepsMarkup(d.pregunta)}${solutionPitfallsMarkup(d.pregunta)}</details>
     </div>`).join("")})()}
   </section>
   <div class="exam-controls">

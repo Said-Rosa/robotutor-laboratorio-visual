@@ -964,7 +964,8 @@ var RoboTutorMechanical3D=(()=>{var Ka=Object.defineProperty;var Bh=Object.getOw
               <ul class="rt-legend">
                 <li><i style="background:#df4b58"></i>X <i style="background:#45c778"></i>Y <i style="background:#123f87"></i>Z = marco base, el único dado</li>
                 <li>Articulaciones sin numerar: recorre el mecanismo desde la base hasta la pinza</li>
-                <li>Recta discontinua = eje de la articulación</li>
+                <li><i style="background:#c2570c"></i>Línea naranja = eje de cada articulación; la punta marca su sentido positivo</li>
+                <li>Líneas grises con dos puntas = cotas: las longitudes del robot</li>
                 <li><strong>E</strong> = extremo del brazo</li>
               </ul>
             </div>
@@ -3005,7 +3006,7 @@ const roadmap = [
    en este punto y renombra el archivo en consecuencia.
    Ojo: `progress.version` es otra cosa — numera el esquema de datos guardados en
    localStorage y avanza solo cuando cambia la forma de ese objeto. */
-const APP_VERSION="3.56.0";
+const APP_VERSION="3.57.0";
 const APP_STAGE="láminas claras · verdadero/falso y respuestas abiertas";
 /* Los cuatro niveles del curso. Toda comprobación de dificultad debe leer de aquí:
    el selector, las preferencias guardadas, la política pedagógica y los bancos. */
@@ -5274,6 +5275,7 @@ function mechanicalVisibility(faces,edges){
  }
  return{surfaces,lines};
 }
+const MECHANICAL_AXIS_COLOR='#c2570c';
 function mechanicalPlateSvg(e,{mobile=Boolean(window.matchMedia?.("(max-width:600px)").matches),modeled=false,detail=false}={}){
  const scene=mechanicalScene(e),sub=(a,b)=>a.map((v,i)=>v-b[i]),dot=(a,b)=>a.reduce((s,v,i)=>s+v*b[i],0),cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],unit=a=>{const n=Math.hypot(...a)||1;return a.map(v=>v/n)},add=(a,b)=>a.map((v,i)=>v+b[i]),mul=(a,k)=>a.map(v=>v*k);
  if(detail&&scene.detail){
@@ -5333,18 +5335,47 @@ function mechanicalPlateSvg(e,{mobile=Boolean(window.matchMedia?.("(max-width:60
  const collision=b=>labels.filter(r=>overlap(b,r)).length*1000+corners(b).concat([[b.x+b.w/2,b.y+b.h/2]]).filter(inBody).length*100+strokes.filter(([a,c])=>throughBox(a,c,b)).length*150;
  const putText=(p,text,{color='#182938',size=font,weight=400,attrs='',badge=false}={})=>{const b=box(p,text,size);labels.push(b);bounds.push(...corners(b));topLabels.push(`<g ${attrs}>${badge?`<rect x="${n(b.x)}" y="${n(b.y)}" width="${n(b.w)}" height="${n(b.h)}" rx="5" fill="#fff" stroke="${color}"/>`:`<rect x="${n(b.x)}" y="${n(b.y)}" width="${n(b.w)}" height="${n(b.h)}" rx="3" fill="#fff"/>`}<text x="${n(p[0])}" y="${n(p[1]+size*.33)}" text-anchor="middle" font-family="Georgia,serif" font-size="${size}" font-style="${badge?'normal':'italic'}" font-weight="${weight}" fill="${color}">${traceHtmlEscape(text)}</text></g>`);return b};
  const drawLine=(a,b,color='#536778',width=1,extra='')=>{bounds.push(a,b);strokes.push([a,b]);annotations.push(line(a,b,`stroke="${color}" stroke-width="${width}" ${extra}`))};
- const arrow=(a,b,color,width=1.3)=>{drawLine(a,b,color,width);const u=unit(sub(b,a)),p=[-u[1]*3.5,u[0]*3.5],c=add(b,mul(u,-9));annotations.push(`<path d="M${b.map(n).join(' ')} L${add(c,p).map(n).join(' ')} L${sub(c,p).map(n).join(' ')} Z" fill="${color}"/>`)};
+ const arrow=(a,b,color,width=1.3,head=9)=>{drawLine(a,b,color,width);const u=unit(sub(b,a)),p=[-u[1]*head*.39,u[0]*head*.39],c=add(b,mul(u,-head));annotations.push(`<path d="M${b.map(n).join(' ')} L${add(c,p).map(n).join(' ')} L${sub(c,p).map(n).join(' ')} Z" fill="${color}"/>`)};
  const placeCallout=(anchor,text,options={})=>{
   const candidates=[];for(const radius of[34,54,78,106,140])for(let i=0;i<16;i++){const t=i*Math.PI/8,p=add(anchor,[Math.cos(t)*radius,Math.sin(t)*radius]);candidates.push({p,score:collision(box(p,text,options.size||font))+radius*.18+Array.from({length:6},(_,j)=>inBody(add(anchor,mul(sub(p,anchor),(j+1)/7)))).filter(Boolean).length*3})}
   const p=candidates.sort((a,b)=>a.score-b.score)[0].p,b=box(p,text,options.size||font),v=sub(anchor,p),ratio=Math.min((b.w/2)/Math.max(Math.abs(v[0]),1e-9),(b.h/2)/Math.max(Math.abs(v[1]),1e-9)),contact=add(p,mul(v,ratio));
   drawLine(anchor,contact,options.color||'#536778',1);putText(p,text,options);return p;
  };
  // Reserve axes before positioning dimensions, so labels cannot cover arrows.
- if(scene.frames){const f=scene.frames,base=map(f.base),size=font*.87;
+ if(scene.frames){const f=scene.frames,base=map(f.base),size=font*.87,baseAxes=[];
   for(const [v,name,color] of [[[1,0,0],'X','#be3b43'],[[0,1,0],'Y','#07866b'],[[0,0,1],'Z','#2867b2']]){
-   const projected=sub(map(add(f.base,v)),base),end=add(base,mul(unit(projected),88));annotations.push(`<g data-base-axis="${name}">`);arrow(base,end,color,2);annotations.push('</g>');placeCallout(end,name,{color,size,weight:700});
+   const projected=sub(map(add(f.base,v)),base),end=add(base,mul(unit(projected),88));baseAxes.push({end,dir:unit(projected)});annotations.push(`<g data-base-axis="${name}">`);arrow(base,end,color,2);annotations.push('</g>');placeCallout(end,name,{color,size,weight:700});
   }
-  const groups=[];for(const j of f.joints){const C=map(j.c),v=sub(map(add(j.c,j.axis)),C),u=unit(v),A=add(C,mul(u,-31)),B=add(C,mul(u,52));annotations.push(`<g data-joint-axis="${j.n}">`);drawLine(A,C,'#64748b',1,'stroke-dasharray="5,4"');arrow(C,B,'#64748b',1.2);annotations.push('</g>');const g=groups.find(g=>Math.hypot(...sub(C,g.p))<3);if(g){g.ns.push(j.n);g.ends.push(B)}else groups.push({p:C,ns:[j.n],ends:[B]});}
+  /* Los ejes de las articulaciones llevan color y trazo propios. Antes iban
+     en el mismo gris fino que las cotas, y en un codo se juntaban la flecha
+     del eje, las dos puntas de una cota y sus líneas auxiliares sin que se
+     pudiera saber cuál era cuál. Ahora el eje es una línea de centro naranja
+     que atraviesa la articulación, con una punta grande en su sentido
+     positivo y un halo blanco que la separa de lo que cruza. */
+  const groups=[];for(const j of f.joints){
+   const C=map(j.c),v=sub(map(add(j.c,j.axis)),C),u=unit(v),g=groups.find(g=>Math.hypot(...sub(C,g.p))<3);
+   if(g)g.ns.push(j.n);else groups.push({p:C,ns:[j.n]});
+  }
+  for(const j of f.joints){
+   const C=map(j.c),v=sub(map(add(j.c,j.axis)),C),u=unit(v),compartido=groups.find(g=>Math.hypot(...sub(C,g.p))<3).ns.length>1;
+   /* En una muñeca esférica tres ejes salen del mismo punto: cada flecha
+      empieza un poco más allá, para que no se tapen en el centro. */
+   /* Dos ejes sobre la misma recta —la guía y el giro de la herramienta de
+      un SCARA— se dibujan más cortos, para que uno no pise al otro. */
+   const alineado=f.joints.some(o=>o!==j&&Math.hypot(...sub(map(o.c),C))>=3&&Math.abs(dot(unit(sub(map(add(o.c,o.axis)),map(o.c))),u))>.995&&Math.abs((map(o.c)[0]-C[0])*u[1]-(map(o.c)[1]-C[1])*u[0])<4);
+   /* Y el que coincide con un eje del marco base empieza donde ese acaba: si
+      no, la primera articulación taparía la flecha Z. */
+   const sobre=baseAxes.find(b=>dot(b.dir,u)>.995&&Math.abs((C[0]-base[0])*u[1]-(C[1]-base[1])*u[0])<4&&dot(sub(b.end,C),u)>-30);
+   const inicio=sobre?add(sobre.end,mul(u,12)):add(C,mul(u,compartido?13:0)),largo=alineado?46:sobre?58:76;
+   const A=add(C,mul(u,alineado?-18:-46)),S=inicio,B=add(S,mul(u,sobre?largo:largo-(compartido?13:0)));
+   annotations.push(`<g data-joint-axis="${j.n}">`);
+   annotations.push(line(S,B,'stroke="#fff" stroke-width="5.5" stroke-opacity=".75" stroke-linecap="round"'));
+   if(!sobre)drawLine(A,S,MECHANICAL_AXIS_COLOR,1.7,'stroke-dasharray="10,4,2,4" stroke-linecap="round"');
+   else drawLine(add(base,mul(u,-30)),base,MECHANICAL_AXIS_COLOR,1.7,'stroke-dasharray="10,4,2,4" stroke-linecap="round"');
+   arrow(S,B,MECHANICAL_AXIS_COLOR,2.4,15);
+   annotations.push('</g>');
+  }
+  for(const g of groups)if(g.ns.length>1)annotations.push(`<circle cx="${n(g.p[0])}" cy="${n(g.p[1])}" r="5" fill="#fff" stroke="${MECHANICAL_AXIS_COLOR}" stroke-width="2"/>`);
   // The mechanism is intentionally unnumbered; only signed axes remain for DH.
  }
  const center=[(Math.min(...xs)+Math.max(...xs))*scale/2,(Math.min(...ys)+Math.max(...ys))*scale/2];
@@ -5361,7 +5392,9 @@ function mechanicalPlateSvg(e,{mobile=Boolean(window.matchMedia?.("(max-width:60
    candidates.push({A,B,p,r,normal:mul(normal,sign),offset,penalty});
   }
   const best=candidates.sort((a,b)=>a.penalty-b.penalty)[0],{A,B,p}=best;
-  for(const [c,v] of [[a,A],[b,B]])drawLine(add(c,mul(best.normal,9)),add(v,mul(best.normal,5)),color,.85);
+  /* Las líneas auxiliares de la cota van más claras que la cota: sitúan,
+     pero no deben competir con ella ni con los ejes. */
+  for(const [c,v] of [[a,A],[b,B]])drawLine(add(c,mul(best.normal,14)),add(v,mul(best.normal,5)),color,.8,'stroke-opacity=".45"');
   drawLine(A,B,color,d.variable?1.7:1.1);
   // Outside arrowheads keep short tool and extension dimensions readable.
   if(length<35){arrow(sub(A,mul(u,14)),A,color);arrow(add(B,mul(u,14)),B,color)}else{arrow(add(A,mul(u,10)),A,color);arrow(sub(B,mul(u,10)),B,color)}
@@ -15745,9 +15778,13 @@ function runSelfTests(){
     /* la muñeca de otro brazo no orienta la herramienta con este */
     const cruzada=ikSixGrade(e,[pm,q0.slice(0,3),otroBrazo.slice(3)]);
     if(cruzada.nota===1||cruzada.partes.muneca.partes.every(Boolean)||!cruzada.partes.brazo.partes.every(Boolean))return false;
-    /* un ángulo del brazo mal: se pierde el suyo, y la muñeca ya no encaja */
-    const brazoMal=[q0[0],q0[1]+20,q0[2]],g1=ikSixGrade(e,[pm,brazoMal,q0.slice(3)]);
-    if(g1.partes.brazo.partes.filter(Boolean).length!==2||g1.partes.brazo.partes[1]||g1.partes.muneca.partes.every(Boolean)||answerIsCorrect(e,[pm,brazoMal,q0.slice(3)]))return false;
+    /* un ángulo del brazo mal: se pierde el suyo, y la muñeca ya no encaja.
+       Se equivoca el giro de la base, que solo tiene dos valores válidos
+       separados media vuelta. Con el hombro no sirve: sumarle 20° cae a veces
+       sobre el hombro de la otra postura del codo, y entonces el que se marca
+       mal es el codo. La prueba lo daba por fallo una de cada doce veces. */
+    const brazoMal=[q0[0]+20,q0[1],q0[2]],g1=ikSixGrade(e,[pm,brazoMal,q0.slice(3)]);
+    if(g1.partes.brazo.partes.filter(Boolean).length!==2||g1.partes.brazo.partes[0]||g1.partes.muneca.partes.every(Boolean)||answerIsCorrect(e,[pm,brazoMal,q0.slice(3)]))return false;
     /* arrastre: con el centro mal, el brazo que lleva la muñeca a ese centro y
        la muñeca que orienta con ese brazo están bien calculados */
     const centroMal=[pm[0]+.08,pm[1],pm[2]],suBrazo=ikSixArmSolutions(L,centroMal)[0];
@@ -15785,6 +15822,22 @@ function runSelfTests(){
     if(ikPostures(seis).length!==2||trazos(f6)!==4||!f6.includes("Hay 8 soluciones")||!f6.includes("muñeca por el otro lado")||/NaN|undefined|Infinity/.test(f6))return false;
     /* la inversa completa la hereda; la muñeca suelta y las ecuaciones, no */
     if(!solutionPosturesMarkup(makeInverseChain(3,"scara4"))||solutionPosturesMarkup(makeInverseEquations(3,"scara4"))!==""||solutionPosturesMarkup(makeWristAngles(3))!==""||solutionPosturesMarkup(makeDhRowMatrix(2))!==""||solutionPosturesMarkup(null)!=="")return false;
+   }
+   return true;
+  }],
+  ["Los ejes de las articulaciones no se confunden con las cotas",()=>{
+   const grupos=svg=>[...svg.matchAll(/<g data-joint-axis="(\d+)">([\s\S]*?)<\/g>/g)].map(m=>m[2]);
+   for(const id of ["anthropomorphic3","anthropomorphic6","scara4","cylindrical3","polar3"])for(let rep=0;rep<3;rep++){
+    const e=makeArchitectureExercise(3,id,"dh"),svg=mechanicalPlateSvg({...e,kinematics:e.params.kinematics},{mobile:false,modeled:false}),ejes=grupos(svg);
+    if(ejes.length!==e.rows)return false;
+    /* cada eje va en su color, con su punta, y ninguno en el gris de las cotas */
+    if(!ejes.every(g=>g.includes(`stroke="${MECHANICAL_AXIS_COLOR}"`)&&g.includes(`fill="${MECHANICAL_AXIS_COLOR}"`)&&!g.includes('#536778')&&!g.includes('#64748b')))return false;
+    /* las cotas siguen en el suyo, y sus líneas auxiliares, atenuadas */
+    if(!svg.includes('stroke="#536778"')||!svg.includes('stroke-opacity=".45"'))return false;
+    /* el marco base conserva sus tres flechas, sin que un eje las tape */
+    if((svg.match(/data-base-axis="/g)||[]).length!==3||/NaN|undefined|Infinity/.test(svg))return false;
+    /* en la muñeca esférica, los ejes que comparten centro llevan su marca */
+    if((id==="anthropomorphic6")!==svg.includes(`<circle cx=`)&&id==="anthropomorphic6")return false;
    }
    return true;
   }],

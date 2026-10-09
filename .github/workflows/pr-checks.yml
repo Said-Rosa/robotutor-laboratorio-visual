@@ -27,6 +27,7 @@ jobs:
       - run: node scripts/check-inverse.cjs
       - run: node scripts/check-kinematics.cjs
       - run: node scripts/check-selftests.cjs
+      - run: node scripts/check-selftest-seeds.cjs
       - run: node scripts/check-exercises.cjs
       - run: node scripts/check-security.cjs
       - run: bash build-artifact.sh robotutor.html /tmp/robotutor-pages.html

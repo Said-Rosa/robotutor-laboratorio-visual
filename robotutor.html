@@ -3006,7 +3006,7 @@ const roadmap = [
    en este punto y renombra el archivo en consecuencia.
    Ojo: `progress.version` es otra cosa — numera el esquema de datos guardados en
    localStorage y avanza solo cuando cambia la forma de ese objeto. */
-const APP_VERSION="3.57.0";
+const APP_VERSION="3.57.1";
 const APP_STAGE="láminas claras · verdadero/falso y respuestas abiertas";
 /* Los cuatro niveles del curso. Toda comprobación de dificultad debe leer de aquí:
    el selector, las preferencias guardadas, la política pedagógica y los bancos. */
@@ -6543,7 +6543,21 @@ function makeChainMixed(diff){
    matrixStructureCheck(4),
    `Resultado:\n${mtxt(T)}`]};
 }
-/* Ejercicio del tipo 3.1: traslación pura, coordenadas del sistema móvil al fijo. */
+/* Sortea el punto de un ejercicio hasta que su imagen no coincida con él.
+   Si el punto cae sobre el eje de un giro cuya traslación lo devuelve a su
+   sitio, la respuesta es el propio dato: copiarlo acierta, y la lámina, que
+   rotula el dato, enseña la terna que se pregunta. Medido el 8 de octubre de
+   2026 sobre 200.000 ejercicios por generador y nivel: de 1 de cada 3.000
+   («Transformación de un punto») a 1 de cada 100.000. `imagen` devuelve una
+   columna, como la respuesta; se compara con algo más que la tolerancia con
+   que se corrige, para descartar también lo que se daría por bueno. */
+function pickMovingPoint(sortear,imagen){
+ let punto=sortear();
+ for(let intento=0;intento<50&&eq(imagen(punto),punto.map(v=>[v]),.005);intento++)punto=sortear();
+ return punto;
+}
+/* Ejercicio del tipo 3.1: traslación pura, coordenadas del sistema móvil al fijo.
+   Aquí no hace falta `pickMovingPoint`: `chainVector` nunca da el vector nulo. */
 function makePointFromMovingTranslation(diff){
  const rango=diff<=1?6:diff===2?9:12;
  const p=chainVector(diff<=1?1:diff),ruvw=[ri(-rango,rango),ri(-rango,rango),ri(-rango,rango)];
@@ -6569,7 +6583,7 @@ function makeHomogeneousApplyPoint(diff){
  const axis=pick(axes),deg=pick(chainAngles(diff));
  const R=usaGiro?rot(axis,deg):identityMatrix(3);
  const T=hom(R,p);
- const punto=[ri(-rango,rango),ri(-rango,rango),ri(-rango,rango)];
+ const punto=pickMovingPoint(()=>[ri(-rango,rango),ri(-rango,rango),ri(-rango,rango)],r=>mul(T,[[r[0]],[r[1]],[r[2]],[1]]).slice(0,3));
  const homogeneo=[[punto[0]],[punto[1]],[punto[2]],[1]];
  const answer=mul(T,homogeneo).slice(0,3);
  const soloRotado=mul(R,punto.map(v=>[v]));
@@ -6590,7 +6604,8 @@ function makeHomogeneousApplyPoint(diff){
 function makePointRotatedTranslated(diff){
  const rango=diff<=2?8:12;
  const axis=pick(axes),deg=pick(chainAngles(diff)),p=chainVector(diff);
- const R=rot(axis,deg),ruvw=[ri(-rango,rango),ri(-rango,rango),ri(-rango,rango)];
+ const R=rot(axis,deg);
+ const ruvw=pickMovingPoint(()=>[ri(-rango,rango),ri(-rango,rango),ri(-rango,rango)],r=>mul(R,r.map(v=>[v])).map((fila,k)=>[fila[0]+p[k]]));
  const rotado=mul(R,ruvw.map(v=>[v]));
  const answer=[[round(rotado[0][0]+p[0])],[round(rotado[1][0]+p[1])],[round(rotado[2][0]+p[2])]];
  const sinRotar=[[round(ruvw[0]+p[0])],[round(ruvw[1]+p[1])],[round(ruvw[2]+p[2])]];
@@ -6612,7 +6627,7 @@ function makePointRotatedTranslated(diff){
 function makePointFixedToMoving(diff){
  const axis=pick(axes),deg=pick(chainAngles(diff)),p=chainVector(diff);
  const R=rot(axis,deg),T=hom(R,p),Tinv=invT(T);
- const rxyz=[ri(-9,9),ri(-9,9),ri(-9,9)];
+ const rxyz=pickMovingPoint(()=>[ri(-9,9),ri(-9,9),ri(-9,9)],r=>mul(Tinv,[[r[0]],[r[1]],[r[2]],[1]]).slice(0,3));
  const answer=mul(Tinv,[[rxyz[0]],[rxyz[1]],[rxyz[2]],[1]]).slice(0,3);
  const directo=mul(T,[[rxyz[0]],[rxyz[1]],[rxyz[2]],[1]]).slice(0,3);
  const sinTransponer=mul(R,rxyz.map((v,i)=>[round(v-p[i])]));
@@ -7027,7 +7042,7 @@ function makeChapter3Kind(diff,kind){
    "Reexpresa la traslación en el marco nuevo calculando −Rᵀp. No basta con negar p: el vector debe leerse desde el sistema que ahora hace de referencia.",
    matrixStructureCheck(4),
    `Resultado:\n${mtxt(A)}`]};}
- let P=[ri(-3,3),ri(-3,3),ri(-3,3)],Ph=[[P[0]],[P[1]],[P[2]],[1]],Q=mul(T,Ph).slice(0,3),rotOnly=mul(T.slice(0,3).map(row=>row.slice(0,3)),P.map(value=>[value]));
+ let P=pickMovingPoint(()=>[ri(-3,3),ri(-3,3),ri(-3,3)],r=>mul(T,[[r[0]],[r[1]],[r[2]],[1]]).slice(0,3)),Ph=[[P[0]],[P[1]],[P[2]],[1]],Q=mul(T,Ph).slice(0,3),rotOnly=mul(T.slice(0,3).map(row=>row.slice(0,3)),P.map(value=>[value]));
  return{id:"point_transform",chapter:3,type:"matrix",visual:"frames3d",title:"Transformación de un punto",
   statement:"Expresa el punto en el marco transformado usando la pose indicada.",
   rows:3,cols:1,answer:Q,chips:[`R${axis}(${bookSymbol({x:"alpha",y:"phi",z:"theta"}[axis])} = ${angleLabel(a)})`,`P=[${P.join(", ")}]ᵀ`,`p=[${p.join(", ")}]ᵀ`],
@@ -10066,10 +10081,16 @@ function solutionProcedureMarkup(exercise){
     En una cadena, la acumulada final ES la respuesta. En cinemática directa, la
     respuesta es su cuarta columna. En un jacobiano no hay relación: la respuesta
     es J(q)·q̇, y enseñar aquí el producto de transformaciones haría creer que el
-    resultado sale de él. Se comprueba en vez de suponerlo. */
+    resultado sale de él. Se comprueba en vez de suponerlo.
+    La tolerancia está medida (8 de octubre de 2026, 120.000 cadenas): la
+    respuesta va redondeada a 7 decimales y la acumulada no, y con cuatro o
+    cinco factores se separan hasta 2,4e-6. Con 1e-6, el bloque desaparecía sin
+    aviso en 6 de cada 1.000 cadenas mixtas del nivel 4. 1e-4 queda 40 veces
+    por encima de ese desvío y 20 por debajo de la tolerancia con que se
+    corrige la respuesta. */
  const iguales=(A,B)=>Array.isArray(A)&&Array.isArray(B)&&A.length===B.length&&
   A.every((f,i)=>Array.isArray(f)&&Array.isArray(B[i])&&f.length===B[i].length&&
-   f.every((v,j)=>Math.abs(v-B[i][j])<1e-6));
+   f.every((v,j)=>Math.abs(v-B[i][j])<1e-4));
  const acumuladaFinal=trace.cumulative[trace.cumulative.length-1];
  const cierre=iguales(acumuladaFinal,exercise.answer)
   ?{titulo:"Resultado: la acumulada del último paso es la respuesta",
@@ -13186,7 +13207,11 @@ function runSelfTests(){
    return uno!==cuatro&&cuatro.length>0&&uno.length>0;
   }],
   ["La lámina marca la incógnita sin revelar su valor",()=>{
-   const generadores=[makePointFromMovingTranslation,makeHomogeneousApplyPoint,makePointRotatedTranslated,makePointFixedToMoving];
+   /* La terna de la incógnita solo puede salir impresa si coincide con el
+      dato, que la lámina sí rotula. Los generadores lo evitan con
+      `pickMovingPoint`; lo vigila la prueba siguiente, que no depende de que
+      el caso salga en el sorteo. */
+   const generadores=[makePointFromMovingTranslation,makeHomogeneousApplyPoint,makePointRotatedTranslated,makePointFixedToMoving,nivel=>makeChapter3Kind(nivel,"point")];
    for(const generador of generadores){
     for(let i=0;i<20;i++){
      const e=generador(pick(DIFFICULTY_LEVELS)),puntos=exerciseFramePoints(e.visualData);
@@ -13201,6 +13226,40 @@ function runSelfTests(){
     }
    }
    return true;
+  }],
+  ["Ningún ejercicio de punto pregunta por el mismo punto que da",()=>{
+   /* Con el giro de 180° sobre Z y p = (4, −2, 0), el punto (2, −1, 3) no se
+      mueve: su imagen es él mismo. Sale 1 vez de cada 3.000 a 100.000, así que
+      sortear no lo encuentra: aquí se le dicta al generador, sorteo a sorteo,
+      ese caso como primer candidato, y tiene que descartarlo.
+      Lo dictado depende del orden en que cada generador sortea. Por eso se
+      comprueba que el ejercicio lleva de verdad ese giro y esa traslación: si
+      el orden cambia, la prueba falla en vez de pasar sin probar nada. */
+   const p=[4,-2,0],fijo=[2,-1,3],R=rot("z",180);
+   if(!eq(mul(R,fijo.map(v=>[v])).map((fila,k)=>[fila[0]+p[k]]),fijo.map(v=>[v]),1e-9))return false;
+   const entero=(valor,a,b)=>(valor-a+.5)/(b-a+1);                 /* hace que ri(a,b) dé `valor` */
+   const elige=(lista,valor)=>(lista.indexOf(valor)+.5)/lista.length; /* hace que pick(lista) dé `valor` */
+   const terna=(valores,rango)=>valores.map(v=>entero(v,-rango,rango));
+   const dictando=(sorteos,hacer)=>{
+    const previo=Math.random;let i=0;
+    Math.random=()=>i<sorteos.length?sorteos[i++]:previo();
+    try{return hacer()}finally{Math.random=previo}
+   };
+   const giro=[elige(axes,"z"),elige(chainAngles(3),180)];
+   const casos=[
+    [()=>makePointRotatedTranslated(3),[...giro,...terna(p,10),...terna(fijo,12)]],
+    [()=>makeHomogeneousApplyPoint(3),[...terna(p,10),...giro,...terna(fijo,9)]],
+    [()=>makePointFixedToMoving(3),[...giro,...terna(p,10),...terna(fijo,9)]],
+    [()=>makeChapter3Kind(3,"point"),[elige(axes,"z"),elige(angles,180),...terna(p,4),...terna(fijo,3)]]
+   ];
+   for(const [hacer,sorteos] of casos){
+    const e=dictando(sorteos,hacer),figura=e.visualData.figurePoint;
+    if(!eq(e.visualData.R,R,1e-9)||e.visualData.p.join()!==p.join())return false;
+    if(figura.knownValue.join()===fijo.join())return false;
+    if(eq(e.answer,figura.knownValue.map(v=>[v]),.005))return false;
+   }
+   /* y si todos los candidatos fueran puntos fijos, no se queda sorteando */
+   return pickMovingPoint(()=>[1,1,1],r=>r.map(v=>[v])).join()==="1,1,1";
   }],
   ["El punto de la lámina coincide con la geometría del ejercicio",()=>{
    for(let i=0;i<30;i++){
@@ -13504,9 +13563,21 @@ function runSelfTests(){
   ["El capítulo 3 reparte ejercicios de área de trabajo",()=>{
    /* El área de trabajo pasó al capítulo 3 con su teoría: su generador tiene
       que entrar en el sorteo de ese capítulo, no quedarse solo en su tema. */
-   let vistos=0;
-   for(let i=0;i<400;i++){if(makeChapter3(pick(DIFFICULTY_LEVELS)).kind==="workspace")vistos++}
-   return vistos>=15;
+   /* Se comprueba nivel por nivel, y sin contar. Antes se sorteaba el
+      capítulo 400 veces y se pedían 15: el tipo es 1 de entre 19 a 28 según el
+      nivel, la media sale 17, y una de cada cuatro secuencias de sorteos no
+      llegaba (medido el 8 de octubre de 2026). Aquí el tipo tiene que estar en
+      la lista de cada nivel, dar un ejercicio de área de trabajo cuando se
+      pide, y salir de verdad del sorteo: con 2.000 intentos, que no saliera
+      por azar estando en la lista tiene una probabilidad menor que 1e-31. */
+   for(const nivel of DIFFICULTY_LEVELS){
+    if(!chapter3Kinds(nivel).includes("workspace"))return false;
+    if(makeChapter3Kind(nivel,"workspace").kind!=="workspace")return false;
+    let salio=false;
+    for(let i=0;i<2000&&!salio;i++)salio=makeChapter3(nivel).kind==="workspace";
+    if(!salio)return false;
+   }
+   return true;
   }],
   ["Cada capítulo ofrece teoría suficiente",()=>{
    const minimos={1:9,2:9,3:13,4:8,5:7};
@@ -14533,19 +14604,24 @@ function runSelfTests(){
    return true;
   }],
   ["La composición de rotaciones dice por qué lado entra la segunda",()=>{
-   let vistos=0;
-   for(let i=0;i<400;i++){
-    const e=makeChapter3(pick(DIFFICULTY_LEVELS));
-    if(e.id!=="rotation_composition")continue;
-    vistos++;
-    const texto=e.steps.join("\n"),chips=e.chips.join(" ");
-    /* la palabra que aparece debe ser la que corresponde al marco del enunciado */
-    if(/Marco fijo/.test(chips)){
-     if(!/premultiplica/.test(texto)||/postmultiplica/.test(texto))return false;
-    }else if(!/postmultiplica/.test(texto))return false;
+   /* El ejercicio se pide por su nombre. Antes se sorteaba el capítulo 400
+      veces y se exigían tres composiciones: salen siete de media, y con 2 de
+      cada 100 secuencias de sorteos no llegaban a tres (medido el 8 de octubre
+      de 2026). El contenido no falló en ninguno de 8.000 ejercicios. */
+   const niveles=DIFFICULTY_LEVELS.filter(nivel=>chapter3Kinds(nivel).includes("compose"));
+   if(!niveles.length)return false;      /* tiene que seguir en el sorteo del capítulo */
+   const marcos=new Set();
+   for(const nivel of niveles)for(let i=0;i<40;i++){
+    const e=makeChapter3Kind(nivel,"compose");
+    if(e.id!=="rotation_composition")return false;
+    const texto=e.steps.join("\n"),chips=e.chips.join(" "),fijo=/Marco fijo/.test(chips);
+    marcos.add(fijo);
+    /* la palabra que aparece debe ser la que corresponde al marco del enunciado, y solo esa */
+    if(!(fijo?/premultiplica/:/postmultiplica/).test(texto)||(fijo?/postmultiplica/:/premultiplica/).test(texto))return false;
     if(!/det\(R\) = \+1/.test(texto))return false;
    }
-   return vistos>=3;
+   /* los dos marcos: que con 40 ejercicios o más falte uno es una probabilidad de 2e-12 */
+   return marcos.size===2;
   }],
   ["Toda respuesta matricial cierra con la comprobación de estructura",()=>{
    const casos=[()=>makeChainFixed(2),()=>makeChainMixed(3),
@@ -16719,38 +16795,69 @@ function runSelfTests(){
       Las familias se piden por su nombre en vez de sortear el capítulo. El
       sorteo exigía que salieran más de quince cadenas entre las muestras, y
       ese recuento bajaba al añadir cualquier generador nuevo al capítulo,
-      aunque ninguna comprobación real fallara. */
-   const iguales=(A,B)=>Array.isArray(A)&&Array.isArray(B)&&A.length===B.length&&
+      aunque ninguna comprobación real fallara.
+      Tampoco se cuenta ya cuántos bloques salen: se exigían más de quince,
+      salen 23 de media, y 1 de cada 100 secuencias de sorteos se quedaba en 14
+      o 15 (medido el 8 de octubre de 2026; las condiciones no fallaron en
+      ninguno de 56.000 ejercicios). En su lugar, las cadenas del capítulo 3
+      se piden por su nombre y tienen que traer todas su bloque, y los dos
+      cierres del bloque tienen que haberse visto. */
+   const iguales=(A,B,tol=1e-4)=>Array.isArray(A)&&Array.isArray(B)&&A.length===B.length&&
     A.every((f,i)=>Array.isArray(f)&&Array.isArray(B[i])&&f.length===B[i].length&&
-     f.every((v,j)=>Math.abs(v-B[i][j])<1e-6));
+     f.every((v,j)=>Math.abs(v-B[i][j])<tol));
    const cadenas=[makeDh3R,makeSpatial2R,makeSpatial3R,makeScara,makeRrrp,makeIndustrial6R];
-   let conBloque=0;
-   const revisar=e=>{
-    if(e.type!=="matrix")return true;
+   const cierres={acumulada:0,columna:0};
+   const revisar=(e,{exigeBloque=false}={})=>{
+    if(e.type!=="matrix")return!exigeBloque;
     e.pedagogyTrace=buildPedagogyTrace(e);
     const html=solutionProcedureMarkup(e);
-    if(!html)return true;
-    conBloque++;
+    if(!html)return!exigeBloque;
     const tr=e.pedagogyTrace;
     const porAcumulada=iguales(tr.cumulative[tr.cumulative.length-1],e.answer);
     const porColumna=iguales(tr.output,e.answer);
     if(!porAcumulada&&!porColumna)return false;
     /* y lo que el bloque afirma debe ser lo que ocurre */
-    if(/la acumulada del último paso es la respuesta/.test(html)&&!porAcumulada)return false;
-    if(/cuarta columna/.test(html)&&!porColumna)return false;
+    const diceAcumulada=/la acumulada del último paso es la respuesta/.test(html),diceColumna=/cuarta columna/.test(html);
+    if(diceAcumulada&&!porAcumulada)return false;
+    if(diceColumna&&!porColumna)return false;
+    if(diceAcumulada)cierres.acumulada++;
+    if(diceColumna)cierres.columna++;
     /* cada acumulada es el producto de la anterior por su factor */
     for(let k=1;k<tr.individual.length;k++){
      const producto=tr.cumulative[k-1].map(fila=>tr.individual[k][0].map((_,c)=>
       fila.reduce((suma,v,idx)=>suma+v*tr.individual[k][idx][c],0)));
-     if(!iguales(producto,tr.cumulative[k]))return false;
+     if(!iguales(producto,tr.cumulative[k],1e-6))return false;
     }
     return true;
    };
    for(const nivel of DIFFICULTY_LEVELS){
     for(const make of cadenas)for(let i=0;i<3;i++){const e=make(nivel);e.difficulty=nivel;if(!revisar(e))return false}
     for(let i=0;i<12;i++){const e=makeChapter3(nivel);e.difficulty=nivel;if(!revisar(e))return false}
+    /* En una cadena la acumulada final es la respuesta: el bloque no puede faltar. */
+    for(const tipo of ["chainFixed","chainMixed"]){
+     if(!chapter3Kinds(nivel).includes(tipo))continue;
+     for(let i=0;i<6;i++){
+      const e=makeChapter3Kind(nivel,tipo);e.difficulty=nivel;
+      if(!revisar(e,{exigeBloque:true}))return false;
+     }
+    }
    }
-   return conBloque>15;
+   /* La respuesta va redondeada y la acumulada no: en 6 de cada 1.000 cadenas
+      mixtas del nivel 4 se separan más de 1e-6 (hasta 2,4e-6), y el bloque
+      desaparecía. Sortear no lo caza, así que se fabrica el caso: una
+      respuesta a 3e-6 de la acumulada conserva el bloque, y una a 0,01 —que
+      ya no es la acumulada— lo pierde. */
+   const cadena=makeChainFixed(4),final=buildPedagogyTrace(cadena).cumulative.at(-1);
+   const desviada=desvio=>{
+    const e={...cadena,answer:final.map((fila,i)=>fila.map((v,j)=>i===0&&j===3?v+desvio:v))};
+    e.pedagogyTrace=buildPedagogyTrace(e);
+    return solutionProcedureMarkup(e);
+   };
+   if(!/la acumulada del último paso es la respuesta/.test(desviada(3e-6))||desviada(.01)!=="")return false;
+   /* La cuarta columna sale de los robots, donde cuatro de cada diez
+      ejercicios piden la posición: que no salga ninguno en esta muestra es una
+      probabilidad de 1e-11. */
+   return cierres.acumulada>0&&cierres.columna>0;
   }],
   ["El nombre de cada factor se lee sin código de fórmula",()=>{
    /* Se limitaba a borrar barras invertidas y dejaba «R{x}(180^circ);text{...}». */
@@ -16779,12 +16886,18 @@ function runSelfTests(){
     appState.exam=null;discardStoredExam();
     if(!startExam({formatoId:"parcial",capitulos:[4],dificultad:2}))return false;
     const ex=appState.exam;
-    ex.preguntas.forEach((pregunta,i)=>{
-     if(i>=5)return;
-     ex.respuestas[i]=pregunta.type==="matrix"
-      ?{crudo:pregunta.answer.flat().map(String),valor:pregunta.answer}
-      :{crudo:String(pregunta.answer),valor:pregunta.answer};
-    });
+    /* Una pregunta de ecuaciones entre las respondidas, siempre. Su respuesta
+       se guarda campo a campo, no como un texto. Desde que la actividad de
+       ecuaciones entró en el capítulo 4, el sorteo ponía una entre las cinco
+       primeras 18 de cada 1.000 veces (medido el 8 de octubre de 2026); la
+       prueba la respondía con un texto, al volver esa respuesta mal formada se
+       descartaba —como debe— y la prueba salía en rojo sin que nada fallase. */
+    ex.preguntas[3]=makeInverseEquations(2);
+    const campos=ex.preguntas[3].symbolFields.map(campo=>campo.key);
+    const responder=pregunta=>pregunta.type==="matrix"?{crudo:pregunta.answer.flat().map(String),valor:pregunta.answer}
+     :pregunta.type==="symbolic"?{crudo:Object.fromEntries(pregunta.symbolFields.map(campo=>[campo.key,String(pregunta.answer[campo.key])])),valor:pregunta.answer}
+     :{crudo:String(pregunta.answer),valor:pregunta.answer};
+    ex.preguntas.forEach((pregunta,i)=>{if(i<5)ex.respuestas[i]=responder(pregunta)});
     ex.marcadas[2]=true;
     restoreExamAnswer(ex.preguntas[0],ex.respuestas[0]);
     showExamQuestion(7);
@@ -16799,6 +16912,10 @@ function runSelfTests(){
     if(vuelto.formato!==foto.formato||vuelto.preguntas.length!==foto.total)return false;
     if(vuelto.actual!==foto.actual)return false;
     if(vuelto.respuestas.filter(Boolean).length!==foto.respondidas)return false;
+    /* la de ecuaciones vuelve con todos sus campos y con lo escrito en cada uno */
+    const ecuaciones=vuelto.respuestas[3];
+    if(!ecuaciones||Object.keys(ecuaciones.crudo).join()!==campos.join())return false;
+    if(campos.some(campo=>ecuaciones.crudo[campo]!==String(ex.preguntas[3].answer[campo])))return false;
     if(vuelto.marcadas[2]!==true)return false;
     if(String(vuelto.preguntas[0].statement)!==foto.enunciado)return false;
     /* el reloj es de pared: al volver queda igual o menos tiempo, nunca más */

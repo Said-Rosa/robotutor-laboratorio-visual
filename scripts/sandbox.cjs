@@ -33,8 +33,10 @@ function elementoPostizo(){
 
 /* Devuelve las funciones y constantes que se nombren en `expone`, tal como el
    script principal las define. `file` admite una ruta alternativa para poder
-   comprobar también la salida del build. */
-function cargar(expone,file=RUTA_POR_DEFECTO){
+   comprobar también la salida del build. `ajustar` recibe el texto del script
+   principal y devuelve el que se evalúa: sirve para cambiar una constante sin
+   escribir una copia del archivo. */
+function cargar(expone,file=RUTA_POR_DEFECTO,ajustar=null){
  const source=fs.readFileSync(file,'utf8');
  const scripts=[...source.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map(m=>m[1]);
  let main=scripts.find(s=>s.includes('const APP_VERSION='));
@@ -42,6 +44,7 @@ function cargar(expone,file=RUTA_POR_DEFECTO){
  const corte=main.indexOf('document.getElementById("appVersionLabel")');
  if(corte<0)throw new Error('no se encontró el arranque de la aplicación');
  main=main.slice(0,corte);
+ if(ajustar)main=ajustar(main);
 
  const almacen=new Map();
  const ctx={console,Math,JSON,Date,Number,String,Boolean,Array,Object,Map,Set,WeakMap,WeakSet,Promise,Symbol,RegExp,Error,isNaN,isFinite,parseFloat,parseInt,

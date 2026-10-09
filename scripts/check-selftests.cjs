@@ -13,7 +13,12 @@
  * lo que se tolera, no lo que se espera. Si añades una comprobación que necesita
  * DOM de verdad, añádela aquí con su nombre exacto.
  *
- * Uso: node scripts/check-selftests.cjs [ruta/al/robotutor.html]
+ * La batería sustituye Math.random por un generador con semilla fija, así que
+ * cada ejecución sortea los mismos ejercicios. `--semilla=N` la ejecuta con
+ * otra semilla, sin tocar el archivo: es la forma de reproducir un rojo que
+ * haya encontrado `check-selftest-seeds.cjs`.
+ *
+ * Uso: node scripts/check-selftests.cjs [ruta/al/robotutor.html] [--semilla=N]
  */
 const assert=require('node:assert/strict');
 const {cargar,RUTA_POR_DEFECTO}=require('./sandbox.cjs');
@@ -65,7 +70,19 @@ const DEPENDEN_DEL_DOM=new Set([
  'Un plegable sigue abriéndose y cerrándose sin movimiento'
 ]);
 
-const {runSelfTests}=cargar(['runSelfTests'],process.argv[2]||RUTA_POR_DEFECTO);
+const argumentos=process.argv.slice(2);
+const ruta=argumentos.find(a=>!a.startsWith('--'))||RUTA_POR_DEFECTO;
+const opcionSemilla=argumentos.find(a=>a.startsWith('--semilla='));
+const semilla=opcionSemilla?Number(opcionSemilla.slice('--semilla='.length)):null;
+assert.ok(semilla===null||(Number.isInteger(semilla)&&semilla>=0),'--semilla espera un entero no negativo');
+/* La semilla se cambia en el texto que se evalúa, no en el archivo. Si la
+   constante dejara de escribirse así, mejor fallar que barrer sin cambiar nada. */
+const conSemilla=fuente=>{
+ const patron=/const SELFTEST_SEED=\d+;/g,veces=(fuente.match(patron)||[]).length;
+ assert.equal(veces,1,'se esperaba una sola declaración «const SELFTEST_SEED=…;» y hay '+veces);
+ return fuente.replace(patron,`const SELFTEST_SEED=${semilla};`);
+};
+const {runSelfTests}=cargar(['runSelfTests'],ruta,semilla===null?null:conSemilla);
 /* La batería vuelca sus fallos por consola. Aquí estorba: este script decide
    cuáles importan y los imprime él, con su motivo. */
 const registro=console.error;console.error=()=>{};
@@ -80,4 +97,4 @@ if(inesperados.length){
  process.exit(1);
 }
 const toleradas=(informe.results||[]).filter(r=>!r.ok).length;
-console.log(`Batería ejecutada sin navegador: ${informe.passed}/${informe.total} · ${toleradas} dependen del DOM y se comprueban abriendo la página.`);
+console.log(`Batería ejecutada sin navegador${semilla===null?'':' con la semilla '+semilla}: ${informe.passed}/${informe.total} · ${toleradas} dependen del DOM y se comprueban abriendo la página.`);

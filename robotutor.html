@@ -216,6 +216,17 @@
     .solution-hidden .solution-region{margin:0 12px 12px}
     .solution.show{display:block}
     .solution-step{display:grid;grid-template-columns:29px 1fr;gap:9px;padding:9px 0}
+    .solution-step>div{min-width:0}
+    .solution-part{display:block;margin:0 0 5px;padding:3px 9px;border-radius:7px;background:var(--text);color:var(--card);font-size:.78rem;font-weight:800;letter-spacing:.03em;width:fit-content}
+    .solution-step.is-part{margin-top:8px;padding-top:14px;border-top:2px solid var(--line)}
+    .solution-lead{font-weight:800;color:var(--text)}
+    .sol-formula{white-space:normal;font-family:inherit;display:grid;gap:6px;font-size:.95rem}
+    .sol-line{line-height:1.55;overflow-wrap:anywhere}
+    .sol-line b{font-weight:750;color:var(--text)}
+    .sol-answer{padding:7px 11px;border-left:4px solid var(--cyan);border-radius:0 8px 8px 0;background:var(--card);font-weight:800}
+    .sol-eq{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:3px 0;overflow-x:auto}
+    .sol-label{font-weight:800;white-space:nowrap}
+    .sol-matrix{display:inline-grid;grid-template-columns:repeat(var(--cols),auto);gap:3px 16px;padding:5px 11px;border-left:2.5px solid var(--text);border-right:2.5px solid var(--text);border-radius:7px/16px;text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
     .solution-pitfalls{margin-top:15px;padding:11px 13px;border-left:4px solid var(--orange);border-radius:0 11px 11px 0;background:var(--soft)}
     .solution-pitfalls h4{margin:0 0 6px;font-size:.87rem;color:var(--text)}
     .solution-pitfalls ul{margin:0;padding-left:19px}
@@ -1875,7 +1886,7 @@ $$A_i=\begin{bmatrix}c_\theta&-s_\theta c_\alpha&s_\theta s_\alpha&a_i c_\theta\
 <ul><li>Usar zᵢ como articulación i mientras se aplica una fórmula que usa zᵢ₋₁.</li><li>Confundir una distancia medida en perspectiva con la normal común.</li><li>Elegir una terna reflejada, con determinante −1.</li><li>Asignar el TCP al marco final sin incluir un desplazamiento de herramienta existente.</li></ul>
 <p class="source">Fundamentos de robótica · §4.1.2, algoritmo de Denavit–Hartenberg</p>
   `},
-  {title:"4.4 Cinemática inversa",html:String.raw`
+  {title:"4.4 Cinemática inversa: planteamiento y método geométrico",html:String.raw`
 <h3>De una posición objetivo a las variables articulares</h3>
 <p>La cinemática inversa busca q tal que f(q) coincida con el objetivo. Antes de resolver, declara si se pide <strong>posición</strong> o <strong>pose completa</strong>. Un 2R planar suele resolver dos coordenadas; no puede imponer además una orientación independiente para cualquier punto. Una tarea puede tener ninguna, una, varias o infinitas soluciones.</p>
 <h4>Deducción geométrica del 2R</h4>
@@ -1901,25 +1912,6 @@ $$q_3=\varphi-q_1-q_2$$</div>
 <h4>SCARA y brazo espacial</h4>
 <p>En el SCARA RRP, resuelve el 2R en XY y luego q₃=z−d₀. Para p=(3; 2; 1,5), L₁=3, L₂=2 y d₀=2, una solución es (0°; 90°; −0,5). Comprueba el recorrido prismático, aunque XY sea alcanzable.</p>
 <p>En un 3R de acimut y dos elevaciones, calcula r<sub>h</sub>=√(x²+y²), ζ=z−h y q₁=atan2(y,x). Resuelve el 2R vertical con longitudes L₂,L₃ y objetivo (r<sub>h</sub>,ζ). Para buscar todas las ramas, considera también q₁+π y la proyección −r<sub>h</sub>, según límites. Sobre el eje Z, q₁ requiere un análisis especial porque el acimut no queda fijado por la posición.</p>
-<h4>n, o, a y p: qué son y cómo se leen</h4>
-<p>En cinemática inversa el dato es <em>dónde</em> y <em>cómo</em> debe quedar la herramienta. Las dos cosas caben en una matriz homogénea cuyas columnas tienen nombre propio, y de sus iniciales sale la abreviatura <strong>noap</strong>:</p>
-<div class="formula">$$T=\begin{bmatrix}\mathbf n&\mathbf o&\mathbf a&\mathbf p\\0&0&0&1\end{bmatrix}=\begin{bmatrix}n_x&o_x&a_x&p_x\\n_y&o_y&a_y&p_y\\n_z&o_z&a_z&p_z\\0&0&0&1\end{bmatrix}$$</div>
-<p>Los nombres vienen de una pinza. Imagina la herramienta acercándose a una pieza:</p>
-<figure class="c4-region"><svg viewBox="0 0 360 250" role="img" aria-label="Pinza con sus vectores n, o y a, y el vector p desde la base"><title>Los vectores n, o, a y p sobre una pinza</title><path d="M45 215H88 M45 215V172 M45 215L24 232" fill="none" stroke="var(--muted)" stroke-width="2"/><path d="M45 215L198 129" fill="none" stroke="var(--text)" stroke-width="2" stroke-dasharray="6 5"/><polygon points="209,123 200.9,133.3 196.1,124.5" fill="var(--text)"/><rect x="88" y="110" width="34" height="20" rx="4" fill="var(--soft)" stroke="var(--text)"/><rect x="120" y="100" width="34" height="40" rx="5" fill="var(--soft)" stroke="var(--text)" stroke-width="1.5"/><rect x="154" y="100" width="58" height="9" rx="3" fill="var(--soft)" stroke="var(--text)" stroke-width="1.5"/><rect x="154" y="131" width="58" height="9" rx="3" fill="var(--soft)" stroke="var(--text)" stroke-width="1.5"/><path d="M215 120H275" stroke="#2f6fdb" stroke-width="3.5"/><polygon points="287,120 273,113 273,127" fill="#2f6fdb"/><path d="M215 120V66" stroke="#2e9e5b" stroke-width="3.5"/><polygon points="215,54 208,68 222,68" fill="#2e9e5b"/><path d="M215 120L182 157" stroke="#d64545" stroke-width="3.5"/><polygon points="174,166 188,161 178,152" fill="#d64545"/><circle cx="215" cy="120" r="4.5" fill="var(--text)"/><g fill="var(--text)" font-family="system-ui,sans-serif" font-size="16" font-weight="700"><text x="292" y="126" fill="#2f6fdb">a</text><text x="224" y="60" fill="#2e9e5b">o</text><text x="158" y="184" fill="#d64545">n</text><text x="128" y="192">p</text></g><g fill="var(--muted)" font-family="system-ui,sans-serif" font-size="13"><text x="92" y="220">X₀</text><text x="4" y="228">Y₀</text><text x="38" y="166">Z₀</text><text x="222" y="140">TCP</text><text x="52" y="238">base</text></g></svg><figcaption>a sale de la muñeca por entre los dedos, hacia la pieza. o es la dirección en la que los dedos se abren y se cierran. n es perpendicular a las dos. p va del origen de la base al punto de trabajo.</figcaption></figure>
-<div class="table-wrap"><table class="dh-algorithm"><thead><tr><th>Vector</th><th>Nombre</th><th>Qué indica</th><th>Eje del extremo</th></tr></thead><tbody>
-<tr><td><strong>p</strong></td><td>Posición</td><td>Dónde está el punto de trabajo, medido desde el origen de la base. Es el único con unidades de longitud.</td><td>Su origen</td></tr>
-<tr><td><strong>a</strong></td><td>Aproximación</td><td>Hacia dónde avanza la herramienta para llegar a la pieza.</td><td>z</td></tr>
-<tr><td><strong>o</strong></td><td>Orientación</td><td>La dirección en la que se abren y se cierran los dedos.</td><td>y</td></tr>
-<tr><td><strong>n</strong></td><td>Normal</td><td>La perpendicular a las otras dos, que completa la terna.</td><td>x</td></tr>
-</tbody></table></div>
-<p>Tres ideas evitan casi todos los errores con estos vectores:</p>
-<ul><li><strong>n, o y a son direcciones, no puntos.</strong> No tienen unidades y miden 1. Se leen como flechas: a = (0, 0, −1) significa «la herramienta apunta hacia abajo»; a = (1, 0, 0), «apunta según el eje x de la base».</li><li><strong>Los cuatro están expresados en los ejes de la base.</strong> T dice cómo se ve el sistema del extremo desde el sistema 0.</li><li><strong>Son perpendiculares entre sí y cumplen n = o × a.</strong> Conocidos dos, el tercero no se elige. Por eso los nueve números de la orientación valen en realidad por tres, que con los tres de p suman seis: los seis grados de libertad de un sólido en el espacio.</li></ul>
-<h4>Escribir una localización a partir de una tarea</h4>
-<p>Casi nunca te dan T hecha: te dan una frase, y la matriz la escribes tú. Ejemplo: «coger una pieza situada en (0,5; 0,2; 0,3) m, entrando desde arriba, con los dedos cerrándose a lo largo del eje y de la base».</p>
-<ol><li><strong>p</strong> es el punto: p = (0,5; 0,2; 0,3).</li><li>«Entrando desde arriba» es la aproximación: la herramienta baja, <strong>a</strong> = (0, 0, −1).</li><li>«Los dedos se cierran a lo largo de y» es la orientación: <strong>o</strong> = (0, 1, 0).</li><li><strong>n</strong> no se elige: es el producto vectorial de los otros dos.</li></ol>
-<div class="formula">$$\mathbf n=\mathbf o\times\mathbf a=\begin{bmatrix}o_ya_z-o_za_y\\o_za_x-o_xa_z\\o_xa_y-o_ya_x\end{bmatrix}=\begin{bmatrix}1\cdot(-1)-0\\0-0\\0-0\end{bmatrix}=\begin{bmatrix}-1\\0\\0\end{bmatrix}$$
-$$T=\begin{bmatrix}-1&0&0&0{,}5\\0&1&0&0{,}2\\0&0&-1&0{,}3\\0&0&0&1\end{bmatrix}$$</div>
-<p><strong>Cómo saber si una T está bien escrita.</strong> Antes de resolver nada, comprueba cuatro cosas: que n, o y a miden 1; que son perpendiculares dos a dos, es decir, que sus productos escalares valen 0; que n = o × a y no su opuesto, porque entonces la terna sería zurda y esa matriz no describe ninguna orientación; y que la última fila es 0 0 0 1. Una T que falla alguna no tiene solución, por bien que se despeje.</p>
 <h4>Los tres métodos del libro, y cuándo entran n, o, a y p</h4>
 <p>El libro del curso resuelve la cinemática inversa de tres maneras. No son intercambiables: cada una parte de un dato distinto, y eso decide si la orientación —los vectores n, o y a— hace falta o no.</p>
 <div class="table-wrap"><table class="dh-algorithm"><thead><tr><th>Método</th><th>Dato de partida</th><th>Dónde se usa</th><th>Papel de n, o y a</th></tr></thead><tbody>
@@ -1928,6 +1920,7 @@ $$T=\begin{bmatrix}-1&0&0&0{,}5\\0&1&0&0{,}2\\0&0&-1&0{,}3\\0&0&0&1\end{bmatrix}
 <tr><td><strong>Desacoplo cinemático</strong></td><td>La localización T = [n o a p].</td><td>Robots de seis ejes cuyos tres últimos se cortan en un punto.</td><td>Imprescindibles: a sitúa el centro de la muñeca, y [n o a] da sus tres giros.</td></tr>
 </tbody></table></div>
 <p>La razón de fondo es una cuenta. Un robot de tres grados de libertad solo puede cumplir tres condiciones, y la posición ya son tres: la orientación con la que llega no se elige, resulta. Para imponer además la orientación hacen falta seis ejes. Por eso, con tres, cualquier postura que alcance el punto es solución, aunque deje la herramienta girada de otra manera.</p>
+<p>El método geométrico se desarrolla en este tema. Los otros dos tienen el suyo, a continuación: «Cinemática inversa por la matriz homogénea» y «Desacoplo cinemático».</p>
 <h4>Resolver la inversa de un robot en el espacio, paso a paso</h4>
 <p>Sea cual sea el método, un robot espacial se resuelve en el mismo orden. La clave es no atacar las tres coordenadas a la vez: primero se separa lo que depende de una sola articulación.</p>
 <ol>
@@ -1968,6 +1961,32 @@ $$\sin q_3=\pm\sqrt{1-\cos^2q_3},\qquad q_3=\operatorname{atan2}(\sin q_3,\cos q
 <figure class="lesson-plate" data-plate="espacial-3r" data-args='{"h":1,"l2":2,"l3":2,"q1":30,"q2":45,"q3":-60}'><figcaption>Primera solución, (30°; 45°; −60°): el codo queda por encima de la recta que une el hombro con el extremo.</figcaption></figure>
 <figure class="lesson-plate" data-plate="espacial-3r" data-args='{"h":1,"l2":2,"l3":2,"q1":30,"q2":-15,"q3":60}'><figcaption>Segunda solución, (30°; −15°; 60°): mismo punto, con el codo por debajo.</figcaption></figure>
 <p>Quedan otras dos, con la base girada media vuelta y el brazo echado hacia atrás: (−150°; 135°; 60°) y (−150°; −165°; −60°). Alcanzan el mismo punto, y si valen o no lo deciden los topes del hombro.</p>
+<div class="callout"><strong>En Practicar.</strong> En «Cinemática inversa · de la localización a las articulaciones», el robot antropomórfico se resuelve por el método geométrico, a partir del punto p: vale cualquier postura que lo alcance. La inversa del brazo plano de dos eslabones sale en la práctica de este tema.</div>
+<p class="source">Fundamentos de robótica (Barrientos, Peñín, Balaguer y Aracil) · §4.2.1, resolución del problema cinemático inverso por métodos geométricos</p>
+<div class="callout"><strong>Validación final.</strong> Sustituye cada candidato en la directa, comprueba la tarea pedida y filtra por límites. Alcanzar un punto no garantiza una orientación deseada ni un camino libre de colisiones.</div>
+  `},
+  {title:"4.9 Cinemática inversa por la matriz homogénea: n, o, a y p",html:String.raw`
+<h3>La localización como dato: n, o, a y p</h3>
+<p>El método geométrico parte de un punto. Este parte de la <strong>localización</strong> completa del extremo —dónde está y cómo queda orientado—, escrita como una matriz, y despeja las articulaciones a partir de la tabla DH. Antes de usarla hay que saber leerla.</p>
+<h4>n, o, a y p: qué son y cómo se leen</h4>
+<p>En cinemática inversa el dato es <em>dónde</em> y <em>cómo</em> debe quedar la herramienta. Las dos cosas caben en una matriz homogénea cuyas columnas tienen nombre propio, y de sus iniciales sale la abreviatura <strong>noap</strong>:</p>
+<div class="formula">$$T=\begin{bmatrix}\mathbf n&\mathbf o&\mathbf a&\mathbf p\\0&0&0&1\end{bmatrix}=\begin{bmatrix}n_x&o_x&a_x&p_x\\n_y&o_y&a_y&p_y\\n_z&o_z&a_z&p_z\\0&0&0&1\end{bmatrix}$$</div>
+<p>Los nombres vienen de una pinza. Imagina la herramienta acercándose a una pieza:</p>
+<figure class="c4-region"><svg viewBox="0 0 360 250" role="img" aria-label="Pinza con sus vectores n, o y a, y el vector p desde la base"><title>Los vectores n, o, a y p sobre una pinza</title><path d="M45 215H88 M45 215V172 M45 215L24 232" fill="none" stroke="var(--muted)" stroke-width="2"/><path d="M45 215L198 129" fill="none" stroke="var(--text)" stroke-width="2" stroke-dasharray="6 5"/><polygon points="209,123 200.9,133.3 196.1,124.5" fill="var(--text)"/><rect x="88" y="110" width="34" height="20" rx="4" fill="var(--soft)" stroke="var(--text)"/><rect x="120" y="100" width="34" height="40" rx="5" fill="var(--soft)" stroke="var(--text)" stroke-width="1.5"/><rect x="154" y="100" width="58" height="9" rx="3" fill="var(--soft)" stroke="var(--text)" stroke-width="1.5"/><rect x="154" y="131" width="58" height="9" rx="3" fill="var(--soft)" stroke="var(--text)" stroke-width="1.5"/><path d="M215 120H275" stroke="#2f6fdb" stroke-width="3.5"/><polygon points="287,120 273,113 273,127" fill="#2f6fdb"/><path d="M215 120V66" stroke="#2e9e5b" stroke-width="3.5"/><polygon points="215,54 208,68 222,68" fill="#2e9e5b"/><path d="M215 120L182 157" stroke="#d64545" stroke-width="3.5"/><polygon points="174,166 188,161 178,152" fill="#d64545"/><circle cx="215" cy="120" r="4.5" fill="var(--text)"/><g fill="var(--text)" font-family="system-ui,sans-serif" font-size="16" font-weight="700"><text x="292" y="126" fill="#2f6fdb">a</text><text x="224" y="60" fill="#2e9e5b">o</text><text x="158" y="184" fill="#d64545">n</text><text x="128" y="192">p</text></g><g fill="var(--muted)" font-family="system-ui,sans-serif" font-size="13"><text x="92" y="220">X₀</text><text x="4" y="228">Y₀</text><text x="38" y="166">Z₀</text><text x="222" y="140">TCP</text><text x="52" y="238">base</text></g></svg><figcaption>a sale de la muñeca por entre los dedos, hacia la pieza. o es la dirección en la que los dedos se abren y se cierran. n es perpendicular a las dos. p va del origen de la base al punto de trabajo.</figcaption></figure>
+<div class="table-wrap"><table class="dh-algorithm"><thead><tr><th>Vector</th><th>Nombre</th><th>Qué indica</th><th>Eje del extremo</th></tr></thead><tbody>
+<tr><td><strong>p</strong></td><td>Posición</td><td>Dónde está el punto de trabajo, medido desde el origen de la base. Es el único con unidades de longitud.</td><td>Su origen</td></tr>
+<tr><td><strong>a</strong></td><td>Aproximación</td><td>Hacia dónde avanza la herramienta para llegar a la pieza.</td><td>z</td></tr>
+<tr><td><strong>o</strong></td><td>Orientación</td><td>La dirección en la que se abren y se cierran los dedos.</td><td>y</td></tr>
+<tr><td><strong>n</strong></td><td>Normal</td><td>La perpendicular a las otras dos, que completa la terna.</td><td>x</td></tr>
+</tbody></table></div>
+<p>Tres ideas evitan casi todos los errores con estos vectores:</p>
+<ul><li><strong>n, o y a son direcciones, no puntos.</strong> No tienen unidades y miden 1. Se leen como flechas: a = (0, 0, −1) significa «la herramienta apunta hacia abajo»; a = (1, 0, 0), «apunta según el eje x de la base».</li><li><strong>Los cuatro están expresados en los ejes de la base.</strong> T dice cómo se ve el sistema del extremo desde el sistema 0.</li><li><strong>Son perpendiculares entre sí y cumplen n = o × a.</strong> Conocidos dos, el tercero no se elige. Por eso los nueve números de la orientación valen en realidad por tres, que con los tres de p suman seis: los seis grados de libertad de un sólido en el espacio.</li></ul>
+<h4>Escribir una localización a partir de una tarea</h4>
+<p>Casi nunca te dan T hecha: te dan una frase, y la matriz la escribes tú. Ejemplo: «coger una pieza situada en (0,5; 0,2; 0,3) m, entrando desde arriba, con los dedos cerrándose a lo largo del eje y de la base».</p>
+<ol><li><strong>p</strong> es el punto: p = (0,5; 0,2; 0,3).</li><li>«Entrando desde arriba» es la aproximación: la herramienta baja, <strong>a</strong> = (0, 0, −1).</li><li>«Los dedos se cierran a lo largo de y» es la orientación: <strong>o</strong> = (0, 1, 0).</li><li><strong>n</strong> no se elige: es el producto vectorial de los otros dos.</li></ol>
+<div class="formula">$$\mathbf n=\mathbf o\times\mathbf a=\begin{bmatrix}o_ya_z-o_za_y\\o_za_x-o_xa_z\\o_xa_y-o_ya_x\end{bmatrix}=\begin{bmatrix}1\cdot(-1)-0\\0-0\\0-0\end{bmatrix}=\begin{bmatrix}-1\\0\\0\end{bmatrix}$$
+$$T=\begin{bmatrix}-1&0&0&0{,}5\\0&1&0&0{,}2\\0&0&-1&0{,}3\\0&0&0&1\end{bmatrix}$$</div>
+<p><strong>Cómo saber si una T está bien escrita.</strong> Antes de resolver nada, comprueba cuatro cosas: que n, o y a miden 1; que son perpendiculares dos a dos, es decir, que sus productos escalares valen 0; que n = o × a y no su opuesto, porque entonces la terna sería zurda y esa matriz no describe ninguna orientación; y que la última fila es 0 0 0 1. Una T que falla alguna no tiene solución, por bien que se despeje.</p>
 <h4>Método de la matriz homogénea: partir de n, o, a y p</h4>
 <p>No depende del dibujo: parte de la tabla DH y de la localización deseada, escrita como <strong>T = [n o a p]</strong>, y despeja las articulaciones una a una.</p>
 <ol><li>Escribe la igualdad T = ⁰A₁·¹A₂·…·ⁿ⁻¹Aₙ. A la izquierda todo son números: los doce de n, o, a y p. A la derecha están las incógnitas.</li><li>Premultiplica los dos lados por la inversa de ⁰A₁. A la izquierda queda una matriz que solo depende de q₁; a la derecha, el producto del resto, donde q₁ ya no aparece.</li><li>Busca una igualdad con una constante a la derecha, mejor si es un cero: de ella sale q₁. Empieza por la cuarta columna, porque las ecuaciones de p suelen ser las más cortas.</li><li>Repite con la inversa de la matriz siguiente, hasta que no queden incógnitas.</li><li>Usa atan2 en lugar de arctan, que no distingue entre un ángulo y el que está media vuelta más allá. Y comprueba cada solución con la cinemática directa.</li></ol>
@@ -2000,9 +2019,12 @@ $$q_3=c_2\,(p_z-d_1)-s_2\,u$$</div>
 <li><strong>La herramienta, con n.</strong> φ = atan2(n<sub>y</sub>, n<sub>x</sub>) = 45°, y q₄ = q₁ + q₂ − φ. Con la primera rama, 30° + 60° − 45° = 45°; con la segunda, 76,83° − 60° − 45° = −28,17°.</li>
 </ol>
 <p>Las dos soluciones son (30°; 60°; 1,5 m; 45°) y (76,83°; −60°; 1,5 m; −28,17°). Sin n, q₄ no se podría calcular: cualquier valor dejaría el extremo en el mismo punto.</p>
-<div class="callout"><strong>En Practicar.</strong> La actividad «Cinemática inversa · de la localización a las articulaciones» propone cinco robots y puntúa cada articulación por separado. El antropomórfico se resuelve por el método geométrico, a partir de p; los demás, por el de la matriz homogénea, a partir de T. En los de tres grados de libertad vale cualquier postura que alcance la posición; en el SCARA, que tiene cuatro, hay que reproducir también la orientación. «Cinemática inversa completa · tabla DH y articulaciones» pide el problema entero: primero la tabla del mecanismo dibujado y después la inversa. Y «Desacoplo cinemático · muñeca de seis ejes» practica las dos partes del tercer método, que se explica más abajo.</div>
-<p class="source">Fundamentos de robótica (Barrientos, Peñín, Balaguer y Aracil) · §4.2, cinemática inversa: resolución por métodos geométricos y a partir de la matriz de transformación homogénea</p>
-<div class="callout"><strong>Validación final.</strong> Sustituye cada candidato en la directa, comprueba la tarea pedida y filtra por límites. Alcanzar un punto no garantiza una orientación deseada ni un camino libre de colisiones.</div>
+<div class="callout"><strong>En Practicar.</strong> «Cinemática inversa · de la localización a las articulaciones» da la tabla DH y T de cuatro robots: cartesiano, cilíndrico, polar y SCARA. En los de tres grados de libertad vale cualquier postura que alcance la posición; en el SCARA, que tiene cuatro, hay que reproducir también la orientación. «Cinemática inversa completa · tabla DH y articulaciones» pide primero la tabla del mecanismo dibujado, y «Cinemática inversa · ecuaciones del robot», las ecuaciones sin números.</div>
+<p class="source">Fundamentos de robótica (Barrientos, Peñín, Balaguer y Aracil) · §4.2.2, resolución del problema cinemático inverso a partir de la matriz de transformación homogénea</p>
+  `},
+  {title:"4.10 Desacoplo cinemático: robots de seis ejes",html:String.raw`
+<h3>Seis ejes: separar la posición de la orientación</h3>
+<p>Un robot de seis ejes tiene seis incógnitas, y despejarlas todas a la vez de T no es practicable. El <strong>desacoplo cinemático</strong> las parte en dos grupos de tres. Es el método en el que los vectores n, o y a hacen falta de verdad: sin ellos no se puede ni empezar.</p>
   `}
  ]},
  {
@@ -2672,7 +2694,7 @@ $$T=\begin{bmatrix}c_{12}&-s_{12}&0&L_1c_1+L_2c_{12}\\s_{12}&c_{12}&0&L_1s_1+L_2
 <p>Los pesos W hacen comparables articulaciones con distintos recorridos o unidades. La cercanía del destino no demuestra que el trayecto sea válido: hay que comprobarlo entre posturas y considerar colisiones, límites y singularidades.</p>
 <h4>Cuando no hay forma cerrada</h4>
 <p>No todos los manipuladores admiten solución analítica. Si la geometría no se deja despejar —una muñeca que no es esférica, por ejemplo—, la inversa se resuelve <strong>numéricamente</strong>: se parte de una postura semilla y se corrige por pasos hasta que el error cae por debajo de una tolerancia. Esos métodos quedan fuera del alcance de este curso, pero conviene saber tres cosas de ellos.</p>
-<ul><li>La solución que encuentran depende de la semilla: dos semillas distintas pueden converger a ramas distintas.</li><li>Convergen localmente. Que el objetivo esté dentro del área de trabajo no garantiza que un punto de partida cualquiera llegue a él.</li><li>Cerca de una postura singular la corrección se vuelve inestable y hay que frenarla explícitamente, por las razones que se explican en el tema de cinemática inversa.</li></ul>
+<ul><li>La solución que encuentran depende de la semilla: dos semillas distintas pueden converger a ramas distintas.</li><li>Convergen localmente. Que el objetivo esté dentro del área de trabajo no garantiza que un punto de partida cualquiera llegue a él.</li><li>Cerca de una postura singular la corrección se vuelve inestable y hay que frenarla explícitamente, por las razones que se explican más abajo.</li></ul>
 <p>La comprobación sigue siendo la misma que en el caso analítico: sustituye la solución en la cinemática directa y verifica que el extremo cae donde se pedía.</p>
   `},
    {title:"4.8 DH estándar y modificado: convenciones que no deben mezclarse",html:String.raw`
@@ -2839,8 +2861,10 @@ $$R=R_z(\theta_1)R_x(\theta_4)$$</div>
 for(const chapter of chapters)for(const topic of chapter.topics)if(topic.title.startsWith('4.1 '))topic.html+=mechanicalTheory;
 /* El jacobiano salió del temario, pero las singularidades y el desacoplo de
    muñeca no son suyos: se explican igual desde la inversa, que es donde el
-   alumno se los encuentra. Esta teoría viajaba en el tema 4.5 y se reubica
-   aquí, reescrita sin derivadas ni rango. */
+   alumno se los encuentra. Las singularidades van al final de «ramas, límites
+   y robustez» (clave 4.7) y el desacoplo forma su propio tema (clave 4.10):
+   la cinemática inversa era un solo tema de dieciocho apartados, y el usuario
+   pidió repartirla. */
 const inverseSingularityTheory=String.raw`<h4>Singularidades, vistas desde la cinemática inversa</h4>
 <p>Una postura es <strong>singular</strong> cuando el extremo pierde la capacidad de moverse instantáneamente en alguna dirección. No hace falta derivar nada para reconocerla: en cinemática inversa se delata por sus síntomas, y todos se ven en el dibujo.</p>
 <ul>
@@ -2849,8 +2873,8 @@ const inverseSingularityTheory=String.raw`<h4>Singularidades, vistas desde la ci
 <li><strong>Infinitas soluciones en la muñeca.</strong> Si los ejes 4 y 6 quedan colineales, q₄ y q₆ giran alrededor de la misma recta: cualquier pareja con la misma suma produce la misma orientación. Hay infinitas soluciones y, a cambio, se ha perdido un grado de libertad instantáneo de orientación.</li>
 <li><strong>Giros enormes para desplazamientos pequeños.</strong> Cerca de una de estas posturas, mover el extremo un poco exige cambiar mucho las articulaciones. Un algoritmo de inversa que empieza a devolver ángulos disparatados suele estar acercándose a una singularidad, no fallando.</li>
 </ul>
-<div class="callout"><strong>Frontera y singularidad no son lo mismo.</strong> La frontera exterior del 2R es singular porque el brazo está extendido. Pero si q₂ está limitado a [30°,120°], los extremos del área los fija el tope articular con sin q₂≠0: esa frontera es perfectamente regular. Un límite mecánico también cierra la región, y no por ello crea una singularidad.</div>
-<h4>Desacoplo de la muñeca esférica</h4>
+<div class="callout"><strong>Frontera y singularidad no son lo mismo.</strong> La frontera exterior del 2R es singular porque el brazo está extendido. Pero si q₂ está limitado a [30°,120°], los extremos del área los fija el tope articular con sin q₂≠0: esa frontera es perfectamente regular. Un límite mecánico también cierra la región, y no por ello crea una singularidad.</div>`;
+const wristDecouplingTheory=String.raw`<h4>Desacoplo de la muñeca esférica</h4>
 <p>Cuando los tres últimos ejes se cortan en un punto común —el <strong>centro de muñeca</strong>—, la inversa se parte en dos problemas pequeños en lugar de uno grande. Si t es el desplazamiento del centro de muñeca al TCP expresado en el marco final, y (p<sub>d</sub>, R<sub>d</sub>) es la pose pedida:</p>
 <div class="formula">$$p_w=p_d-R_d\,t$$</div>
 <p>Las tres primeras articulaciones solo tienen que situar p<sub>w</sub>, que es un problema de posición de tres incógnitas. Con ellas resueltas se conoce R₀³, y la orientación que le queda a la muñeca sale de R₃⁶=(R₀³)ᵀR<sub>d</sub>. Posición primero, orientación después.</p>
@@ -2869,7 +2893,7 @@ $$ {}^{3}R_6=\begin{bmatrix}c_4c_5c_6-s_4s_6&-c_4c_5s_6-s_4c_6&c_4s_5\\s_4c_5c_6
 <p>La tercera columna y la tercera fila son productos de solo dos factores. De ellas salen los tres ángulos:</p>
 <div class="formula">$$q_5=\operatorname{atan2}\!\left(\pm\sqrt{r_{13}^2+r_{23}^2},\;r_{33}\right)$$
 $$q_4=\operatorname{atan2}(\pm r_{23},\,\pm r_{13}),\qquad q_6=\operatorname{atan2}(\pm r_{32},\,\mp r_{31})$$</div>
-<p>Los signos van juntos: los de arriba si se toma sen q₅ positivo, los de abajo si negativo. Son dos soluciones, (q₄, q₅, q₆) y (q₄ + 180°, −q₅, q₆ + 180°), que dejan la herramienta exactamente igual: la muñeca llega por un lado o por el otro. Si r₃₃ = ±1, sen q₅ = 0 y las fórmulas de q₄ y q₆ quedan en atan2(0, 0): es la singularidad de la muñeca descrita arriba, y solo se puede conocer la suma de los dos giros.</p>
+<p>Los signos van juntos: los de arriba si se toma sen q₅ positivo, los de abajo si negativo. Son dos soluciones, (q₄, q₅, q₆) y (q₄ + 180°, −q₅, q₆ + 180°), que dejan la herramienta exactamente igual: la muñeca llega por un lado o por el otro. Si r₃₃ = ±1, sen q₅ = 0 y las fórmulas de q₄ y q₆ quedan en atan2(0, 0): es la singularidad de la muñeca, que se describe en el tema «Cinemática inversa: ramas, límites y robustez», y solo se puede conocer la suma de los dos giros.</p>
 <p>El libro escribe q₅ con el arco coseno y los otros dos con cocientes, y recomienda pasarlos a arco tangente para programarlos. La forma con atan2 es ese último paso ya dado: conserva el cuadrante y no divide por cero.</p>
 <h4>Ejemplo resuelto completo: robot de seis ejes</h4>
 <p>El robot de la tabla anterior, con l₁ = 0,8, l₂ = 0,6, l₃ = 0,5 y l₄ = 0,2 m, debe llevar su herramienta a:</p>
@@ -2893,10 +2917,14 @@ $$q_4=\operatorname{atan2}(\pm r_{23},\,\pm r_{13}),\qquad q_6=\operatorname{ata
 </ol>
 <p>No es la única solución. La muñeca admite también (−135°; −60°; −150°), que deja la herramienta igual. Y con el otro codo, (q₂; q₃) = (−57,21°; 120°), el centro de la muñeca cae en el mismo sitio, pero ⁰R₃ cambia y los tres giros de la muñeca hay que volver a calcularlos desde el paso 6.</p>
 <div class="callout warn"><strong>Compruébalo multiplicando.</strong> El elemento de la segunda fila y la tercera columna de ³R₆ es s₄s₅. En el ejemplar del libro que se usa en el curso aparece impreso como −s₄c₅ en las ecuaciones de la muñeca, pero al multiplicar los tres bloques de giro que da el propio libro sale s₄s₅. Aquí se usa el valor que resulta del producto, que es también el que reproduce la orientación al sustituir los ángulos. Si en clase se sigue la fórmula impresa, coméntalo con tu profesor.</div>
+<div class="callout"><strong>En Practicar.</strong> «Desacoplo cinemático · muñeca de seis ejes» practica las dos mitades por separado: el centro de la muñeca y sus tres giros. «Desacoplo cinemático completo · de T a los seis ángulos» es el problema entero, puntuado por partes.</div>
 <p class="source">Fundamentos de robótica (Barrientos, Peñín, Balaguer y Aracil) · §4.2.3, desacoplo cinemático</p>
 <p>Dos avisos que suelen costar puntos. El desacoplo <strong>no</strong> implica que un robot sin muñeca esférica carezca de solución: implica que en general hay que resolverla numéricamente en lugar de con fórmulas cerradas. Y <strong>tampoco</strong> implica que girar la muñeca no mueva el TCP: lo mueve en cuanto la herramienta tiene un offset, porque entonces el TCP no está en el centro de muñeca.</p>
 <div class="callout"><strong>Antes de buscar la fórmula cerrada, comprueba la hipótesis.</strong> Si un robot que se supone de muñeca esférica no admite solución analítica, lo primero que hay que verificar es si sus tres últimos ejes se cortan de verdad en un punto. Basta un pequeño offset de diseño para que el desacoplo deje de ser válido.</div>`;
-for(const chapter of chapters)for(const topic of chapter.topics)if(topic.title.startsWith('4.4 '))topic.html+=inverseSingularityTheory;
+for(const chapter of chapters)for(const topic of chapter.topics){
+ if(topic.title.startsWith('4.7 '))topic.html+=inverseSingularityTheory;
+ if(topic.title.startsWith('4.10 '))topic.html+=wristDecouplingTheory;
+}
 
 const glossary = [
 ["Actuador","Dispositivo que convierte energía eléctrica, neumática o hidráulica en movimiento o fuerza."],
@@ -3006,7 +3034,7 @@ const roadmap = [
    en este punto y renombra el archivo en consecuencia.
    Ojo: `progress.version` es otra cosa — numera el esquema de datos guardados en
    localStorage y avanza solo cuando cambia la forma de ese objeto. */
-const APP_VERSION="3.58.0";
+const APP_VERSION="3.59.0";
 const APP_STAGE="láminas claras · verdadero/falso y respuestas abiertas";
 /* Los cuatro niveles del curso. Toda comprobación de dificultad debe leer de aquí:
    el selector, las preferencias guardadas, la política pedagógica y los bancos. */
@@ -3053,8 +3081,10 @@ const TOPIC_ORDER=Object.freeze({
   "4.3",   /* asignación de marcos DH */
   "4.6",   /* algoritmo auditable de asignación */
   "4.8",  /* estándar frente a modificado: cierra el bloque DH */
-  "4.4",   /* cinemática inversa */
-  "4.7"    /* ramas, límites y robustez, con singularidades y muñeca */
+  "4.4",   /* cinemática inversa: planteamiento y método geométrico */
+  "4.9",   /* la localización como dato: n, o, a y p, y la matriz homogénea */
+  "4.10",  /* desacoplo cinemático: seis ejes */
+  "4.7"    /* ramas, límites y robustez, con las singularidades */
  ])
 });
 /* Número de orden que encabeza el título de un tema, por ejemplo «3.4». */
@@ -3960,14 +3990,17 @@ const TOPIC_BY_CONCEPT=Object.freeze({
      salió del programa y sus preguntas dejan de sortearse. No se borran del
      banco para que banco e índice sigan alineados por posición, y para poder
      devolverlas si el temario cambia. */
- 4:Object.freeze(["4.4","","4.2","4.7","4.1","4.5","4.2","4.7","4.4","",
+ /* Las preguntas sobre la muñeca esférica y el desacoplo (8, 23, 30, 43 y
+     72) van con su tema, el 4.10; la de qué es una singularidad (60), con el
+     4.7, que es donde se explican ahora. */
+ 4:Object.freeze(["4.4","","4.2","4.7","4.1","4.5","4.2","4.7","4.10","",
   "","4.6","4.8","4.3","","4.5","4.1","4.2","4.2","4.1",
-  "","4.4","4.2","4.4","3.13","3.13","4.4","4.1","3.13","",
-  "4.7","4.3","4.7","","4.8","3.13","","4.7","4.6","4.7",
-  "4.7","4.6","3.13","4.7","3.13","","","4.8","4.7","4.6",
+  "","4.4","4.2","4.10","3.13","3.13","4.4","4.1","3.13","",
+  "4.10","4.3","4.7","","4.8","3.13","","4.7","4.6","4.7",
+  "4.7","4.6","3.13","4.10","3.13","","","4.8","4.7","4.6",
   "4.7","4.7","4.7","4.1","4.3","4.2","3.13","3.13","4.6","4.3",
-  "4.4","4.3","3.13","3.13","3.13","4.6","4.3","","4.4","3.13",
-  "","4.3","4.7","","3.13","4.7","4.8","4.6","","3.13",
+  "4.7","4.3","3.13","3.13","3.13","4.6","4.3","","4.4","3.13",
+  "","4.3","4.10","","3.13","4.7","4.8","4.6","","3.13",
   "4.2","4.2","4.6",""]),
  5:Object.freeze(["5.1","5.2","5.3","5.3","5.3","5.4","5.4","5.5","5.2","5.6",
   "5.6","5.6","5.7","5.2","5.5","5.5","5.5","5.6","5.6","5.6",
@@ -4780,7 +4813,7 @@ const REFLECTION_BANK=[
  {key:'frames',topic:'3.3',yes:'Componer movimientos exige conocer si cada eje está referido al sistema fijo o al sistema móvil.',no:'El orden de multiplicación de transformaciones no depende de si sus ejes son fijos o móviles.',trap:'no depende',question:'Un enunciado describe dos giros sin indicar si los ejes son fijos o móviles. Explica qué ambigüedad aparece.',criteria:['Identifica la referencia de los ejes como dato necesario.','Relaciona ese dato con el orden o lado de composición, sin asumir que las rotaciones conmutan.']},
  {key:'point',topic:'3.11',yes:'Dos ternas de coordenadas distintas pueden representar el mismo punto físico en marcos diferentes.',no:'Si cambian las coordenadas de un punto al cambiar de marco, el punto necesariamente se ha movido físicamente.',trap:'necesariamente',question:'Explica cómo puede cambiar la terna de coordenadas de un punto inmóvil cuando se cambia el marco de referencia.',criteria:['Distingue el punto físico de su representación.','Relaciona el cambio de coordenadas con la posición y orientación de los marcos.']},
  {key:'workspace',topic:'3.13',yes:'Los límites articulares pueden reducir la región alcanzable aunque las longitudes de los eslabones permanezcan iguales.',no:'El espacio de trabajo depende únicamente de las longitudes y nunca de los límites articulares.',trap:'únicamente … y nunca',question:'Dos brazos tienen las mismas longitudes, pero distintos límites articulares. Explica por qué pueden tener regiones alcanzables diferentes.',criteria:['Considera el conjunto de configuraciones permitidas.','Distingue alcance máximo de región completa, incluidos huecos o sectores no alcanzables.']},
- {key:'singularity',topic:'4.4',yes:'En una configuración singular el extremo pierde la capacidad de moverse instantáneamente en alguna dirección.',no:'Toda frontera del área de trabajo es una configuración singular.',trap:'Toda',question:'Explica cómo reconocerías una singularidad de un brazo 2R mirando solo su postura y sus soluciones de cinemática inversa.',criteria:['Señala que las ramas codo arriba y codo abajo se funden en una sola solución.','Distingue una frontera causada por el alcance del brazo de otra causada por un tope articular.']},
+ {key:'singularity',topic:'4.7',yes:'En una configuración singular el extremo pierde la capacidad de moverse instantáneamente en alguna dirección.',no:'Toda frontera del área de trabajo es una configuración singular.',trap:'Toda',question:'Explica cómo reconocerías una singularidad de un brazo 2R mirando solo su postura y sus soluciones de cinemática inversa.',criteria:['Señala que las ramas codo arriba y codo abajo se funden en una sola solución.','Distingue una frontera causada por el alcance del brazo de otra causada por un tope articular.']},
  {key:'inverse',topic:'4.3',yes:'Verificar una solución mediante cinemática directa no sustituye la comprobación de límites y colisiones.',no:'Si una solución de cinemática inversa reproduce la posición pedida, siempre es ejecutable por el robot real.',trap:'siempre',question:'Una solución inversa reproduce la posición deseada. Explica qué comprobarías antes de considerarla ejecutable.',criteria:['Comprueba límites articulares y obstáculos o colisiones.','Considera orientación requerida, singularidades o continuidad del movimiento.']},
  {key:'gravity',topic:'5.5',yes:'Mantener velocidad articular nula no implica que el par necesario para sostener el robot sea nulo.',no:'Un robot inmóvil nunca necesita par en sus articulaciones.',trap:'nunca',question:'Explica por qué un brazo inmóvil puede necesitar par para sostener una carga.',criteria:['Relaciona el par con el momento de las fuerzas gravitatorias.','Distingue equilibrio estático de ausencia de fuerzas o pares.']},
  {key:'pid',topic:'5.6',yes:'La saturación del actuador puede impedir alcanzar la respuesta prevista por un modelo lineal del control.',no:'Aumentar indefinidamente las ganancias de un PID garantiza una respuesta cada vez mejor.',trap:'indefinidamente … garantiza',question:'Un aumento de ganancias provoca oscilaciones y saturación. Explica por qué la mejora del control no puede basarse solo en aumentar ganancias.',criteria:['Considera límites del actuador y dinámica no ideal.','Relaciona ganancias con estabilidad, ruido u oscilaciones; propone verificar la respuesta del sistema.']},
@@ -5464,17 +5497,17 @@ function initMechanicalControls(){
   /* El desacoplo no depende del robot elegido: usa siempre el de seis ejes con
      muñeca esférica, y alterna sus dos partes. */
   if(task==='six'){
-   appState.practiceTopicKey='4.4';appState.currentExercise=makeInverseSixAxis(diff);
+   appState.practiceTopicKey='4.10';appState.currentExercise=makeInverseSixAxis(diff);
    document.getElementById('feedback').className='feedback';renderExercise();return;
   }
   if(task==='wrist'){
    ultimoDesacoplo=ultimoDesacoplo==='centro'?'giros':'centro';
-   appState.practiceTopicKey='4.4';appState.currentExercise=ultimoDesacoplo==='centro'?makeWristCenter(diff):makeWristAngles(diff);
+   appState.practiceTopicKey='4.10';appState.currentExercise=ultimoDesacoplo==='centro'?makeWristCenter(diff):makeWristAngles(diff);
    document.getElementById('feedback').className='feedback';renderExercise();return;
   }
   /* La inversa solo está resuelta para cinco robots: con otro elegido, o con «cualquiera», se toma uno acorde al nivel. */
   const model=inversa?(IK_NOAP_REFERENCE[modelSelect.value]?modelSelect.value:ikNoapModel(diff,ultimoModeloMecanico)):task==='chain'&&modelSelect.value==='any'?dhChainModel(diff,ultimoModeloMecanico):pickMechanicalModel(modelSelect.value);
-  ultimoModeloMecanico=model;appState.practiceTopicKey=inversa?'4.4':task==='dh'||task==='chain'?'4.3':'4.1';appState.currentExercise=task==='ikchain'?makeInverseChain(diff,model):task==='ikeq'?makeInverseEquations(diff,model):inversa?makeInverseNoap(diff,model):makeArchitectureExercise(diff,model,task);
+  ultimoModeloMecanico=model;appState.practiceTopicKey=inversa?(model==='anthropomorphic3'?'4.4':'4.9'):task==='dh'||task==='chain'?'4.3':'4.1';appState.currentExercise=task==='ikchain'?makeInverseChain(diff,model):task==='ikeq'?makeInverseEquations(diff,model):inversa?makeInverseNoap(diff,model):makeArchitectureExercise(diff,model,task);
   if(task==='identify')modelSelect.value='any';
   document.getElementById('feedback').className='feedback';renderExercise();
  };renderMechanicalControls();
@@ -8303,8 +8336,13 @@ function legacyTopicNumericGenerators(key,diff){
  /* La inversa del 2R por método geométrico estaba archivada en «Asignación de
     marcos DH», con el que no tiene relación; los temas de cinemática inversa,
     mientras tanto, no ofrecían ni un ejercicio de cálculo. */
+ /* La cinemática inversa se reparte en tres temas, uno por método. Cada
+    lista solo ofrece ejercicios que pertenecen a su tema: el antropomórfico se
+    resuelve por el método geométrico y los demás, por la matriz homogénea. */
+ if(key==="4.4")return[d=>makeGeometric2R(d,'inverse'),d=>makeInverseNoap(d,"anthropomorphic3"),d=>makeInverseChain(d,"anthropomorphic3"),d=>makeInverseEquations(d,"anthropomorphic3")];
+ if(key==="4.9")return[d=>makeInverseNoap(d,ikMatrixModel(d)),d=>makeInverseNoap(d,ikMatrixModel(d)),d=>makeInverseChain(d,ikMatrixModel(d)),d=>makeInverseEquations(d,ikMatrixModel(d))];
  /* El de seis ejes completo es largo: solo sale en los dos niveles altos. */
- if(key==="4.4")return[d=>makeGeometric2R(d,'inverse'),makeInverseNoap,makeInverseNoap,makeInverseChain,makeInverseEquations,makeWristCenter,makeWristAngles,...(diff>=3?[makeInverseSixAxis]:[])];
+ if(key==="4.10")return[makeWristCenter,makeWristAngles,...(diff>=3?[makeInverseSixAxis]:[])];
  if(key==="4.2")return diff>=3?[makeDhRowMatrix,plausibleSpatial(makeDh3R)]:[makeDhRowMatrix];
  if(key==="3.13")return[makeWorkspaceExercise];
  if(key.startsWith("3."))return topicChapter3Kinds(key,diff).map(kind=>d=>makeChapter3Kind(d,kind));
@@ -9192,6 +9230,8 @@ function ikNoapModel(diff,previo=null){
  const otros=porNivel.filter(id=>id!==previo);
  return pick(otros.length?otros:porNivel);
 }
+/* Los robots que se resuelven por la matriz homogénea, de menos a más. */
+function ikMatrixModel(diff){return pick({1:["cartesian3","cylindrical3"],2:["cylindrical3","polar3"],3:["polar3","scara4"],4:["scara4","polar3"]}[Number(diff)]||["polar3"])}
 function ikDegrees(radianes){const g=radianes*180/Math.PI,n=((g+180)%360+360)%360-180;return Math.abs(n+180)<1e-9?180:n}
 function ikAngleDiff(a,b){return((a-b+180)%360+360)%360-180}
 /* La tabla con las coordenadas articulares q puestas en su sitio. */
@@ -9693,7 +9733,7 @@ function makeInverseNoap(diff,id="any"){
  const aclaraciones=geometrico
   ?`El robot tiene tres grados de libertad: se impone la posición, y la orientación queda determinada por ella. Vale cualquier postura que alcance p. ${unidades}`
   :`${completa?"El robot tiene cuatro grados de libertad: la respuesta debe reproducir la T completa, con su orientación.":"El robot tiene tres grados de libertad: basta con que el extremo alcance la posición p, y vale cualquier solución que lo haga."} ${unidades}`;
- return{id:`ik_noap_${id}`,kind:"ik-noap",chapter:4,difficulty:nivel,model:k.model,visual:"dhAssignment",geometryTopic:"4.4",matrixLayout:"ikNoap",
+ return{id:`ik_noap_${id}`,kind:"ik-noap",chapter:4,difficulty:nivel,model:k.model,visual:"dhAssignment",geometryTopic:geometrico?"4.4":"4.9",matrixLayout:"ikNoap",
   title:geometrico?"Cinemática inversa · método geométrico":"Cinemática inversa · método de la matriz homogénea",type:"matrix",rows:n,cols:1,answer:ik.solutions[0].map(v=>[v]),tolerance:IK_NOAP_TOL.longitud,
   statement:enunciado,notes:aclaraciones,
   /* `dh` guarda lo que necesita la inversa completa para pedir también la
@@ -9809,7 +9849,7 @@ function makeWristCenter(diff){
  const rows=wristRobotRows(L,q),k=KinematicsEngine.serialDH(rows),T=k.cumulative.at(-1).map(f=>f.map(Number));
  const col=j=>[T[0][j],T[1][j],T[2][j]],[n,o,a,p]=[0,1,2,3].map(col),resta=(v,signo=-1)=>p.map((x,i)=>[x+signo*L.l4*v[i]]),pm=resta(a);
  const f=x=>fmt(x,4),linea=(nombre,v)=>`${nombre} = (${v.map(f).join(", ")})`;
- return{id:"wrist_center",kind:"wrist-center",chapter:4,difficulty:nivel,model:"SphericalWrist6R",geometryTopic:"4.4",
+ return{id:"wrist_center",kind:"wrist-center",chapter:4,difficulty:nivel,model:"SphericalWrist6R",geometryTopic:"4.10",
   title:"Desacoplo cinemático · centro de la muñeca",type:"matrix",rows:3,cols:1,answer:pm,tolerance:.003,
   statement:`Localización pedida <strong>T = [n o a p]</strong> de un robot de seis ejes con muñeca esférica:${ikNoapTargetMarkup(T)}<strong>Calcula el centro de la muñeca, p<sub>m</sub> = [x; y; z]</strong>, en metros.`,
   notes:"l₄ es la distancia del centro de la muñeca al extremo, medida sobre el último eje, z₆.",
@@ -9844,7 +9884,7 @@ function makeWristAngles(diff){
  const dato=ik.R03
   ?`<strong>⁰R₃</strong>, con q₁, q₂ y q₃ ya resueltas:${ikNoapRotationMarkup(ik.R03,"Matriz de giro del sistema 3 respecto de la base")}Orientación pedida <strong>[n o a]</strong>:${ikNoapRotationMarkup(ik.noa,"Orientación pedida, con sus columnas n, o y a",["n","o","a"])}`
   :`<strong>³R₆ = (⁰R₃)ᵀ·[n o a]</strong>:${ikNoapRotationMarkup(T,"Matriz de giro del extremo respecto del sistema 3")}`;
- return{id:"ik_noap_wrist3",kind:"ik-noap",chapter:4,difficulty:nivel,model:"SphericalWrist6R",geometryTopic:"4.4",matrixLayout:"ikNoap",
+ return{id:"ik_noap_wrist3",kind:"ik-noap",chapter:4,difficulty:nivel,model:"SphericalWrist6R",geometryTopic:"4.10",matrixLayout:"ikNoap",
   title:"Desacoplo cinemático · giros de la muñeca",type:"matrix",rows:3,cols:1,answer:q0.map(v=>[v]),tolerance:IK_NOAP_TOL.longitud,
   statement:`Tabla DH de la muñeca esférica de un robot de seis ejes:${ikNoapTableMarkup(ik)}${dato}<strong>Calcula q₄, q₅ y q₆</strong>, en grados.`,
   notes:"³R₆ es la orientación que le queda por dar a la muñeca una vez colocadas las tres primeras articulaciones. Hay dos soluciones y vale cualquiera de las dos.",
@@ -9911,7 +9951,7 @@ function makeInverseSixAxis(diff){
   if(arms.length!==4||todas.length!==8||!todas.some(q=>ikNoapSame(ik,q,q0)))continue;
   ik.solutions=Object.freeze([q0,...todas.filter(q=>!ikNoapSame(ik,q,q0))]);
   const puntos=IK_SIX_PARTS.map(x=>`${x.nombre} ${x.peso}`).join(" · ");
-  return{id:"ik_six_axis",kind:"ik-six",chapter:4,difficulty:nivel,model:"SphericalWrist6R",geometryTopic:"4.4",matrixLayout:"ikSix",
+  return{id:"ik_six_axis",kind:"ik-six",chapter:4,difficulty:nivel,model:"SphericalWrist6R",geometryTopic:"4.10",matrixLayout:"ikSix",
    title:"Desacoplo cinemático completo · robot de seis ejes",type:"matrix",rows:3,cols:3,answer:[pm,q0.slice(0,3),q0.slice(3)],tolerance:IK_SIX_TOL.centro,
    statement:`Tabla DH de un robot de seis ejes con muñeca esférica:${ikNoapTableMarkup(ik)}Localización pedida <strong>T = [n o a p]</strong>:${ikNoapTargetMarkup(T)}<strong>Resuélvelo por desacoplo cinemático:</strong> 1) el centro de la muñeca; 2) q₁, q₂ y q₃; 3) q₄, q₅ y q₆.`,
    notes:`Puntuación sobre 10: ${puntos}; cada parte se reparte entre sus tres valores. Hay ocho soluciones, cuatro posturas del brazo y dos de la muñeca en cada una, y vale cualquiera. Un error no se cobra dos veces: el brazo se corrige también contra el centro que hayas escrito, y la muñeca, contra tu brazo. La longitud del último eslabón es d₆, la de la sexta fila. Distancias en metros y ángulos en grados.`,
@@ -10124,6 +10164,68 @@ function solutionHasContent(exercise){
  const html=solutionReasoningMarkup(exercise)+solutionPosturesMarkup(exercise)+solutionProcedureMarkup(exercise)+solutionStepsMarkup(exercise)+solutionPitfallsMarkup(exercise);
  return html.replace(/<[^>]*>/g,"").trim().length>0;
 }
+/* ---------- CÓMO SE PINTA UN PASO DE LA SOLUCIÓN ----------
+   Los generadores escriben cada paso como texto: una primera línea de
+   explicación y, debajo, líneas de cuentas. Aquí se le da forma al mostrarlo,
+   sin tocar lo que escriben:
+    · «Parte 1 · Tabla DH.» al principio de un paso se vuelve una cabecera que
+      separa las partes del problema;
+    · la primera frase, que dice qué se hace, va en negrita cuando le sigue
+      una explicación;
+    · las filas «[ a   b   c ]» seguidas se dibujan como una matriz, con su
+      nombre delante si la línea anterior acaba en «=»;
+    · en una línea de cuentas, lo que queda a la derecha del último «=» —el
+      resultado— va resaltado;
+    · y las líneas «Solución …» se destacan: son la respuesta.
+   Un paso con fórmulas de KaTeX se deja como estaba: partirlo en líneas
+   rompería sus delimitadores. */
+/* Un valor: un número con su unidad, o varios unidos por «· o bien». */
+const SOLUTION_VALUE=/^[−\-+±]?\s?\d[\d.,]*\s?(?:°|m|rad)?(?:\s·\so bien\s[−\-+]?\d[\d.,]*\s?(?:°|m|rad)?)*$/;
+function solutionFormulaMarkup(lineas){
+ const texto=lineas.join("\n");
+ if(/\$\$|\\\(|\\\[|<(?!\/?(?:sub|sup|strong|em|b|i)\b)/.test(texto))return`<div class="formula">${texto}</div>`;
+ const fila=/^\[ (.+) \]$/,celdas=linea=>fila.exec(linea)[1].trim().split(/\s{2,}| ; /);
+ const piezas=[];
+ const cuenta=linea=>{
+  if(/^Solución(?: \d+)?:/.test(linea))return`<div class="sol-line sol-answer">${linea}</div>`;
+  if(linea.includes("<"))return`<div class="sol-line">${linea}</div>`;
+  /* «θ = q₁: es la variable…», «Fila 2: …»: lo que nombra la línea va
+     resaltado, y su explicación, normal. */
+  const rotulo=/^([^:]{1,26}): (.+)$/.exec(linea);
+  if(rotulo)return`<div class="sol-line"><b>${rotulo[1]}:</b> ${rotulo[2]}</div>`;
+  /* En una cuenta, el resultado: lo que queda tras el último «=», si es un
+     valor y no otra expresión. */
+  const corte=linea.lastIndexOf(" = "),valor=corte>0?linea.slice(corte+3):"";
+  return SOLUTION_VALUE.test(valor)?`<div class="sol-line">${linea.slice(0,corte)} = <b>${valor}</b></div>`:`<div class="sol-line">${linea}</div>`;
+ };
+ for(let i=0;i<lineas.length;){
+  if(fila.test(lineas[i])){
+   const filas=[];
+   while(i<lineas.length&&fila.test(lineas[i])){filas.push(celdas(lineas[i]));i++}
+   if(filas.length>1&&filas.every(f=>f.length===filas[0].length)){
+    /* el nombre de la matriz es la línea anterior, si quedó abierta con «=» */
+    const previa=piezas.length&&piezas.at(-1).abierta?piezas.pop():null;
+    piezas.push({html:`<div class="sol-eq">${previa?`<span class="sol-label">${previa.texto}</span>`:""}<span class="sol-matrix" style="--cols:${filas[0].length}">${filas.flat().map(c=>`<span>${c}</span>`).join("")}</span></div>`});
+   }else for(const f of filas)piezas.push({html:cuenta(`[ ${f.join("   ")} ]`)});
+   continue;
+  }
+  const linea=lineas[i];i++;
+  if(!linea.trim())continue;
+  piezas.push(/=\s*$/.test(linea)?{html:`<div class="sol-line">${linea}</div>`,abierta:true,texto:linea.trim()}:{html:cuenta(linea)});
+ }
+ return`<div class="formula sol-formula">${piezas.map(x=>x.html).join("")}</div>`;
+}
+function solutionStepMarkup(texto,indice){
+ const lineas=String(texto).split("\n");let primera=lineas[0],cabecera="";
+ const limpia=!/[<&]/.test(primera);
+ const parte=limpia?/^((?:Parte \d+ · [^.:]+|Primera parte|Segunda parte|Tercera parte)[.:]) ?(.*)$/.exec(primera):null;
+ if(parte){cabecera=`<strong class="solution-part">${parte[1]}</strong>`;primera=parte[2]}
+ /* La primera frase es la acción del paso. Solo se resalta si detrás viene su
+    explicación: un paso de una sola frase en negrita no destacaría nada. */
+ const frase=limpia?/^(.{8,84}?[.:])( .+)$/.exec(primera):null;
+ const cuerpo=frase?`<span class="solution-lead">${frase[1]}</span>${frase[2]}`:primera;
+ return`<div class="solution-step${parte?" is-part":""}"><span class="n">${indice+1}</span><div>${cabecera}${cabecera&&cuerpo?" ":""}${cuerpo}${lineas.length>1?solutionFormulaMarkup(lineas.slice(1)):""}</div></div>`;
+}
 function solutionStepsMarkup(exercise){
  const pasos=(exercise&&exercise.steps)||[];
  const region=exercise&&exercise.kind==="workspace"&&!exercise.params?.telescopic&&Number.isFinite(exercise.params&&exercise.params.radialMax)
@@ -10131,7 +10233,7 @@ function solutionStepsMarkup(exercise){
   :"";
  const visibles=visibleStepIndexes(pasos.length,exercise&&exercise.difficulty);
  const alaVista=indice=>visibles==="todos"||visibles.includes(indice);
- const paso=(texto,indice)=>{const p=String(texto).split("\n");return`<div class="solution-step"><span class="n">${indice+1}</span><div>${p[0]}${p[1]?`<div class="formula">${p.slice(1).join("\n")}</div>`:""}</div></div>`};
+ const paso=(texto,indice)=>solutionStepMarkup(texto,indice);
  const piezas=[];let plegados=[];
  const cerrar=()=>{
   if(!plegados.length)return;
@@ -13080,8 +13182,12 @@ function runSelfTests(){
     [/Denavit–Hartenberg/i,/Asignación de marcos/i],
     [/Asignación de marcos/i,/algoritmo auditable/i],
     [/algoritmo auditable/i,/estándar y modificado/i],
-    [/estándar y modificado/i,/Cinemática inversa$/i],
-    [/Cinemática inversa/i,/ramas, límites/i]
+    [/estándar y modificado/i,/planteamiento y método geométrico/i],
+    /* la inversa, un método por tema y en el orden del libro; las ramas y las
+       singularidades cierran, cuando ya se han visto los tres */
+    [/planteamiento y método geométrico/i,/por la matriz homogénea/i],
+    [/por la matriz homogénea/i,/Desacoplo cinemático/i],
+    [/Desacoplo cinemático/i,/ramas, límites/i]
    ];
    return cadena4.every(([a,b])=>antes(4,a,b));
   }],
@@ -14191,8 +14297,14 @@ function runSelfTests(){
      for(let i=0;i<10;i++){
       const e=generadores[capitulo](nivel);e.difficulty=nivel;
       const html=solutionStepsMarkup(e);
-      /* todo paso debe seguir presente, esté o no plegado */
-      if(!e.steps.every(paso=>html.includes(String(paso).split("\n")[0])))return false;
+      /* todo paso debe seguir presente, esté o no plegado. Se compara el
+         texto, sin el marcado: el paso se pinta con cabeceras y negritas, pero
+         no puede perder ni una palabra */
+      /* sin espacios ni corchetes: una matriz se dibuja celda a celda, sin
+         los corchetes de texto con que se escribió */
+      const texto=h=>String(h).replace(/<[^>]+>/g,"").replace(/[\[\]\s]+/g,"");
+      const pintado=texto(html);
+      if(!e.steps.every(paso=>String(paso).split("\n").every(linea=>pintado.includes(texto(linea)))))return false;
       /* y en los niveles altos algo tiene que estar efectivamente plegado */
       if(nivel>=3&&e.steps.length>1&&!html.includes("solution-hidden"))return false;
       if(nivel<=1&&html.includes("solution-hidden"))return false;
@@ -14200,6 +14312,38 @@ function runSelfTests(){
     }
    }
    return true;
+  }],
+  ["El procedimiento se pinta con sus partes, sus matrices y sus resultados",()=>{
+   const texto=h=>String(h).replace(/<[^>]+>/g,"").replace(/\s+/g," ").trim();
+   /* una matriz escrita como filas de texto se dibuja como matriz, con su nombre */
+   const m=solutionStepMarkup("Multiplica los bloques de giro. Sale la orientación.\n⁰R₃ =\n[ 0   -1   0 ]\n[ 1   0   0 ]\n[ 0   0   1 ]\nq₁ = atan2(1, 0) = 90°\nSolución 1: (90°; 0°; 2 m)",2);
+   if(!m.includes('<span class="sol-matrix" style="--cols:3">')||(m.match(/<span>/g)||[]).length!==9||!m.includes('<span class="sol-label">⁰R₃ =</span>'))return false;
+   /* el resultado de la cuenta va resaltado, y la solución, destacada */
+   if(!m.includes("q₁ = atan2(1, 0) = <b>90°</b>")||!m.includes('<div class="sol-line sol-answer">Solución 1: (90°; 0°; 2 m)</div>'))return false;
+   const cuentas=solutionFormulaMarkup(["c₁·px + s₁·py = −s₂·q₃","θ = q₁: es la variable, el giro alrededor de z₀.","q₃ = atan2(± 0.5, 0.866) = 30° · o bien -30°","p = (4, 0, 2)"]);
+   if(cuentas.includes("<b>−s₂·q₃</b>")||!cuentas.includes("<b>θ = q₁:</b> es la variable")||!cuentas.includes("= <b>30° · o bien -30°</b>")||cuentas.includes("<b>(4, 0, 2)</b>"))return false;
+   /* la primera frase, en negrita, y el número del paso */
+   if(!m.includes('<span class="solution-lead">Multiplica los bloques de giro.</span> Sale la orientación.')||!m.includes('<span class="n">3</span>'))return false;
+   /* una parte nueva lleva su cabecera y su separación */
+   const parte=solutionStepMarkup("Parte 2 · Cinemática inversa. La tabla es la misma.",4);
+   if(!parte.includes('class="solution-step is-part"')||!parte.includes('<strong class="solution-part">Parte 2 · Cinemática inversa.</strong>')||texto(parte)!=="5Parte 2 · Cinemática inversa. La tabla es la misma.")return false;
+   /* filas sueltas o desiguales no son una matriz, y no se pierden */
+   const suelta=solutionStepMarkup("Lee la fila.\n[ 1   2   3 ]",0),desigual=solutionStepMarkup("Mira.\n[ 1   2 ]\n[ 3 ]",0);
+   if(suelta.includes("sol-matrix")||desigual.includes("sol-matrix")||!texto(suelta).includes("[ 1 2 3 ]")||!texto(desigual).includes("[ 3 ]"))return false;
+   /* un paso de una sola frase no se pone entero en negrita */
+   if(solutionStepMarkup("Se calculan tres matrices.",0).includes("solution-lead"))return false;
+   /* las fórmulas de KaTeX y el marcado propio de otros ejercicios se respetan */
+   const tex=solutionStepMarkup("Matriz.\n$$\\begin{bmatrix}1&0\\\\0&1\\end{bmatrix}$$",0),tabla=solutionStepMarkup("Tabla.\n<table><tr><td>1</td></tr></table>",0);
+   if(!tex.includes('<div class="formula">$$')||tex.includes("sol-formula")||!tabla.includes('<div class="formula"><table>'))return false;
+   /* y en los ejercicios de verdad: nada se pierde, y las matrices se dibujan */
+   const plano=h=>String(h).replace(/<[^>]+>/g,"").replace(/[\[\]\s]+/g,"");
+   for(const e of [makeInverseSixAxis(3),makeInverseChain(2,"polar3"),makeInverseEquations(3,"scara4"),makeInverseNoap(3,"scara4"),makeDhRowMatrix(2)]){
+    const html=solutionStepsMarkup({...e,difficulty:1}),pintado=plano(html);
+    if(!e.steps.every(paso=>String(paso).split("\n").every(linea=>pintado.includes(plano(linea)))))return false;
+    if(/undefined|NaN/.test(html))return false;
+   }
+   const seis=solutionStepsMarkup({...makeInverseSixAxis(3),difficulty:1});
+   return (seis.match(/sol-matrix/g)||[]).length===2&&(seis.match(/solution-part/g)||[]).length===3&&(seis.match(/sol-answer/g)||[]).length===8;
   }],
   ["En el nivel extremo el resultado no se entrega antes de pedirlo",()=>{
    /* Incluida la región sombreada del área de trabajo, que lo delataría. */
@@ -15670,7 +15814,11 @@ function runSelfTests(){
    if(!T.every((f,i)=>f.every((v,j)=>cerca(Number(otra[i][j]),v,1e-9))))return false;
    /* y la teoría cita esos mismos números */
    /* por el nombre: el número de un tema en pantalla no es el de su clave */
-   const tema=chapters.flatMap(c=>c.topics).find(t=>t.title.endsWith(" Cinemática inversa"))?.html||"";
+   const tema=chapters.flatMap(c=>c.topics).filter(t=>["4.4","4.9","4.10"].includes(topicMarkKey(t))).map(t=>t.html).join("\n");
+   /* cada ejemplo está en el tema de su método, y solo en él */
+   const de=clave=>topicByKey(clave)?.topic.html||"";
+   if(!de("4.4").includes("2,8978; 1,6730; 1,8966")||!de("4.9").includes("76,83° − 60° − 45° = −28,17°")||!de("4.10").includes("(0,6665; 0,3848; 1,5330)"))return false;
+   if(de("4.4").includes("0{,}7404")||de("4.9").includes("0{,}7404")||de("4.10").includes("2,8978")||!de("4.7").includes("Singularidades, vistas desde la cinemática inversa")||de("4.4").includes("Singularidades, vistas"))return false;
    return ["2,8978; 1,6730; 1,8966","(−150°; −165°; −60°)","76,83° − 60° − 45° = −28,17°","0{,}7404","(0,6665; 0,3848; 1,5330)","−57,21°","(−135°; −60°; −150°)","-0{,}7891","n, o y a son direcciones, no puntos"].every(x=>tema.includes(x));
   }],
   ["Una fila con desfase se evalúa con el ángulo ya sumado",()=>{
@@ -15747,7 +15895,7 @@ function runSelfTests(){
     /* la celda que sobra en un robot de tres ejes va fija */
     if(n===3&&!matrixCellPolicy(e,n,3).locked)return false;
     if(matrixCellPolicy(e,n,0).locked||matrixCellPolicy(e,0,3).locked)return false;
-    if(exerciseTopicKey(e)!=="4.4"||!isStatementOnlyExercise(e)||hasMechanicalWorkedSolution(e)||!solutionHasContent({...e,attempted:true})||buildPedagogyTrace(e).source==="kinematics")return false;
+    if(exerciseTopicKey(e)!==(id==="anthropomorphic3"?"4.4":"4.9")||!isStatementOnlyExercise(e)||hasMechanicalWorkedSolution(e)||!solutionHasContent({...e,attempted:true})||buildPedagogyTrace(e).source==="kinematics")return false;
     /* el desarrollo va entero y en orden: los ejes, una fila cada vez, la
        tabla, y solo entonces la inversa, que empieza por las matrices con letras */
     const parte2=e.steps.findIndex(t=>t.startsWith("Parte 2"));
@@ -15807,7 +15955,7 @@ function runSelfTests(){
    const falla=(e,clave,texto)=>{try{igual(e,clave,texto);return false}catch(err){return true}};
    for(const id of Object.keys(IK_EQ))for(const nivel of DIFFICULTY_LEVELS){
     const e=makeInverseEquations(nivel,id);
-    if(!isIkEquationsExercise(e)||e.type!=="symbolic"||isIkNoapExercise(e)||isStatementOnlyExercise(e)||hasMechanicalWorkedSolution(e)||exerciseVariantKind(e)!=="mechanical"||exerciseTopicKey(e)!=="4.4")return false;
+    if(!isIkEquationsExercise(e)||e.type!=="symbolic"||isIkNoapExercise(e)||isStatementOnlyExercise(e)||hasMechanicalWorkedSolution(e)||exerciseVariantKind(e)!=="mechanical"||exerciseTopicKey(e)!==(id==="anthropomorphic3"?"4.4":"4.9"))return false;
     /* la respuesta esperada vale, y nadie puede contestar una incógnita con ella misma */
     const bien=Object.fromEntries(e.symbolFields.map(f=>[f.key,wsFieldCanonical(e.answer[f.key],e,f)]));
     if(!answerIsCorrect(e,bien)||examQuestionScore(e,bien)!==1)return false;
@@ -15875,12 +16023,12 @@ function runSelfTests(){
      /* pero ese brazo, con el centro bien escrito, no vale */
      if(ikSixGrade(e,[pm,suBrazo,suMuneca]).partes.brazo.partes.every(Boolean))return false;
     }
-    if(exerciseTopicKey(e)!=="4.4"||!isStatementOnlyExercise(e)||hasMechanicalWorkedSolution(e)||exerciseVariantKind(e)!=="mechanical"||!solutionHasContent({...e,attempted:true}))return false;
+    if(exerciseTopicKey(e)!=="4.10"||!isStatementOnlyExercise(e)||hasMechanicalWorkedSolution(e)||exerciseVariantKind(e)!=="mechanical"||!solutionHasContent({...e,attempted:true}))return false;
     const partes=["Parte 1","Parte 2","Parte 3"].map(t=>e.steps.findIndex(x=>x.startsWith(t)));
     if(partes.some(i=>i<0)||!(partes[0]<partes[1]&&partes[1]<partes[2])||e.steps.some(t=>String(t).split("\n")[0].includes("<"))||/undefined|NaN/.test(e.steps.join(" ")+e.statement+e.notes))return false;
    }
    /* sale en la práctica del tema y en la rotación solo en los niveles altos */
-   return !topicNumericGenerators("4.4",2).includes(makeInverseSixAxis)&&topicNumericGenerators("4.4",3).includes(makeInverseSixAxis);
+   return !topicNumericGenerators("4.10",2).includes(makeInverseSixAxis)&&topicNumericGenerators("4.10",3).includes(makeInverseSixAxis);
   }],
   ["La solución de la inversa dibuja las posturas que llegan al mismo punto",()=>{
    const trazos=h=>(h.match(/<polyline/g)||[]).length;
@@ -15968,7 +16116,7 @@ function runSelfTests(){
     /* y no se mueve al girar la muñeca, aunque T cambie entera */
     const otra=KinematicsEngine.serialDH(rows.map((f,j)=>j>2?{...f,theta:f.theta+37+11*j}:f)).cumulative.at(-1);
     if(![0,1,2].every(r=>Math.abs(Number(otra[r][3])-Number(otra[r][2])*lengths.l4-pm[r])<1e-6))return false;
-    if(!answerIsCorrect(e,e.answer)||exerciseTopicKey(e)!=="4.4"||!solutionHasContent({...e,attempted:true}))return false;
+    if(!answerIsCorrect(e,e.answer)||exerciseTopicKey(e)!=="4.10"||!solutionHasContent({...e,attempted:true}))return false;
     /* los errores típicos no coinciden con la respuesta ni entre sí */
     const alt=e.diagnosticAlternatives.map(x=>x.matrix);
     if(alt.some(m=>answerIsCorrect(e,m))||alt.some((m,a)=>alt.some((n,b)=>a<b&&eq(m,n,.003))))return false;
@@ -15979,7 +16127,7 @@ function runSelfTests(){
    const giro3=M=>M.slice(0,3).map(f=>f.slice(0,3).map(Number)),tras=M=>M[0].map((_,j)=>M.map(f=>f[j]));
    for(const nivel of DIFFICULTY_LEVELS)for(let i=0;i<4;i++){
     const e=makeWristAngles(nivel),ik=e.params.ik,R=giro3(ik.T),col=sol=>sol.map(v=>[v]);
-    if(ik.solutions.length!==2||!isIkNoapExercise(e)||!isStatementOnlyExercise(e)||exerciseTopicKey(e)!=="4.4")return false;
+    if(ik.solutions.length!==2||!isIkNoapExercise(e)||!isStatementOnlyExercise(e)||exerciseTopicKey(e)!=="4.10")return false;
     for(const [q4,q5,q6] of ik.solutions){
      /* producto de los tres bloques de giro, sin el motor */
      const P=mul(mul(mul(mul(rot("z",q4),rot("x",-90)),rot("z",q5)),rot("x",90)),rot("z",q6));
@@ -16033,7 +16181,7 @@ function runSelfTests(){
     if(!dibujada.every((v,i)=>Math.abs(v-IK_NOAP_REFERENCE[id][i])<1e-9))return false;
     if(ikNoapSame(ik,dibujada,ik.solutions[0]))return false;
     /* ni se abre la solución de cinemática directa, que sería la de otra postura */
-    return exerciseTopicKey(e)==="4.4"&&isStatementOnlyExercise(e)&&!hasMechanicalWorkedSolution(e)&&solutionHasContent({...e,attempted:true})&&e.chips.length===0;
+    return exerciseTopicKey(e)===(id==="anthropomorphic3"?"4.4":"4.9")&&isStatementOnlyExercise(e)&&!hasMechanicalWorkedSolution(e)&&solutionHasContent({...e,attempted:true})&&e.chips.length===0;
    });
   }],
   ["La matriz de una fila DH es el producto de sus cuatro movimientos",()=>{
@@ -16054,7 +16202,12 @@ function runSelfTests(){
    return true;
   }],
   ["Denavit–Hartenberg tiene cálculo en todos los niveles y la inversa del 2R vive en su tema",()=>{
-   if(!DIFFICULTY_LEVELS.every(nivel=>topicNumericGenerators("4.2",nivel).length>0&&topicNumericGenerators("4.4",nivel).length>0))return false;
+   if(!DIFFICULTY_LEVELS.every(nivel=>["4.2","4.4","4.9","4.10"].every(clave=>topicNumericGenerators(clave,nivel).length>0)))return false;
+   /* cada tema de la inversa solo ofrece ejercicios suyos: quien practica el
+      método geométrico no recibe un problema de matriz homogénea */
+   for(const clave of ["4.4","4.9","4.10"])for(const nivel of DIFFICULTY_LEVELS)for(const genera of topicNumericGenerators(clave,nivel))for(let k=0;k<3;k++)if(exerciseTopicKey(genera(nivel))!==clave)return false;
+   /* y las preguntas de concepto sobre la muñeca van con el desacoplo */
+   if(conceptTopicIndex().get("¿Qué es una muñeca esférica?")!=="4.10"||conceptTopicIndex().get("¿Qué caracteriza a una configuración singular de un manipulador?")!=="4.7")return false;
    if(exerciseTopicKey(makeGeometric2R(2,"inverse"))!=="4.4"||exerciseTopicKey(makeDhRowMatrix(2))!=="4.2")return false;
    /* y ya no se cuela en el tema de asignación de marcos */
    for(let i=0;i<40;i++){const e=makeTopicExercise("4.3",2);if(e.kind==="geometric-2r")return false}

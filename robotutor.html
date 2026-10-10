@@ -3006,7 +3006,7 @@ const roadmap = [
    en este punto y renombra el archivo en consecuencia.
    Ojo: `progress.version` es otra cosa — numera el esquema de datos guardados en
    localStorage y avanza solo cuando cambia la forma de ese objeto. */
-const APP_VERSION="3.57.1";
+const APP_VERSION="3.58.0";
 const APP_STAGE="láminas claras · verdadero/falso y respuestas abiertas";
 /* Los cuatro niveles del curso. Toda comprobación de dificultad debe leer de aquí:
    el selector, las preferencias guardadas, la política pedagógica y los bancos. */
@@ -4855,7 +4855,7 @@ function textbookCylindrical({l1,l4,theta1,d2,d3,theta4}){
  ],[JOINT_AXIS_Z,null,null,[1,0,0]],{l1,l4,theta1,d2,d3,theta4});
 }
 function makeTextbookExercise(diff,model='scara'){
- const scara=model==='scara',params=scara?{l1:pick([4,5,6]),l2:pick([3,4,5]),l3:pick([2,2.5,3]),q1:pick([-30,0,30,60]),q2:pick([-75,-45,35,65]),q3:pick([1,1.5,2]),q4:pick([-60,0,45,90])}:{l1:pick([1,1.5,2]),l4:pick([.8,1,1.2]),theta1:pick([-30,0,30,60]),d2:pick([2,3,4]),d3:pick([2.5,3,4]),theta4:pick([-60,0,45,90])};
+ const scara=model==='scara',params=scara?{l1:pick([4,5,6]),l2:pick([3,4,5]),l3:pick([2,2.5,3]),q1:pick([-90,0,90]),q2:pick([-90,90]),q3:pick([1,1.5,2]),q4:pick([-90,0,90,180])}:{l1:pick([1,1.5,2]),l4:pick([.8,1,1.2]),theta1:pick([-90,0,90]),d2:pick([2,3,4]),d3:pick([2.5,3,4]),theta4:pick([-90,0,90,180])};
  const kinematics=scara?textbookScara(params):textbookCylindrical(params),pose=diff>=3&&Math.random()<.5;
  const chips=scara?[`l₁=${params.l1} m`,`l₂=${params.l2} m`,`l₃=${params.l3} m`,`q₁=${params.q1}°`,`q₂=${params.q2}°`,`q₃=${params.q3} m`,`q₄=${params.q4}°`]:[`l₁=${params.l1} m`,`l₄=${params.l4} m`,`θ₁=${params.theta1}°`,`d₂=${params.d2} m`,`d₃=${params.d3} m`,`θ₄=${params.theta4}°`];
  const convention=scara?'El origen está en el centro de la base, a nivel del suelo. Z apunta hacia arriba; X coincide con los brazos extendidos cuando q₁=q₂=0. Y completa el sistema dextrógiro. q₁ y q₂ son giros antihorarios vistos desde arriba; q₂ es relativo al primer brazo. q₃ es el descenso desde el segundo brazo. q₄ gira la herramienta alrededor de +Z; su orientación cero coincide con la del segundo brazo.':'El origen está en el centro inferior de la base. Z apunta hacia arriba; X sigue el brazo cuando θ₁=0. Y completa el sistema dextrógiro. θ₁ es antihorario visto desde arriba; d₂ se mide desde la parte superior de la base fija l₁ y d₃ desde la columna hasta la muñeca. θ₄ gira alrededor del eje longitudinal positivo del brazo según la mano derecha. La herramienta sobresale l₄ por ese mismo eje. En cero, el marco terminal es paralelo al marco base.';
@@ -5044,12 +5044,12 @@ function makeArchitectureExercise(diff,id='any',task='dh',question=null){
  if(task==='chain'&&id==='any')id=dhChainModel(diff);
  const def=chooseRobotArchitecture(id),n=def.types.length,sub=i=>'₁₂₃₄₅₆'[i];
  let rows,k,params={},dimensions=[],description='';
- const row=(a,alpha,d,theta)=>({a,alpha,d,theta}),q=()=>pick([-45,-30,30,45,60]),length=()=>pick([2.5,3,3.5]);
+ const row=(a,alpha,d,theta)=>({a,alpha,d,theta}),q=()=>pick([-90,90,180]),length=()=>pick([2.5,3,3.5]);
  if(def.id.startsWith('anthropomorphic')){
   const old=n===6?makeDhAssignment6R(diff):makeDhAssignment(diff);rows=old.params.kinematics.table;params={...old.params};delete params.kinematics;dimensions=old.params.dimensions;
   description=`Columna H=${params.H} m, brazo L₂=${params.L2} m y antebrazo L₃=${params.L3} m.${n===6?` Herramienta L₆=${params.L6} m; los tres ejes de la muñeca son concurrentes.`:''}`;
  }else if(def.id==='scara4'){
-  params={H:pick([4,4.5]),l1:0,l2:length(),l3:length(),q1:q(),q2:pick([-60,-35,35,60]),q3:pick([1.2,1.5,1.8]),q4:q(),tool:.9};params.l1=params.H;
+  params={H:pick([4,4.5]),l1:0,l2:length(),l3:length(),q1:q(),q2:pick([-90,90]),q3:pick([1.2,1.5,1.8]),q4:q(),tool:.9};params.l1=params.H;
   rows=[row(params.l2,0,params.H,params.q1),row(params.l3,180,0,params.q2),row(0,0,params.q3,0),row(0,0,params.tool,params.q4)];
   dimensions=['L₂','L₃','q₃','L₄'];description=`Altura fija H=${params.H} m; brazos horizontales L₂=${params.l2} m y L₃=${params.l3} m. La guía terminal apunta hacia abajo; L₄=${params.tool} m va desde el carro hasta E. Con los dos primeros giros en cero los brazos se extienden hacia +X.`;
  }else{
@@ -5060,11 +5060,11 @@ function makeArchitectureExercise(diff,id='any',task='dh',question=null){
    params.H=1.5;rows=[row(0,0,params.H,q()),row(0,-90,length(),0),row(0,0,length(),0)];dimensions=['H','q₂','q₃'];
    description=`La base fija tiene altura H=${params.H} m. Una guía vertical precede a la guía radial. Con el giro de la base en cero, la guía radial apunta hacia +Y y la normal de referencia hacia +X.`;
   }else{
-   params.H=2;rows=[row(0,90,params.H,q()),row(0,-90,0,pick([-60,-45,-30])),row(0,0,pick([3,3.5,4]),0)];dimensions=['H','','q₃'];
+   params.H=2;rows=[row(0,90,params.H,q()),row(0,-90,0,pick([-90,90])),row(0,0,pick([3,3.5,4]),0)];dimensions=['H','','q₃'];
    description=`Altura H=${params.H} m. Con ambos giros en cero la guía apunta hacia +Z; el segundo eje apunta hacia −Y cuando el primero está en cero. La inclinación negativa del segundo giro hace avanzar la guía hacia +X en ese plano.`;
   }
   if(n===5){params.L4=.65;params.L5=1.1;rows.push(row(0,90,params.L4,q()),row(0,0,params.L5,q()));dimensions.push('L₄','L₅');description+=` La muñeca tiene dos ejes perpendiculares separados por L₄=${params.L4} m sobre el primero; la herramienta mide L₅=${params.L5} m sobre el último.`;}
-  if(n===6){params.L6=pick([1.2,1.4]);rows.push(row(0,90,0,q()),row(0,-90,0,pick([-60,-45,45,60])),row(0,0,params.L6,q()));dimensions.push('','','L₆');description+=` En la muñeca los tres ejes se cortan; L₆=${params.L6} m se mide desde el cruce hasta E. En su referencia cero, el primer y último eje de muñeca son paralelos; el eje intermedio se obtiene con un cuarto de vuelta positivo alrededor de la normal entrante.`;}
+  if(n===6){params.L6=pick([1.2,1.4]);rows.push(row(0,90,0,q()),row(0,-90,0,pick([-90,90])),row(0,0,params.L6,q()));dimensions.push('','','L₆');description+=` En la muñeca los tres ejes se cortan; L₆=${params.L6} m se mide desde el cruce hasta E. En su referencia cero, el primer y último eje de muñeca son paralelos; el eje intermedio se obtiene con un cuarto de vuelta positivo alrededor de la normal entrante.`;}
  }
  k={...KinematicsEngine.serialDH(rows),model:'ArchitectureDH',architectureId:def.id,jointTypes:def.types.split(''),jointAxes:def.types.split('').map(t=>t==='R'?JOINT_AXIS_Z:null),geometry:params};
  // Store only input geometry beside the DH exercise, never expose a solved trace.
@@ -7056,7 +7056,7 @@ function makeChapter3Kind(diff,kind){
 /* Fixed exam worksheets. q1/q2 are joint coordinates; textbook α/φ/θ are
    reserved for elementary spatial rotations, not substituted into robot DH. */
 function makeGeometric2R(diff,variant=pick(['point','point','inverse','length'])){
- const L1=ri(3,6),L2=ri(2,5),q1=pick([-30,0,30,45,60]),q2=pick([45,60,90,120]);
+ const L1=ri(3,6),L2=ri(2,5),q1=pick([0,90,-90]),q2=90;
  const x=L1*Math.cos(rad(q1))+L2*Math.cos(rad(q1+q2)),y=L1*Math.sin(rad(q1))+L2*Math.sin(rad(q1+q2));
  const base={id:'geometric_2r_'+variant,chapter:4,difficulty:diff,kind:'geometric-2r',model:'Planar2R',visual:'planarWorksheet',geometryTopic:variant==='inverse'?'4.4':'4.1',title:'Planar 2R · método geométrico',params:{L1,L2,q1,q2,variant},chips:[],hints:[],steps:[],commonErrors:[],concepts:['método geométrico','cinemática planar'],tolerance:.003};
  const convention='q₁ se mide desde +X; q₂ desde la prolongación del primer eslabón. Los giros positivos son antihorarios. Longitudes en metros. ';
@@ -7236,9 +7236,11 @@ function initPlanarControls(){
 }
 
 function make2R(diff){
- let L1=ri(2,6),L2=ri(2,6),t1=pick([0,30,45,60,90,120]),t2=pick([0,30,45,60,90,-30,-45]);
+ let L1=ri(2,6),L2=ri(2,6),t1=pick([0,90,180,-90]),t2=pick([0,90,-90]);
  let solved=solveRobot2R(L1,L2,t1,t2),x=round(solved.effector.x),y=round(solved.effector.y),phi=round(solved.phiDegRaw);
- let ask=pick(["x","y","distance","phi"]),unit=angleMode();
+ /* Con ángulos rectos, una coordenada o la orientación salen a menudo en cero:
+    se pregunta por algo que haya que calcular. La distancia nunca es cero. */
+ let ask=pick(["x","y","distance","phi"].filter(k=>k==="distance"||Math.abs(k==="x"?x:k==="y"?y:phi)>.05)),unit=angleMode();
  let ans=ask==="x"?x:ask==="y"?y:ask==="phi"?(unit==="radians"?round(rad(phi)):phi):round(Math.hypot(x,y));
  let label=ask==="x"?"coordenada x":ask==="y"?"coordenada y":ask==="phi"?"orientación φ":"distancia radial √(x²+y²)";
  return{id:"forward_kinematics_2R",kind:"planar-2r",model:"Planar2R",chapter:4,type:"number",visual:"robot2r",title:"Cinemática directa 2R",
@@ -7260,7 +7262,7 @@ function make2R(diff){
   steps:[`x=L₁cos q₁+L₂cos(q₁+q₂)=${fmt(x)}`,`y=L₁sin q₁+L₂sin(q₁+q₂)=${fmt(y)}`,`${label} = ${ask==="phi"?angleLabel(phi,unit):fmt(ans)}`]};
 }
 function makePlanar3R(diff){
- const l1=ri(2,5),l2=ri(2,5),l3=ri(1,4),q1=pick([-60,-30,0,30,45,60,90]),q2=pick([-60,-30,0,30,45,60]),q3=pick([-45,-30,0,30,45]),kinematics=KinematicsEngine.planar3R({l1,l2,l3,q1,q2,q3}),tcp=kinematics.positions.at(-1),ask=pick(["x","y"]),answer=round(tcp[ask]);
+ const l1=ri(2,5),l2=ri(2,5),l3=ri(1,4),q1=pick([-90,0,90]),q2=pick([-90,0,90]),q3=pick([-90,0,90]),kinematics=KinematicsEngine.planar3R({l1,l2,l3,q1,q2,q3}),tcp=kinematics.positions.at(-1),ask=pick(["x","y"].filter(k=>Math.abs(tcp[k])>.05).concat(Math.abs(tcp.x)>.05||Math.abs(tcp.y)>.05?[]:["x"])),answer=round(tcp[ask]);
  return{id:"forward_planar_3R",kind:"planar-3r",model:"Planar3R",chapter:4,type:"number",visual:"spatialRobot",title:"Cinemática directa planar 3R",statement:`Calcula la coordenada <strong>${ask}</strong> del TCP. Los tres ángulos son relativos al eslabón anterior.`,answer,tolerance:.01,chips:[`L₁=${l1}`,`L₂=${l2}`,`L₃=${l3}`,formatAngle(q1,"q₁"),formatAngle(q2,"q₂"),formatAngle(q3,"q₃")],kinematics,params:{l1,l2,l3,q1,q2,q3},unit:angleMode(),convention:"Robot planar 3R: cada qᵢ es relativo y todos los ejes articulares son paralelos a +Z.",numericAlternatives:[{value:round(ask==="x"?l1*Math.cos(rad(q1))+l2*Math.cos(rad(q2))+l3*Math.cos(rad(q3)):l1*Math.sin(rad(q1))+l2*Math.sin(rad(q2))+l3*Math.sin(rad(q3))),message:"Cada eslabón se proyectó con su ángulo relativo. Las orientaciones absolutas son q₁, q₁+q₂ y q₁+q₂+q₃."},{value:round(ask==="x"?l1*Math.cos(rad(q1))+l2*Math.cos(rad(q1+q2)):l1*Math.sin(rad(q1))+l2*Math.sin(rad(q1+q2))),message:"Falta la contribución del tercer eslabón."}],concepts:["cinemática directa planar","ángulos relativos","suma vectorial"],commonErrors:["usar q₂ o q₃ como ángulos absolutos","omitir la contribución de un eslabón"],visualConfig:{defaultView:"2d",highlight:ask},hints:["Las orientaciones absolutas son q₁, q₁+q₂ y q₁+q₂+q₃.","Suma la proyección de cada eslabón sobre el eje solicitado.","Conserva el signo de cada seno o coseno."],steps:[`x=L₁cosq₁+L₂cos(q₁+q₂)+L₃cos(q₁+q₂+q₃)=${fmt(tcp.x)}`,`y=L₁sinq₁+L₂sin(q₁+q₂)+L₃sin(q₁+q₂+q₃)=${fmt(tcp.y)}`,`${ask}=${fmt(answer)}`]};
 }
 function pickInformativeAsk(kinematics,candidates,minimo=.05){
@@ -7282,21 +7284,21 @@ function spatialAnswerExercise({id,kind,model,title,statement,chips,kinematics,a
  return{id,kind,model,chapter:4,type:"number",visual:"spatialRobot",title,statement,answer:round(scalar[ask]),chips,kinematics,params,unit,convention,tolerance:.01,concepts:["cinemática directa espacial"],commonErrors:["signo de la elevación","mezclar grados y radianes"],visualConfig:{defaultView:"3d",highlight:ask},numericAlternatives:spatialScalarAlternatives(scalar,ask),hints,steps};
 }
 function makeSpatial2R(diff){
- const l1=ri(2,5),l2=ri(2,5),q1=pick([-90,-45,0,30,45,90,120]),q2=pick([-45,-30,0,30,45,60]),kinematics=KinematicsEngine.spatial2R({l1,l2,q1,q2}),ask=diff>=3&&Math.random()>.45?"position":pickInformativeAsk(kinematics,["x","y","z"]),tcp=kinematics.positions.at(-1);
+ const l1=ri(2,5),l2=ri(2,5),q1=pick([-90,0,90,180]),q2=pick([0,90]),kinematics=KinematicsEngine.spatial2R({l1,l2,q1,q2}),ask=diff>=3&&Math.random()>.45?"position":pickInformativeAsk(kinematics,["x","y","z"]),tcp=kinematics.positions.at(-1);
  return spatialAnswerExercise({id:"forward_spatial_2R",kind:"spatial-2r",model:"Spatial2R",title:"Cinemática espacial 2R yaw–pitch",statement:`Calcula ${ask==="position"?"el vector posición p":"la coordenada "+ask} del TCP.`,chips:[`L₁=${l1}`,`L₂=${l2}`,formatAngle(q1,"q₁"),formatAngle(q2,"q₂"),"ejes: Z → Y local"],kinematics,ask,diff,params:{l1,l2,q1,q2},convention:"q₁ gira alrededor de Z; q₂ eleva alrededor de Y local.",hints:["Primero orienta el plano vertical con q₁.","La elevación q₂ determina la componente z.","Usa las posiciones que entrega la cadena acumulada."],steps:[`p=[${fmt(tcp.x)}, ${fmt(tcp.y)}, ${fmt(tcp.z)}]ᵀ`,`Resultado solicitado: ${ask==="position"?"vector p":fmt(ask==="x"?tcp.x:ask==="y"?tcp.y:tcp.z)}`]});
 }
 function makeSpatial3R(diff){
- const h=ri(1,3),l2=ri(2,5),l3=ri(2,5),q1=pick([-90,-45,0,30,60,90,120]),q2=pick([-45,-30,0,30,45,60]),q3=pick([-90,-45,-30,0,30,45,60]),kinematics=KinematicsEngine.spatial3R({h,l2,l3,q1,q2,q3}),ask=diff>=3&&Math.random()>.45?"position":pickInformativeAsk(kinematics,["x","y","z","rho"]),tcp=kinematics.positions.at(-1);
+ const h=ri(1,3),l2=ri(2,5),l3=ri(2,5),q1=pick([-90,0,90,180]),q2=pick([0,90]),q3=pick([-90,0,90]),kinematics=KinematicsEngine.spatial3R({h,l2,l3,q1,q2,q3}),ask=diff>=3&&Math.random()>.45?"position":pickInformativeAsk(kinematics,["x","y","z","rho"]),tcp=kinematics.positions.at(-1);
  return spatialAnswerExercise({id:"forward_spatial_3R",kind:"spatial-3r",model:"Spatial3R",title:"Cinemática espacial 3R yaw–pitch–pitch",statement:`Calcula ${ask==="position"?"el vector posición p":ask==="rho"?"la distancia horizontal ρ":"la coordenada "+ask} del TCP.`,chips:[`h=${h}`,`L₂=${l2}`,`L₃=${l3}`,formatAngle(q1,"q₁"),formatAngle(q2,"q₂"),formatAngle(q3,"q₃")],kinematics,ask,diff,params:{h,l2,l3,q1,q2,q3},convention:"q₁ es acimut sobre Z; q₂ y q₃ son elevaciones pitch positivas hacia +Z.",hints:["Calcula primero la proyección radial con signo.","Proyecta ese valor sobre X e Y usando q₁; la distancia horizontal es su valor absoluto.","La altura suma h y las contribuciones senoidales."],steps:[`Proyección radial con signo: ρ_s=L₂cosq₂+L₃cos(q₂+q₃)=${fmt(kinematics.rho)}; distancia horizontal |ρ_s|=${fmt(Math.hypot(tcp.x,tcp.y))}`,`p=[${fmt(tcp.x)}, ${fmt(tcp.y)}, ${fmt(tcp.z)}]ᵀ`,`Resultado solicitado: ${ask==="position"?"vector p":fmt(ask==="rho"?Math.hypot(tcp.x,tcp.y):tcp[ask])}`]});
 }
 function makeScara(diff){
- const l1=ri(2,5),l2=ri(2,5),d0=2,q1=pick([-90,-45,0,30,60,90]),q2=pick([-90,-45,0,30,45,90]),q3=pick([-1.5,-1,-.5,.5,1,1.5]),kinematics=KinematicsEngine.scaraRRP({l1,l2,d0,q1,q2,q3}),ask=diff>=3&&Math.random()>.5?"position":pickInformativeAsk(kinematics,["x","y","z"]),tcp=kinematics.positions.at(-1);
+ const l1=ri(2,5),l2=ri(2,5),d0=2,q1=pick([-90,0,90,180]),q2=pick([-90,0,90]),q3=pick([-1.5,-1,-.5,.5,1,1.5]),kinematics=KinematicsEngine.scaraRRP({l1,l2,d0,q1,q2,q3}),ask=diff>=3&&Math.random()>.5?"position":pickInformativeAsk(kinematics,["x","y","z"]),tcp=kinematics.positions.at(-1);
  const exercise=spatialAnswerExercise({id:"forward_scara_rrp",kind:"scara-rrp",model:"SCARA_RRP",title:"Cinemática directa SCARA RRP",statement:`Calcula ${ask==="position"?"el vector posición p":"la coordenada "+ask} del TCP.`,chips:[`L₁=${l1}`,`L₂=${l2}`,`d₀=${d0}`,formatAngle(q1,"q₁"),formatAngle(q2,"q₂"),`q₃=${q3}`],kinematics,ask,diff,params:{l1,l2,d0,q1,q2,q3},convention:"La articulación prismática usa q₃ positivo hacia +Z: z=d₀+q₃.",hints:["Resuelve primero el 2R en el plano XY.","La articulación prismática solo modifica z.","Respeta el signo explícito de q₃."],steps:[`x=${fmt(tcp.x)}, y=${fmt(tcp.y)}`,`z=d₀+q₃=${fmt(tcp.z)}`,`Resultado solicitado: ${ask==="position"?"vector p":fmt(tcp[ask])}`]});
  if(ask==="position"&&!near(tcp.x,tcp.y,1e-6))exercise.diagnosticAlternatives=[{matrix:[[round(tcp.y)],[round(tcp.x)],[round(tcp.z)]],message:"Este resultado coincide con haber leído el eje X donde iba el eje Y (o viceversa). Antes de sustituir, confirma en el diagrama isométrico cuál flecha es roja (X) y cuál es verde (Y)."}];
  return exercise;
 }
 function makeDh3R(diff){
- const h=2,l2=ri(2,4),l3=ri(2,4),q1=pick([-60,-30,0,30,60,90]),q2=pick([-45,-30,0,30,45]),q3=pick([-60,-30,0,30,60]),table=[{a:0,alpha:90,d:h,theta:q1},{a:l2,alpha:0,d:0,theta:q2},{a:l3,alpha:0,d:0,theta:q3}],kinematics=KinematicsEngine.serialDH(table),ask=Math.random()>.55?"position":pickInformativeAsk(kinematics,["x","y","z"]),tcp=kinematics.positions.at(-1);
+ const h=2,l2=ri(2,4),l3=ri(2,4),q1=pick([-90,0,90,180]),q2=pick([0,90]),q3=pick([-90,0,90]),table=[{a:0,alpha:90,d:h,theta:q1},{a:l2,alpha:0,d:0,theta:q2},{a:l3,alpha:0,d:0,theta:q3}],kinematics=KinematicsEngine.serialDH(table),ask=Math.random()>.55?"position":pickInformativeAsk(kinematics,["x","y","z"]),tcp=kinematics.positions.at(-1);
  return spatialAnswerExercise({id:"forward_dh_3R",kind:"dh",model:"SerialDH",title:"Cadena DH espacial 3R",statement:`Usa la tabla DH suministrada para calcular ${ask==="position"?"la posición del TCP":"la coordenada <strong>"+ask+"</strong>"}.${dhTableMarkup(table)}`,chips:table.map((row,i)=>`(θ,d,a,α)${i+1}=(${fmt(row.theta,0)}°, ${fmt(row.d,2)}, ${fmt(row.a,2)}, ${fmt(row.alpha,0)}°)`),kinematics,ask,diff,params:{table},convention:"DH estándar: Aᵢ=Rz(θᵢ)Tz(dᵢ)Tx(aᵢ)Rx(αᵢ).",hints:["Construye cada Aᵢ por separado.","Acumula T₀ᵢ en el orden de la cadena.","La posición está en la cuarta columna de T₀³."],steps:[`Se calculan ${kinematics.individual.length} matrices Aᵢ.`,`p=[${fmt(tcp.x)}, ${fmt(tcp.y)}, ${fmt(tcp.z)}]ᵀ`,`Resultado solicitado: ${ask==="position"?"vector p":fmt(tcp[ask])}`]});
 }
 /* ---------- DE UNA FILA DE LA TABLA A SU MATRIZ · paso D-H 14 ----------
@@ -7309,8 +7311,8 @@ function makeDh3R(diff){
 function makeDhRowMatrix(diff){
  const nivel=Number(diff)||1,i=pick([1,2,3]);
  const prismatica=nivel>=2&&Math.random()<.3;
- let theta=prismatica?pick([0,90]):nivel===1?pick([0,90,-90,180]):pick([30,45,60,-30,-45,-60,120,135]);
- let alpha=nivel<=2?pick([0,90,-90]):pick([0,90,-90,30,-60,45]);
+ let theta=prismatica?pick([0,90]):pick([0,90,-90,180]);
+ let alpha=nivel<=2?pick([0,90,-90]):pick([0,90,-90,180]);
  let a=pick([0,1.5,2,2.5,3]),d=pick([0,1,1.5,2]);
  /* En el nivel fácil, un solo desplazamiento; y nunca la identidad disfrazada. */
  if(nivel===1&&a&&d){if(Math.random()<.5)a=0;else d=0}
@@ -7350,7 +7352,7 @@ function makeDhRowMatrix(diff){
    `Resultado:\n${mtxt(A)}`]};
 }
 function makeRrrp(diff){
- const l1=2,l2=ri(2,4),l3=ri(2,4),q1=pick([-60,-30,0,30,60]),q2=pick([-45,-30,0,30,45]),q3=pick([-45,-30,0,30,45]),q4=pick([.5,1,1.5,2]),kinematics=KinematicsEngine.rrrp({l1,l2,l3,q1,q2,q3,q4}),ask=Math.random()>.6?"position":pickInformativeAsk(kinematics,["x","y","z"]),tcp=kinematics.positions.at(-1);
+ const l1=2,l2=ri(2,4),l3=ri(2,4),q1=pick([-90,0,90]),q2=pick([0,90]),q3=pick([-90,0,90]),q4=pick([.5,1,1.5,2]),kinematics=KinematicsEngine.rrrp({l1,l2,l3,q1,q2,q3,q4}),ask=Math.random()>.6?"position":pickInformativeAsk(kinematics,["x","y","z"]),tcp=kinematics.positions.at(-1);
  return spatialAnswerExercise({id:"forward_rrrp",kind:"rrrp",model:"RRRP",title:"Cadena espacial RRRP",statement:`Calcula ${ask==="position"?"el vector posición":"la coordenada "+ask} después de las tres rotaciones y la extensión prismática.`,chips:[`L₁=${l1}`,`L₂=${l2}`,`L₃=${l3}`,formatAngle(q1,"q₁"),formatAngle(q2,"q₂"),formatAngle(q3,"q₃"),`q₄=${q4}`],kinematics,ask,diff,params:{l1,l2,l3,q1,q2,q3,q4},convention:"RRRP: yaw Z, dos pitch Y locales y extensión q₄ sobre X local.",hints:["Conserva el orden de las transformaciones.","La prismática actúa sobre el eje local ya orientado.","Lee el TCP de la transformación acumulada."],steps:[`T=T₀¹T₁²T₂³T₃⁴.`,`p=[${fmt(tcp.x)}, ${fmt(tcp.y)}, ${fmt(tcp.z)}]ᵀ`,`Resultado solicitado: ${ask==="position"?"vector p":fmt(tcp[ask])}`]});
 }
 /* La geometría del 6R vivía solo en los valores por defecto del motor: el enunciado
@@ -7362,7 +7364,7 @@ function dhTableMarkup(table,primera=1){
  return`<div class="table-wrap dh-table"><table aria-label="Tabla de parámetros de Denavit-Hartenberg"><thead><tr><th>i</th>${DH_COLUMNS.map(c=>`<th>${c.symbol}ᵢ</th>`).join("")}</tr></thead><tbody>${filas}</tbody></table></div>`;
 }
 function makeIndustrial6R(diff){
- const q=[pick([-45,0,30,60]),pick([-45,-30,0,30]),pick([-60,-30,0,30]),pick([-90,0,45]),pick([-45,0,45]),pick([-90,0,90])];
+ const q=[pick([-90,0,90,180]),pick([0,90]),pick([-90,0,90]),pick([-90,0,90]),pick([-90,0,90]),pick([-90,0,90])];
  const geometry={h:pick([2,2.5,3]),l2:pick([2.5,3,3.5,4]),l3:pick([1.5,2,2.5]),d4:pick([.8,1,1.2]),d6:pick([.6,.8,1])};
  const kinematics=KinematicsEngine.industrial6R({q,...geometry}),table=kinematics.table;
  const ask=pickInformativeAsk(kinematics,["x","y","z"]),tcp=kinematics.positions.at(-1);
@@ -7389,7 +7391,7 @@ function makeDhAssignment(diff){
  const H=pick([2,2.5,3]),L2=pick([2.5,3,3.5]),L3=pick([1.5,2,2.5]);
  let q,filas,kinematics;
  for(let attempt=0;attempt<40;attempt++){
-  q=attempt===39?[30,30,-30]:[pick([0,30,45,60,-30]),pick([-30,0,30,45]),pick([-60,-30,0,30])];
+  q=attempt===39?[90,90,-90]:[pick([0,90,-90,180]),pick([0,90]),pick([-90,90])];
   filas=[{a:0,alpha:90,d:H,theta:q[0]},{a:L2,alpha:0,d:0,theta:q[1]},{a:L3,alpha:0,d:0,theta:q[2]}];
   kinematics={...KinematicsEngine.serialDH(filas),model:'DhAssignment'};
   if(kinematics.positions.slice(1).every(p=>p.z>.3))break;
@@ -7434,7 +7436,7 @@ function makeDhAssignment6R(diff){
     cubre la minoría que cae por debajo. */
  for(let intento=0;intento<40;intento++){
   H=pick([1.5,1.8,2]);L2=pick([2.2,2.6,3]);L3=pick([1.8,2.2,2.6]);L6=pick([1.1,1.3,1.5]);
-  q=[pick([0,30,45,60,-30,-45]),pick([0,30,45,60]),pick([-45,-30,0,30,45]),pick([-90,-45,0,45,90]),pick([-90,-45,45,90]),pick([-90,0,90])];
+  q=[pick([0,90,-90,180]),pick([0,90]),pick([-90,0,90]),pick([-90,0,90]),pick([-90,90]),pick([-90,0,90])];
   filas=[{a:0,alpha:90,d:H,theta:q[0]},{a:L2,alpha:0,d:0,theta:q[1]},{a:L3,alpha:90,d:0,theta:q[2]},
    {a:0,alpha:-90,d:0,theta:q[3]},{a:0,alpha:90,d:0,theta:q[4]},{a:0,alpha:0,d:L6,theta:q[5]}];
   kinematics={...KinematicsEngine.serialDH(filas),model:'DhAssignment6R'};
@@ -7501,7 +7503,7 @@ function makeSafetyDistance(diff){
   steps:[`S=K·T+C=${K}×${T}+${C}`,`S=${fmt(K*T,2)}+${C}`,`S=${fmt(S,2)} mm`]};
 }
 function makeFindError(diff){
- const L1=ri(2,6),L2=ri(2,6),t1=pick([0,30,45,60,90,120]),t2=pick([0,30,45,60,90,-30,-45]),solved=solveRobot2R(L1,L2,t1,t2),trueX=round(solved.effector.x),trueY=round(solved.effector.y),truePhi=round(solved.phiDegRaw);
+ const L1=ri(2,6),L2=ri(2,6),t1=pick([0,90,180,-90]),t2=pick([0,90,-90]),solved=solveRobot2R(L1,L2,t1,t2),trueX=round(solved.effector.x),trueY=round(solved.effector.y),truePhi=round(solved.phiDegRaw);
  const variants=[
   {label:"El cálculo de x",make:()=>({x:round(-trueX),y:trueY,phi:truePhi})},
   {label:"El cálculo de y",make:()=>({x:trueX,y:round(-trueY),phi:truePhi})},
@@ -9175,10 +9177,12 @@ function solutionRevealPolicy(difficulty){
    Hasta la 3.50 se exigía la T completa también a los robots de tres ejes, y
    se rechazaba la otra postura del codo, que el libro da por buena. */
 const IK_NOAP_TOL=Object.freeze({angulo:.5,longitud:.01,posicion:.02,orientacion:.01});
-/* Postura en la que se dibuja la lámina. No es la que se pide —la figura
-   delataría los ángulos, que salen de valores redondos— y usa valores que el
-   generador nunca sortea. */
-const IK_NOAP_REFERENCE=Object.freeze({cartesian3:[2.8,3.2,2.6],cylindrical3:[25,2.8,3.2],polar3:[25,-40,3.3],scara4:[20,40,1.4,15],anthropomorphic3:[25,40,-50]});
+/* Postura en la que se dibuja la lámina. No es la que se pide: la figura
+   delataría la respuesta. Sus ángulos son rectos, como los de todos los
+   ejercicios, así que no basta con elegirlos raros: sus desplazamientos usan
+   valores que el generador nunca sortea, y `makeInverseNoap` descarta además
+   cualquier objetivo que tenga esta postura entre sus soluciones. */
+const IK_NOAP_REFERENCE=Object.freeze({cartesian3:[2.8,3.2,2.6],cylindrical3:[0,2.8,3.2],polar3:[0,-90,3.3],scara4:[0,90,1.4,0],anthropomorphic3:[0,90,-90]});
 const IK_NOAP_NAMES=Object.freeze({cartesian3:"cartesiano (PPP)",cylindrical3:"cilíndrico (RPP)",polar3:"polar (RRP)",scara4:"SCARA (RRPR)",anthropomorphic3:"antropomórfico (RRR)"});
 function isIkNoapExercise(e){return Boolean(e?.type==="matrix"&&e.matrixLayout==="ikNoap"&&e.params?.ik)}
 /* El robot sube de dificultad con el nivel: del que se resuelve leyendo p al
@@ -9666,7 +9670,8 @@ function makeInverseNoap(diff,id="any"){
   if(id!=="cartesian3"&&Math.hypot(T[0][3],T[1][3])<.4)continue;
   ik={id,dato:id==="anthropomorphic3"?"p":"T",types:[...k.jointTypes],rows:k.table.map(r=>({a:r.a,alpha:r.alpha,d:r.d,theta:r.theta})),T};
   ik.solutions=ikNoapSolutions(ik);
-  if(ik.solutions.length)break;
+  /* la postura dibujada no puede ser una de las respuestas */
+  if(ik.solutions.length&&!ik.solutions.some(sol=>ikNoapSame(ik,sol,IK_NOAP_REFERENCE[id])))break;
   ik=null;
  }
  if(!ik)throw Error("No se pudo generar una localización resoluble para "+id);
@@ -9800,7 +9805,7 @@ function makeWristCenter(diff){
  /* En el nivel fácil la herramienta queda sobre un eje de la base: a tiene
     una sola componente y la resta se hace de cabeza. */
  const q=nivel===1?[pick([0,90,-90,180]),pick([0,-90]),pick([0,90]),pick([0,90,-90]),pick([0,90,-90]),pick([0,90])]
-  :[pick([-120,-60,-30,30,45,60,135]),pick([-75,-60,-45,-30,20]),pick([-40,-20,25,40,60]),pick([-90,-45,30,60,120]),pick([-60,-45,35,50,70]),pick([-90,-30,45,90])];
+  :[pick([0,90,-90,180]),pick([0,-90]),pick([0,90,180]),pick([0,90,-90,180]),pick([90,-90]),pick([0,90,-90,180])];
  const rows=wristRobotRows(L,q),k=KinematicsEngine.serialDH(rows),T=k.cumulative.at(-1).map(f=>f.map(Number));
  const col=j=>[T[0][j],T[1][j],T[2][j]],[n,o,a,p]=[0,1,2,3].map(col),resta=(v,signo=-1)=>p.map((x,i)=>[x+signo*L.l4*v[i]]),pm=resta(a);
  const f=x=>fmt(x,4),linea=(nombre,v)=>`${nombre} = (${v.map(f).join(", ")})`;
@@ -9828,8 +9833,8 @@ function makeWristCenter(diff){
    ³R₆ ya calculada; en los otros dos hay que obtenerla. */
 function makeWristAngles(diff){
  const nivel=Number(diff)||1,L=wristRobotLengths();
- const q4=pick([-120,-60,-45,30,45,60,120,135]),q5=pick(nivel<=2?[30,45,60,90,-30,-45,-60]:[25,40,50,65,70,110,-35,-55]),q6=pick([-90,-45,-30,30,45,60,90,150]);
- const brazo=[pick([-60,-30,30,45,90]),pick([-60,-45,-30,20]),pick([-30,20,45,60])],todas=wristRobotRows(L,[...brazo,q4,q5,q6]);
+ const q4=pick([0,90,-90,180]),q5=pick([90,-90]),q6=pick([0,90,-90,180]);
+ const brazo=[pick([0,90,-90,180]),pick([0,-90]),pick([0,90,180])],todas=wristRobotRows(L,[...brazo,q4,q5,q6]);
  const rows=todas.slice(3),giro=M=>M.slice(0,3).map(f=>f.slice(0,3).map(Number));
  const T=KinematicsEngine.serialDH(rows).cumulative.at(-1).map(f=>f.map(Number));
  const ik={id:"wrist3",dato:"R",primera:4,types:["R","R","R"],rows:rows.map(r=>({...r})),T};
@@ -9894,7 +9899,7 @@ function makeInverseSixAxis(diff){
  const nivel=Number(diff)||1;
  for(let intento=0;intento<80;intento++){
   const L=wristRobotLengths();
-  const q0=[pick([-135,-60,-30,30,45,60,120]),pick([-75,-60,-45,-30,-15]),pick([20,40,60,110,130]),pick([-120,-60,-45,30,45,60,120]),pick([30,45,60,-30,-45,-60]),pick([-90,-45,-30,30,45,60,90])];
+  const q0=[pick([0,90,-90,180]),pick([0,-90]),pick([0,180]),pick([0,90,-90,180]),pick([90,-90]),pick([0,90,-90,180])];
   const rows=wristRobotRows(L,q0),T=KinematicsEngine.serialDH(rows).cumulative.at(-1).map(f=>f.map(Number));
   const pm=[0,1,2].map(i=>T[i][3]-L.l4*T[i][2]);
   /* Sobre el eje de la base, el primer giro queda indeterminado. */
@@ -15914,6 +15919,41 @@ function runSelfTests(){
     if((svg.match(/data-base-axis="/g)||[]).length!==3||/NaN|undefined|Infinity/.test(svg))return false;
     /* en la muñeca esférica, los ejes que comparten centro llevan su marca */
     if((id==="anthropomorphic6")!==svg.includes(`<circle cx=`)&&id==="anthropomorphic6")return false;
+   }
+   return true;
+  }],
+  ["Las posturas de cinemática usan ángulos rectos",()=>{
+   /* Petición del usuario: que las cuentas salgan a mano. Todo ángulo que un
+      ejercicio de cinemática enseña en sus fichas o en sus tablas es múltiplo
+      de 90°, y la postura que hay detrás también. */
+   const recto=v=>Math.abs(v/90-Math.round(v/90))<1e-9;
+   const generadores=[
+    ...ROBOT_ARCHITECTURES.flatMap(d=>["dh","direct","chain"].map(t=>n=>makeArchitectureExercise(n,d.id,t))),
+    ...Object.keys(IK_NOAP_REFERENCE).flatMap(id=>[n=>makeInverseNoap(n,id),n=>makeInverseChain(n,id)]),
+    makeDhAssignment,makeDhAssignment6R,makeDhRowMatrix,makeDh3R,makeSpatial2R,makeSpatial3R,makeScara,makeRrrp,makeIndustrial6R,
+    make2R,makePlanar3R,n=>makeGeometric2R(n,"point"),n=>makeGeometric2R(n,"inverse"),n=>makeTextbookExercise(n,"scara"),n=>makeTextbookExercise(n,"cylindrical"),
+    makeWristCenter,makeWristAngles,makeInverseSixAxis];
+   for(const genera of generadores)for(const nivel of DIFFICULTY_LEVELS)for(let rep=0;rep<3;rep++){
+    const e=genera(nivel),visto=(e.chips||[]).join(" ")+" "+String(e.statement).replace(/<[^>]+>/g," ");
+    for(const m of visto.matchAll(/(-?\d+(?:[.,]\d+)?)\s*°/g))if(!recto(Number(m[1].replace(",","."))))return false;
+    /* la postura del mecanismo, donde la hay */
+    const k=e.kinematics||e.params?.kinematics;
+    if(k?.table&&k.table.some(f=>!recto(f.theta)||!recto(f.alpha)))return false;
+    /* y las soluciones de la inversa de los robots de tres y cuatro ejes con
+       brazos iguales o de ángulo recto; en el SCARA la segunda postura depende
+       de las longitudes y puede no serlo */
+    if(e.params?.ik&&e.params.ik.dato!=="R"&&!e.params.ik.solutions[0].every((v,i)=>e.params.ik.types[i]!=="R"||recto(v)))return false;
+   }
+   /* en los planos no se pregunta por una coordenada que vale cero */
+   for(let i=0;i<60;i++){
+    if(Math.abs(make2R(2).answer)<.05&&!make2R(2).statement.includes("distancia"))continue;
+    const p3=makePlanar3R(2);if(Math.abs(p3.answer)<.05)return false;
+   }
+   /* la postura dibujada en la inversa también es de ángulos rectos, y nunca
+      es una de las respuestas */
+   for(const id of Object.keys(IK_NOAP_REFERENCE))for(let i=0;i<8;i++){
+    const ik=makeInverseNoap(pick(DIFFICULTY_LEVELS),id).params.ik,ref=IK_NOAP_REFERENCE[id];
+    if(!ref.every((v,j)=>ik.types[j]!=="R"||recto(v))||ik.solutions.some(sol=>ikNoapSame(ik,sol,ref)))return false;
    }
    return true;
   }],

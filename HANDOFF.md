@@ -4,7 +4,7 @@ Esta sección describe el proyecto **tal como está hoy**. Todo lo que sigue a �
 
 ## Versión y publicación
 
-- **3.57.1**, publicada en https://said-rosa.github.io/robotutor-laboratorio-visual/ .
+- **3.58.0**, publicada en https://said-rosa.github.io/robotutor-laboratorio-visual/ .
 - **GitHub Pages es el único destino.** Las copias de `chatgpt.site` y de Sites que aparecen en el historial ya no se actualizan.
 
 ## Cómo se trabaja
@@ -34,7 +34,7 @@ Regla de repositorio **«Proteger main»**, sin excepciones para nadie: **no se 
 
 En el CI de cada PR: `check-source`, `check-worked-solutions`, `check-mechanical-plates`, `check-architectures`, `check-inverse`, `check-kinematics`, `check-selftests`, `check-selftest-seeds`, `check-exercises` y `check-security`, más el build en sus dos modos y `check-source`/`check-security` sobre cada uno.
 
-- **Autopruebas: 394/436 sin navegador.** Las 42 restantes necesitan DOM real y están listadas en `check-selftests.cjs`; si añadís una que lo necesite, añadidla ahí con su nombre exacto.
+- **Autopruebas: 395/437 sin navegador.** Las 42 restantes necesitan DOM real y están listadas en `check-selftests.cjs`; si añadís una que lo necesite, añadidla ahí con su nombre exacto.
 - **`check-selftest-seeds` pasa la batería con otras 24 semillas** (7919·k+13, k = 0…23) y falla si alguna prueba que no depende del DOM sale en rojo con alguna. Las semillas son fijas, así que el resultado es repetible: si falla, dice con cuáles, y `node scripts/check-selftests.cjs --semilla=N` lo reproduce. Tarda dos o tres minutos en local y minuto y medio en el CI, que pasa de uno a dos minutos y medio en total; `--semillas=144` hace una pasada más ancha. **Un rojo aquí es de quien toca la batería, aunque la prueba señalada sea vieja:** añadir o cambiar una prueba cambia los sorteos de todas las que van detrás.
 - **Todo ejercicio practicable tiene desarrollo escrito**, y `check-exercises` falla si llega uno sin él: el botón de solución no debería volver a decir «Sin desarrollo escrito».
 - En un cambio grande, **comparad contra `main`**: ejecutad la batería en las dos versiones y restad los fallos. Lo que solo aparezca en vuestra rama es vuestro.
@@ -57,6 +57,8 @@ En el CI de cada PR: `check-source`, `check-worked-solutions`, `check-mechanical
 
   **En textos para el alumno, citad los temas por su nombre**, no por número.
 - **T = [n o a p].** La matriz del robot se nombra por sus columnas: n (normal, eje x del extremo), o (orientación, eje y), a (aproximación, eje z) y p (posición). Es la notación del curso y la que usa la cinemática inversa. Las celdas de T se nombran así en el diagnóstico (`px`, `az`).
+- **Posturas en ángulos rectos.** El usuario lo pidió el 9 de octubre: «en los ejercicios usa ángulos de 90», para que las cuentas salgan a mano. Todos los generadores de cinemática del capítulo 4 sortean sus ángulos entre múltiplos de 90°, en los cuatro niveles. Tres familias, según lo que haga la articulación: giro libre —base, herramienta— entre −90°, 0°, 90° y 180°; elevación del hombro entre 0° y 90°, para no bajar del suelo; y codo o cabeceo entre −90° y 90°, ni estirado ni plegado sobre sí mismo, que además son las singularidades de la inversa. **No volver a meter 30°, 45° o 60° en un generador de cinemática** sin que el usuario lo pida. La autoprueba «Las posturas de cinemática usan ángulos rectos» lo vigila. Quedan fuera, sin tocar, el capítulo 3 (rotaciones) y el 5.
+- **La postura dibujada en la inversa también es de ángulos rectos** (`IK_NOAP_REFERENCE`). Como los objetivos salen ahora del mismo conjunto pequeño, ya no basta con elegirla rara: `makeInverseNoap` descarta cualquier objetivo que tenga esa postura entre sus soluciones. Sus desplazamientos siguen usando valores que el generador no sortea.
 - **Enunciados breves.** El usuario lo pidió el 6 de octubre: «solo los datos, no explicando todo el ejercicio». `statement` lleva la tarea en una frase; los datos van en `chips` o en tablas. El convenio que hace única la respuesta, la descripción del montaje y las reglas de puntuación van en **`notes`**, que `statementNotesMarkup` pinta plegado bajo el enunciado («Convenio y aclaraciones»). No se borra nada de eso: se mueve. La autoprueba «El enunciado es breve…» limita el texto a 190 caracteres sin contar tablas, y exige que todo dato con número citado en las notas esté también en las fichas.
 - **El libro del curso es *Fundamentos de robótica* (Barrientos, Peñín, Balaguer y Aracil), y manda.** El usuario lo fijó el 6 de octubre como criterio: lo que venga de otras fuentes solo entra si casa con él. La cinemática es su capítulo 4. De él salen el orden θ, d, a, α de la tabla, el algoritmo de 16 pasos, T = [n o a p] y los tres métodos de cinemática inversa. La teoría lo cita por sección y lo explica con palabras propias: no se copia su texto.
 - **Cinemática inversa** (`kind:'ik-noap'`, `matrixLayout:'ikNoap'`). La respuesta es un vector de coordenadas articulares y **no se compara con una solución guardada:** `ikNoapReaches` comprueba con la cinemática directa que lleva el extremo adonde se pide, y `ikNoapGrade` puntúa por articulación contra la solución válida más parecida. Qué es «adonde se pide» lo decide `ikNoapCriterion`, con el criterio del libro, a partir de `ik.dato`:
@@ -612,3 +614,13 @@ Cada una se midió fuera de `runSelfTests`, con sorteos de verdad y contando sus
 Guiones nuevos: `check-selftest-seeds.cjs` (la pasada, en el CI), `repeat-selftests.cjs` (repetir pruebas concretas con sorteos de verdad; no va en el CI porque su resultado cambia) y la opción `--semilla=N` de `check-selftests.cjs`. `sandbox.cjs` admite una función que ajusta el texto antes de evaluarlo, para no escribir copias del HTML.
 
 Verificación: las seis pruebas, 0 rojos en 1.000 a 2.000 repeticiones con sorteos de verdad; 23 mutaciones detectadas en 25 de 25 repeticiones cada una. Con las pruebas de `main`, varias de esas mutaciones pasaban: sacar el área de trabajo del nivel 3 se detectaba 66 de cada 100 veces; «premultiplica» en el marco móvil, ninguna; un bloque que aparece sin corresponder, 1 de cada 100. Pasada de 24 semillas en cero, y una pasada aparte de 144 también. Batería 394/436 sin navegador y 436/436 en la página, con cinco ejercicios distintos en pantalla.
+
+## 3.58.0 · Posturas en ángulos rectos (Claude)
+
+Petición del usuario: «en los ejercicios usa ángulos de 90».
+
+- **Qué cambia.** Los dieciocho generadores de cinemática del capítulo 4 sorteaban ángulos como 30°, 45°, −60° o 135°. Ahora todos usan múltiplos de 90°: la tabla DH y el problema completo de cada arquitectura, la asignación de marcos de tres y seis ejes, la cinemática directa (planos, espaciales, SCARA, robots del libro, industrial de seis ejes), la fila de la tabla, la inversa en todas sus formas, el desacoplo y el robot de seis ejes completo. Senos y cosenos valen 0, 1 o −1, y las matrices salen sin decimales.
+- **Lo que hubo que cuidar.** Con ángulos rectos, una coordenada sale a menudo en cero: los ejercicios planos ya no preguntan por ella. El robot industrial solo tiene posturas admisibles con el hombro a 0° o 90°. El polar inclina la guía a un lado o al otro, para que su inversa no dé siempre −90°. Y la postura dibujada de la inversa, que antes era 25°, 40°, −50°, pasa también a ángulos rectos, con un descarte que impide que coincida con la respuesta.
+- **Lo que cuesta.** Menos variedad en los ángulos: la inversa del brazo plano de dos eslabones tiene tres respuestas posibles, y la del antropomórfico, catorce. Las longitudes siguen variando.
+
+Verificación: 13.200 ejercicios muestreados con sorteos de verdad, ningún ángulo a la vista que no sea múltiplo de 90°, ninguna respuesta en cero y ningún error; `check-inverse`, `check-architectures`, `check-kinematics`, `check-mechanical-plates` y `check-exercises` en verde; pasada de 24 semillas en cero; las catorce autopruebas de cinemática, repetidas entre 120 y 400 veces con sorteos de verdad, sin un solo rojo; láminas revisadas en imagen.

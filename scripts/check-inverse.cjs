@@ -145,7 +145,7 @@ for(const id of Object.keys(P.IK_NOAP_REFERENCE))for(const nivel of [1,2,3,4])fo
  assert.ok(dibujada.every((v,i)=>cerca(v,ref[i])),donde+': la lámina no está en la postura de referencia');
  assert.ok(!dibujada.every((v,i)=>cerca(v,ik.solutions[0][i],ik.types[i]==='R'?.5:.05)),donde+': la lámina está dibujada en la postura que se pide');
  if(rep<2)assert.doesNotMatch(P.mechanicalPlateSvg({...e,kinematics:e.params.kinematics}),/NaN|undefined|Infinity/,donde+': lámina');
- assert.equal(P.exerciseTopicKey(e),'4.4',donde+': tema');
+ assert.equal(P.exerciseTopicKey(e),id==='anthropomorphic3'?'4.4':'4.9',donde+': tema');
  assert.ok(P.isStatementOnlyExercise(e)&&!P.hasMechanicalWorkedSolution(e),donde+': no debe abrirse la solución de cinemática directa');
  assert.ok(P.solutionHasContent({...e,attempted:true}),donde+': sin desarrollo escrito');
  assert.notEqual(P.buildPedagogyTrace(e).source,'kinematics',donde+': el banco de etapas quedaría visible');
@@ -180,7 +180,7 @@ for(const nivel of [1,2,3,4])for(let rep=0;rep<SORTEOS;rep++){
  }
  assert.ok(P.answerIsCorrect(e,e.answer),donde+': la respuesta no cuenta como acierto');
  for(const alt of e.diagnosticAlternatives)assert.ok(!P.answerIsCorrect(e,alt.matrix),donde+': un error típico cuenta como acierto');
- assert.equal(P.exerciseTopicKey(e),'4.4',donde+': tema');
+ assert.equal(P.exerciseTopicKey(e),'4.10',donde+': tema');
  assert.ok(P.solutionHasContent({...e,attempted:true}),donde+': sin desarrollo escrito');
  assert.ok(!e.steps.some(t=>String(t).split('\n')[0].includes('<')),donde+': un paso lleva el signo menor que en su primera línea');
  assert.doesNotMatch(e.steps.join(' ')+e.statement,/undefined|NaN/,donde+': texto');
@@ -214,7 +214,7 @@ for(const nivel of [1,2,3,4])for(let rep=0;rep<SORTEOS;rep++){
   const I=prod(tras(ik.R03),ik.R03);
   for(let i=0;i<3;i++)for(let j=0;j<3;j++)assert.ok(cerca(I[i][j],i===j?1:0,1e-4),lugar+': ⁰R₃ no es ortonormal');
  }
- assert.equal(P.exerciseTopicKey(w),'4.4',lugar+': tema');
+ assert.equal(P.exerciseTopicKey(w),'4.10',lugar+': tema');
  assert.ok(P.isStatementOnlyExercise(w)&&!P.hasMechanicalWorkedSolution(w),lugar+': no debe revelar el valor esperado');
  assert.ok(P.solutionHasContent({...w,attempted:true}),lugar+': sin desarrollo escrito');
  assert.ok(!w.steps.some(t=>String(t).split('\n')[0].includes('<')),lugar+': un paso lleva el signo menor que en su primera línea');
@@ -264,7 +264,7 @@ for(const id of Object.keys(P.IK_NOAP_REFERENCE))for(const nivel of [1,2,3,4])fo
  assert.ok(!gm.tabla.ok&&gm.puntos===5&&!gm.q.arrastre,donde+': una tabla equivocada puntúa');
  assert.ok(!P.answerIsCorrect(e,[...tablaMal,[...ik.solutions[0],...relleno]]),donde+': una tabla equivocada cuenta como acierto');
  assert.match(P.ikChainSummary(gm),/Tabla DH: por revisar/,donde+': resumen');
- assert.equal(P.exerciseTopicKey(e),'4.4',donde+': tema');
+ assert.equal(P.exerciseTopicKey(e),id==='anthropomorphic3'?'4.4':'4.9',donde+': tema');
  assert.ok(P.isStatementOnlyExercise(e)&&!P.hasMechanicalWorkedSolution(e),donde+': no debe revelar el valor esperado');
  assert.ok(P.solutionHasContent({...e,attempted:true}),donde+': sin desarrollo escrito');
  assert.ok(!e.steps.some(t=>String(t).split('\n')[0].includes('<')),donde+': un paso lleva el signo menor que en su primera línea');
@@ -322,7 +322,7 @@ for(const id of Object.keys(P.IK_EQ))for(const nivel of [1,2,3,4])for(let rep=0;
  const bien=Object.fromEntries(e.symbolFields.map(f=>[f.key,P.wsFieldCanonical(e.answer[f.key],e,f)]));
  assert.ok(P.answerIsCorrect(e,bien)&&P.examQuestionScore(e,bien)===1,donde+': las ecuaciones esperadas no dan la nota entera');
  assert.equal(e.symbolFields.length,n+3+(spec.extra||[]).length,donde+': número de ecuaciones');
- assert.equal(P.exerciseTopicKey(e),'4.4',donde+': tema');
+ assert.equal(P.exerciseTopicKey(e),id==='anthropomorphic3'?'4.4':'4.9',donde+': tema');
  assert.ok(!P.hasMechanicalWorkedSolution(e)&&P.solutionHasContent({...e,attempted:true})&&e.hints.length>0,donde+': desarrollo y pistas');
  assert.ok(!e.steps.some(t=>String(t).split('\n')[0].includes('<')),donde+': un paso lleva el signo menor que en su primera línea');
  assert.doesNotMatch(e.steps.join(' ')+e.statement+e.notes,/undefined|NaN/,donde+': texto');
@@ -371,7 +371,7 @@ for(const nivel of [1,2,3,4])for(let rep=0;rep<Math.max(4,SORTEOS/4);rep++){
   assert.ok(x.pts.some(q=>cerca(q[0],pm[0],2e-3)&&cerca(q[1],pm[1],2e-3)&&cerca(q[2],pm[2],2e-3)),donde+': el esqueleto no pasa por el centro de la muñeca');
  }
  if(rep<2)assert.doesNotMatch(P.solutionPosturesMarkup(e),/NaN|undefined|Infinity/,donde+': figura');
- assert.equal(P.exerciseTopicKey(e),'4.4',donde+': tema');
+ assert.equal(P.exerciseTopicKey(e),'4.10',donde+': tema');
  assert.ok(P.isStatementOnlyExercise(e)&&!P.hasMechanicalWorkedSolution(e),donde+': no debe revelar el valor esperado');
  assert.ok(P.solutionHasContent({...e,attempted:true}),donde+': sin desarrollo escrito');
  assert.ok(!e.steps.some(t=>String(t).split('\n')[0].includes('<')),donde+': un paso lleva el signo menor que en su primera línea');

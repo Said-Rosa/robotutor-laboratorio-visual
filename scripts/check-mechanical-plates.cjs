@@ -28,7 +28,7 @@ for(const generate of generators)for(let i=0;i<8;i++){
  }
  for(const d of scene.dimensions)assert.ok(svg.includes(`data-dimension-label="${d.label}"`),e.model+': missing '+d.label);
  if(e.model==='RRRP'){assert.match(svg,/data-dimension-label="q₄" data-dimension-variable="1"/);assert.equal(scene.dimensions.at(-1).variable,true)}
- if(e.visual==='dhAssignment'){assert.equal((svg.match(/data-joint-axis=/g)||[]).length,e.rows);assert.equal((svg.match(/data-base-axis=/g)||[]).length,3);if(e.rows===3)assert.ok(e.kinematics.positions.slice(1).every(p=>p.z>.3))}else assert.doesNotMatch(svg,/data-base-axis=|data-joint-axis=/);
+ if(e.visual==='dhAssignment'){assert.doesNotMatch(svg,/data-joint-axis=/,'joint axes are stated in writing, not drawn');assert.equal(scene.frames.joints.length,e.rows);assert.equal((svg.match(/data-base-axis=/g)||[]).length,3);if(e.rows===3)assert.ok(e.kinematics.positions.slice(1).every(p=>p.z>.3))}else assert.doesNotMatch(svg,/data-base-axis=|data-joint-axis=/);
  const view=svg.match(/viewBox="([^"]+)"/)[1].split(' ').map(Number),boxes=[...svg.matchAll(/<g [^>]*><rect x="([^"]+)" y="([^"]+)" width="([^"]+)" height="([^"]+)"/g)].map(m=>m.slice(1).map(Number));
  for(const [x,y,w,h] of boxes)assert.ok(x>=view[0]&&y>=view[1]&&x+w<=view[0]+view[2]&&y+h<=view[1]+view[3],'clipped label');
  for(let a=0;a<boxes.length;a++)for(let b=a+1;b<boxes.length;b++){const [x,y,w,h]=boxes[a],[X,Y,W,H]=boxes[b];assert.ok(!(x<X+W&&x+w>X&&y<Y+H&&y+h>Y),`${e.model}: overlapping labels ${a}/${b}`)}

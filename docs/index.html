@@ -985,7 +985,7 @@ var RoboTutorMechanical3D=(()=>{var Ka=Object.defineProperty;var Bh=Object.getOw
               <ul class="rt-legend">
                 <li><i style="background:#df4b58"></i>X <i style="background:#45c778"></i>Y <i style="background:#123f87"></i>Z = marco base, el único dado</li>
                 <li>Articulaciones sin numerar: recorre el mecanismo desde la base hasta la pinza</li>
-                <li><i style="background:#c2570c"></i>Línea naranja = eje de cada articulación; la punta marca su sentido positivo</li>
+                <li id="dhAxisSenses"></li>
                 <li>Líneas grises con dos puntas = cotas: las longitudes del robot</li>
                 <li><strong>E</strong> = extremo del brazo</li>
               </ul>
@@ -3050,7 +3050,7 @@ const roadmap = [
    en este punto y renombra el archivo en consecuencia.
    Ojo: `progress.version` es otra cosa — numera el esquema de datos guardados en
    localStorage y avanza solo cuando cambia la forma de ese objeto. */
-const APP_VERSION="3.60.0";
+const APP_VERSION="3.61.0";
 const APP_STAGE="láminas claras · verdadero/falso y respuestas abiertas";
 /* Los cuatro niveles del curso. Toda comprobación de dificultad debe leer de aquí:
    el selector, las preferencias guardadas, la política pedagógica y los bancos. */
@@ -5187,7 +5187,7 @@ function mechanicalScene(e){
     Por defecto se reconoce por el nombre —la convención llama qᵢ a la variable—
     y las láminas que usan otra notación lo declaran a mano. */
  const dim=(a,b,label,side='auto',variable=/^q/.test(String(label)))=>{if(norm(sub(b,a))>1e-8)dimensions.push({a,b,label,side,variable})};
- let points=k.positions.map(V),origin=[0,0,0],tip=V(k.positions.at(-1)),referencePoints=[],detail=null,wristAxes=null;
+ let points=k.positions.map(V),origin=[0,0,0],tip=V(k.positions.at(-1)),referencePoints=[],detail=null;
  const architectureScara=k.architectureId==='scara4';
  if(['SCARA_RRP','SCARA_RRPR'].includes(model)||architectureScara){
   const book=model==='SCARA_RRPR'||architectureScara,h=book?p.l1:p.d0,H=[0,0,h],J=book?V(k.positions[1]):[points[1][0],points[1][1],h],W=book?V(k.positions[2]):[points[2][0],points[2][1],h];
@@ -5216,7 +5216,8 @@ function mechanicalScene(e){
   const spherical=points.length===7&&norm(sub(points[3],points[4]))<1e-7&&norm(sub(points[4],points[5]))<1e-7;
   const toolWidth=(k.jointAxes||[]).length>=6?Math.min(width,norm(sub(tip,points.at(-2)))*(spherical?.32:.5)):width;
   /* Muñeca esférica. Los tres giros se cortan en C, y cada uno tiene su
-     propio cilindro, tumbado sobre su eje, para que se vea cuál es cuál.
+     propio cilindro, tumbado sobre su eje, para que se vea cuál es cuál sin
+     necesidad de flechas.
      Hay dos montajes, según llegue el antebrazo:
      · en línea con el eje 4 (cartesiano, cilíndrico, polar): un tambor al
        final del antebrazo, una horquilla con su pasador y el tambor de la
@@ -5287,26 +5288,18 @@ function mechanicalScene(e){
     // El cuerpo que bascula entre las mejillas y lleva el eje 6.
     solid('cylinder',at(a5,-r*.68),at(a5,r*.68),r*.54,r*.54,'link');
     salida=Math.min(r*.45,norm(sub(flange,C))*.4);
-    wristAxes=[{at:at(g,r*1.75)},{at:C,reach:r*1.17}];
    }else{
     // Eje 4: el antebrazo acaba en un cilindro como el del codo.
     solid('cylinder',at(a4,-r*.78),at(a4,r*.78),r*.74,r*.74,'revolute');caps(a4,r*.78,r*.32);
     // Eje 5: un cilindro más fino y más largo, que cruza al anterior.
     solid('cylinder',at(a5,-r*1.3),at(a5,r*1.3),r*.4,r*.4,'revolute');caps(a5,r*1.3,r*.19);
     salida=Math.min(r*.6,norm(sub(flange,C))*.5);
-    /* Si el eje 5 sigue al antebrazo, uno de sus lados queda dentro de él:
-       la flecha se dibuja en el lado libre, aunque tenga que apuntar hacia
-       dentro. */
-    const forearm=unit(sub(C,points[2])),haciaAntebrazo=a5.reduce((s,v,i)=>s+v*forearm[i],0);
-    wristAxes=[{at:C,reach:r*.87},{at:C,reach:r*1.39,inward:haciaAntebrazo<-.9}];
    }
    // Eje 6: tambor de salida, hasta la brida de la pinza.
    solid('cylinder',at(a6,salida),flange,r*.46,r*.46,'revolute');
    solid('cylinder',add(flange,scale(a6,-r*.16)),flange,r*.6,r*.6,'hub');
    for(const part of solids.slice(begin))part.assembly='wrist';
    detail={title:'Detalle de la muñeca y la pinza',wrist:true,origin:C,axis:a6,back:r*1.8};
-   /* Dónde se dibuja la flecha de cada eje: sobre su propio cuerpo. */
-   wristAxes.push({at:scale(add(at(a6,salida),flange),.5)});
   }
   /* La lámina de asignación de marcos no puede rotular aᵢ ni dᵢ: eso es la
      respuesta que el ejercicio pide construir. Cuando el ejercicio declara sus
@@ -5317,15 +5310,16 @@ function mechanicalScene(e){
   gripper(tip,u,v,toolWidth);
   referencePoints=points;
  }
- /* El examen entrega el marco base y el eje de cada articulación, con su
-    sentido, y nada más. Se calculan aquí para que la lámina técnica pueda
-    dibujarlos: sin el sentido positivo la tabla no sería única. */
+ /* El examen entrega el marco base y el sentido positivo de cada eje, y nada
+    más. Los ejes se calculan aquí: la lámina los usa para elegir la vista y
+    `jointAxisSenses` para escribir su sentido, porque sin él la tabla no
+    sería única. */
  let frames=null;
  if(e.visual==='dhAssignment'){
   const tramos=points.slice(1).map((v,i)=>norm(sub(v,points[i]))).filter(v=>v>.01);
   const span=Math.max(...tramos,1);
   const joints=[];
-  (k.jointAxes||[]).forEach((axis,i)=>{if(!axis&&k.jointTypes?.[i]!=='P')return;const R=i?k.cumulative[i-1]:identityMatrix(4);joints.push({c:points[i],axis:axis?V(jointRotationFrame(k,i).axis):[R[0][2],R[1][2],R[2][2]],n:i+1,...(wristAxes&&i>=3?wristAxes[i-3]:{})})});
+  (k.jointAxes||[]).forEach((axis,i)=>{if(!axis&&k.jointTypes?.[i]!=='P')return;const R=i?k.cumulative[i-1]:identityMatrix(4);joints.push({c:points[i],axis:axis?V(jointRotationFrame(k,i).axis):[R[0][2],R[1][2],R[2][2]],n:i+1})});
   frames={base:[0,0,0],span,joints};
  }
  return{model,solids,dimensions:e.kind==='robot-identification'?[]:dimensions,tip,referencePoints,frames,detail};
@@ -5377,7 +5371,6 @@ function mechanicalVisibility(faces,edges){
  }
  return{surfaces,lines};
 }
-const MECHANICAL_AXIS_COLOR='#c2570c';
 function mechanicalPlateSvg(e,{mobile=Boolean(window.matchMedia?.("(max-width:600px)").matches),modeled=false,detail=false}={}){
  const scene=mechanicalScene(e),sub=(a,b)=>a.map((v,i)=>v-b[i]),dot=(a,b)=>a.reduce((s,v,i)=>s+v*b[i],0),cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],unit=a=>{const n=Math.hypot(...a)||1;return a.map(v=>v/n)},add=(a,b)=>a.map((v,i)=>v+b[i]),mul=(a,k)=>a.map(v=>v*k);
  if(detail&&scene.detail){
@@ -5444,57 +5437,14 @@ function mechanicalPlateSvg(e,{mobile=Boolean(window.matchMedia?.("(max-width:60
   drawLine(anchor,contact,options.color||'#536778',1);putText(p,text,options);return p;
  };
  // Reserve axes before positioning dimensions, so labels cannot cover arrows.
- if(scene.frames){const f=scene.frames,base=map(f.base),size=font*.87,baseAxes=[];
+ if(scene.frames){const f=scene.frames,base=map(f.base),size=font*.87;
   for(const [v,name,color] of [[[1,0,0],'X','#be3b43'],[[0,1,0],'Y','#07866b'],[[0,0,1],'Z','#2867b2']]){
-   const projected=sub(map(add(f.base,v)),base),end=add(base,mul(unit(projected),88));baseAxes.push({end,dir:unit(projected)});annotations.push(`<g data-base-axis="${name}">`);arrow(base,end,color,2);annotations.push('</g>');placeCallout(end,name,{color,size,weight:700});
+   const projected=sub(map(add(f.base,v)),base),end=add(base,mul(unit(projected),88));annotations.push(`<g data-base-axis="${name}">`);arrow(base,end,color,2);annotations.push('</g>');placeCallout(end,name,{color,size,weight:700});
   }
-  /* Los ejes de las articulaciones llevan color y trazo propios. Antes iban
-     en el mismo gris fino que las cotas, y en un codo se juntaban la flecha
-     del eje, las dos puntas de una cota y sus líneas auxiliares sin que se
-     pudiera saber cuál era cuál. Ahora el eje es una línea de centro naranja
-     que atraviesa la articulación, con una punta grande en su sentido
-     positivo y un halo blanco que la separa de lo que cruza. */
-  const groups=[];for(const j of f.joints){
-   const C=map(j.c),v=sub(map(add(j.c,j.axis)),C),u=unit(v),g=groups.find(g=>Math.hypot(...sub(C,g.p))<3);
-   if(g)g.ns.push(j.n);else groups.push({p:C,ns:[j.n]});
-  }
-  for(const j of f.joints){
-   const C=map(j.c),v=sub(map(add(j.c,j.axis)),C),u=unit(v),compartido=groups.find(g=>Math.hypot(...sub(C,g.p))<3).ns.length>1;
-   /* En una muñeca esférica tres ejes salen del mismo punto: cada flecha
-      empieza un poco más allá, para que no se tapen en el centro. */
-   /* Dos ejes sobre la misma recta —la guía y el giro de la herramienta de
-      un SCARA— se dibujan más cortos, para que uno no pise al otro. */
-   const alineado=f.joints.some(o=>o!==j&&Math.hypot(...sub(map(o.c),C))>=3&&Math.abs(dot(unit(sub(map(add(o.c,o.axis)),map(o.c))),u))>.995&&Math.abs((map(o.c)[0]-C[0])*u[1]-(map(o.c)[1]-C[1])*u[0])<4);
-   /* Y el que coincide con un eje del marco base empieza donde ese acaba: si
-      no, la primera articulación taparía la flecha Z. */
-   const sobre=baseAxes.find(b=>dot(b.dir,u)>.995&&Math.abs((C[0]-base[0])*u[1]-(C[1]-base[1])*u[0])<4&&dot(sub(b.end,C),u)>-30);
-   const inicio=sobre?add(sobre.end,mul(u,12)):add(C,mul(u,compartido?13:0)),largo=alineado?46:sobre?58:76;
-   let A=add(C,mul(u,alineado?-18:-46)),S=inicio,B=add(S,mul(u,sobre?largo:largo-(compartido?13:0)));
-   annotations.push(`<g data-joint-axis="${j.n}">`);
-   /* En una muñeca esférica los tres ejes pasan por el mismo punto. Si las
-      tres flechas salieran de él formarían una estrella ilegible, así que cada
-      una se dibuja sobre el cuerpo que gira alrededor de ese eje, y una línea
-      de centro fina la une con el punto común. */
-   if(j.at){
-    const M=map(j.at),lejos=Math.hypot(...sub(M,C))>3;
-    if(lejos){S=add(M,mul(u,-28));B=add(M,mul(u,32));const s=dot(sub(S,C),u),b=dot(sub(B,C),u);A=add(C,mul(u,Math.min(0,s-12)));if(b<0)drawLine(B,C,MECHANICAL_AXIS_COLOR,1.2,'stroke-dasharray="10,4,2,4" stroke-linecap="round"')}
-    else{
-     const borde=Math.hypot(...sub(map(add(j.c,mul(j.axis,j.reach||0))),C));
-     if(j.inward){A=C;B=add(C,mul(u,-borde-4));S=add(B,mul(u,-46))}
-     else{A=add(C,mul(u,-borde-16));S=add(C,mul(u,borde+4));B=add(S,mul(u,46))}
-    }
-    drawLine(A,j.inward?B:S,MECHANICAL_AXIS_COLOR,1.2,'stroke-dasharray="10,4,2,4" stroke-linecap="round"');
-    annotations.push(line(S,B,'stroke="#fff" stroke-width="5.5" stroke-opacity=".75" stroke-linecap="round"'));
-    arrow(S,B,MECHANICAL_AXIS_COLOR,2.4,14);annotations.push('</g>');continue;
-   }
-   annotations.push(line(S,B,'stroke="#fff" stroke-width="5.5" stroke-opacity=".75" stroke-linecap="round"'));
-   if(!sobre)drawLine(A,S,MECHANICAL_AXIS_COLOR,1.7,'stroke-dasharray="10,4,2,4" stroke-linecap="round"');
-   else drawLine(add(base,mul(u,-30)),base,MECHANICAL_AXIS_COLOR,1.7,'stroke-dasharray="10,4,2,4" stroke-linecap="round"');
-   arrow(S,B,MECHANICAL_AXIS_COLOR,2.4,15);
-   annotations.push('</g>');
-  }
-  for(const g of groups)if(g.ns.length>1)annotations.push(`<circle cx="${n(g.p[0])}" cy="${n(g.p[1])}" r="4" fill="#fff" stroke="${MECHANICAL_AXIS_COLOR}" stroke-width="2"/>`);
-  // The mechanism is intentionally unnumbered; only signed axes remain for DH.
+  /* Los ejes de las articulaciones no se dibujan: el usuario pidió la
+     lámina limpia, solo con el mecanismo, las cotas y el marco base. Su
+     sentido positivo, que es lo que hace única la tabla DH, se da por escrito
+     junto a la lámina (`jointAxisSenses`). */
  }
  const center=[(Math.min(...xs)+Math.max(...xs))*scale/2,(Math.min(...ys)+Math.max(...ys))*scale/2];
  for(const d of scene.dimensions){
@@ -5520,7 +5470,7 @@ function mechanicalPlateSvg(e,{mobile=Boolean(window.matchMedia?.("(max-width:60
  }
  const endpoint=map(scene.tip);placeCallout(endpoint,'E',{attrs:`data-endpoint-label="true" data-anchor-x="${n(endpoint[0])}" data-anchor-y="${n(endpoint[1])}"`});
  const pad=22,minX=Math.min(...bounds.map(p=>p[0]))-pad,minY=Math.min(...bounds.map(p=>p[1]))-pad,maxX=Math.max(...bounds.map(p=>p[0]))+pad,maxY=Math.max(...bounds.map(p=>p[1]))+pad;
- const description=scene.frames?'Incluye marco base y sentidos positivos de las articulaciones.':'Sin ejes ni marcas de giro.';
+ const description=scene.frames?'Incluye el marco base. Los ejes de las articulaciones no se dibujan.':'Sin ejes ni marcas de giro.';
  const rendered=modeled&&typeof RoboTutorMechanical3D!=='undefined'?RoboTutorMechanical3D.render(scene,view,scale,[minX,minY,maxX-minX,maxY-minY]):null;
  if(rendered)pieces.splice(0,pieces.length,`<image data-modeled-3d="true" x="${n(minX)}" y="${n(minY)}" width="${n(maxX-minX)}" height="${n(maxY-minY)}" href="${rendered}"/>`);
  return`<svg xmlns="http://www.w3.org/2000/svg" class="mechanical-plate-svg" viewBox="${[minX,minY,maxX-minX,maxY-minY].map(n).join(' ')}" role="img" aria-label="${traceAttrEscape(e.title)}. Estructura mecánica con cotas. ${description} E señala el extremo calculado."><title>${traceHtmlEscape(e.title)}</title><rect x="${n(minX)}" y="${n(minY)}" width="${n(maxX-minX)}" height="${n(maxY-minY)}" fill="#fff"/>${pieces.join('')}${annotations.join('')}${topLabels.join('')}</svg>`;
@@ -5533,6 +5483,22 @@ function mechanicalColourKey(e){
  try{return mechanicalScene(e).dimensions.some(d=>d.variable)
   ?' Las cotas en azul son variables articulares: cambian con la postura. Las grises son longitudes fijas del robot.'
   :'';}catch{return''}
+}
+/* Sentido positivo de cada eje, de la base a la pinza, en la postura dibujada
+   y respecto del marco base. Con posturas en ángulos rectos cada eje coincide
+   con uno de la base, así que basta nombrarlo: «+Z», «−Y»... Si alguno
+   quedara oblicuo se escribe su vector. */
+function jointAxisSenses(e){
+ const k=e?.params?.kinematics||e?.kinematics;if(!k)return[];
+ const ejes=mechanicalScene({...e,visual:'dhAssignment',kinematics:k}).frames?.joints||[];
+ return ejes.map(j=>{
+  const v=j.axis.map(x=>Math.abs(x)<1e-6?0:x),i=v.findIndex(x=>Math.abs(Math.abs(x)-1)<1e-6);
+  return i>=0&&v.every((x,n)=>n===i||x===0)?(v[i]>0?'+':'−')+'XYZ'[i]:`(${v.map(x=>fmt(x,2)).join('; ')})`;
+ });
+}
+function jointAxisSensesText(e){
+ const s=jointAxisSenses(e);
+ return s.length?`Sentido positivo de los ejes en la postura dibujada, de la base a la pinza: ${s.map((x,i)=>`${i+1}.º ${x}`).join(' · ')}.`:'';
 }
 function mechanicalReference(e){
  if(['textbook-direct','architecture-direct','robot-identification'].includes(e.kind))return e.convention+mechanicalColourKey(e);
@@ -7504,7 +7470,7 @@ function makeIndustrial6R(diff){
    eligen otros sentidos para xᵢ. Por eso el enunciado cierra la convención
    antes de pedir nada. Sin cerrarla no habría forma honesta de corregir celda
    a celda, porque una tabla válida podría marcarse como error. */
-const DH_ASSIGN_CONVENTION='Usa <strong>DH estándar</strong>: el eje de la articulación i es z<sub>i−1</sub>, x<sub>i</sub> se apoya en la normal común de z<sub>i−1</sub> a z<sub>i</sub> y O<sub>i</sub> es su corte con z<sub>i</sub>. El marco base dibujado fija z₀ vertical hacia arriba, y <strong>la flecha de cada eje marca su sentido positivo</strong>: invertir un eje cambia el signo de α<sub>i</sub>, así que sin ese dato la tabla no sería única. Longitudes en metros y ángulos en grados.';
+const DH_ASSIGN_CONVENTION='Usa <strong>DH estándar</strong>: el eje de la articulación i es z<sub>i−1</sub>, x<sub>i</sub> se apoya en la normal común de z<sub>i−1</sub> a z<sub>i</sub> y O<sub>i</sub> es su corte con z<sub>i</sub>. El marco base dibujado fija z₀ vertical hacia arriba, y <strong>el sentido positivo de cada eje se da por escrito junto a la lámina</strong>, respecto de ese marco: invertir un eje cambia el signo de α<sub>i</sub>, así que sin ese dato la tabla no sería única. Longitudes en metros y ángulos en grados.';
 function makeDhAssignment(diff){
  const H=pick([2,2.5,3]),L2=pick([2.5,3,3.5]),L3=pick([1.5,2,2.5]);
  let q,filas,kinematics;
@@ -7540,7 +7506,7 @@ function makeDhAssignment(diff){
    porque las torsiones alfa4 y alfa5 dependen del sentido en que se tomen los
    ejes de la muñeca, y un esquema sin flechas no lo fija: dos tablas opuestas
    en signo describen el mismo dibujo y la aplicación habría marcado como error
-   una respuesta correcta. Con el sentido positivo dibujado sobre cada eje la
+   una respuesta correcta. Con el sentido positivo de cada eje declarado la
    tabla vuelve a ser única y el ejercicio se puede corregir celda a celda.
 
    La cadena es el brazo antropomórfico de libro: columna, brazo, antebrazo y
@@ -7573,8 +7539,8 @@ function makeDhAssignment6R(diff){
   notes:`La lámina entrega solo el marco base. La base gira en acimut, y el hombro y el codo cabecean sobre ejes paralelos entre sí. H es la altura de la columna, L₂ la longitud del brazo y L₃ la del antebrazo. En la punta del antebrazo hay una muñeca esférica: los ejes 4, 5 y 6 se cortan en un mismo punto, por lo que entre ellos no hay ninguna distancia que recorrer. La herramienta sobresale L₆ desde ese punto, a lo largo del último eje. ${DH_ASSIGN_CONVENTION}`,
   chips:[`H=${fmt(H,2)} m`,`L₂=${fmt(L2,2)} m`,`L₃=${fmt(L3,2)} m`,`L₆=${fmt(L6,2)} m`].concat(q.map((valor,i)=>formatAngle(valor,`q${'₁₂₃₄₅₆'[i]}`))),
   params:{H,L2,L3,L6,q,kinematics,dimensions:['H','L₂','L₃','','','L₆']},
-  convention:'DH estándar, terna dextrógira y vectores columna. El marco base es el único dibujado; la flecha de cada eje da su sentido positivo.',
-  plateNote:'Brazo de seis ejes con muñeca esférica. Los tres últimos ejes se cortan en la punta del antebrazo. Las flechas marcan los sentidos positivos. Sigue la cadena desde la base: carcasa de entrada, pivote transversal y acople de salida en la muñeca.',
+  convention:'DH estándar, terna dextrógira y vectores columna. El marco base es el único dibujado; el sentido positivo de cada eje se da por escrito.',
+  plateNote:'Brazo de seis ejes con muñeca esférica. Los tres últimos ejes se cortan en la punta del antebrazo. El sentido positivo de cada eje se da por escrito. Sigue la cadena desde la base: en la muñeca, un cilindro por cada giro.',
   concepts:['asignación de marcos DH','muñeca esférica','tabla DH'],
   commonErrors:['repartir el alcance del antebrazo entre varias filas cuando la muñeca no separa orígenes','poner α₄ y α₅ con el mismo signo sin mirar el sentido dibujado de los ejes','escribir L₆ en a₆ en vez de en d₆, que es la distancia medida sobre z₅'],
   hints:['Las tres primeras filas son las del brazo antropomórfico: la torsión solo aparece donde dos ejes consecutivos dejan de ser paralelos.','Si tres ejes se cortan en un punto, entre ellos no hay normal común que recorrer: aᵢ=0 y dᵢ=0 en las filas de la muñeca.','αᵢ es el giro de zᵢ₋₁ a zᵢ alrededor de xᵢ, y su signo lo decide el sentido que marcan las flechas.'],
@@ -12553,7 +12519,8 @@ function renderVisualPanelForExercise(exercise){
   const insignia=document.getElementById("exerciseVisualKind");
   insignia.textContent="Lámina técnica fija · perspectiva ortográfica";insignia.classList.add("fixed-plate-badge");
   document.getElementById("exerciseVisualCaption").textContent=exercise.convention;
-  document.getElementById("exerciseVisualDescription").textContent=exercise.plateNote||"Brazo articulado con su marco base dibujado. Recorre las articulaciones desde la base; la flecha de cada eje marca su sentido positivo y las cotas llevan nombres mecánicos, no parámetros DH.";
+  document.getElementById("exerciseVisualDescription").textContent=exercise.plateNote||"Brazo articulado con su marco base dibujado. Recorre las articulaciones desde la base; el sentido positivo de cada eje se da por escrito bajo la lámina y las cotas llevan nombres mecánicos, no parámetros DH.";
+  const sentidos=document.getElementById("dhAxisSenses");if(sentidos){sentidos.textContent=jointAxisSensesText(exercise);sentidos.hidden=!sentidos.textContent}
   /* La lámina usa el mismo motor técnico que las de cinemática directa:
      cuerpos sólidos y cotas acotadas en vez del esquema de líneas. La cinemática
      vive en params —para que el banco de etapas no delate la respuesta—, así
@@ -15959,7 +15926,7 @@ function runSelfTests(){
    }
    /* la tabla DH sigue necesitando su convenio para tener una sola respuesta */
    const dh=makeArchitectureExercise(2,"scara4","dh");
-   if(!dh.notes.includes("flecha de cada eje")||!dh.notes.includes("+180°")||!dh.chips.some(x=>x.startsWith("H=")))return false;
+   if(!dh.notes.includes("sentido positivo de cada eje")||!dh.notes.includes("+180°")||!dh.chips.some(x=>x.startsWith("H=")))return false;
    if(!makeArchitectureExercise(2,"scara4","chain").notes.includes("Puntuación sobre 10"))return false;
    /* y un ejercicio sin notas no pinta un plegable vacío */
    return statementNotesMarkup(makeDhRowMatrix(2))===""&&statementNotesMarkup(makeArchitectureExercise(2,"scara4","identify"))===""&&statementNotesMarkup(null)==="";
@@ -15996,7 +15963,7 @@ function runSelfTests(){
     /* el desarrollo va entero y en orden: los ejes, una fila cada vez, la
        tabla, y solo entonces la inversa, que empieza por las matrices con letras */
     const parte2=e.steps.findIndex(t=>t.startsWith("Parte 2"));
-    if(!e.steps[0].startsWith("Parte 1")||parte2!==n+2||!e.notes.includes("flecha de cada eje"))return false;
+    if(!e.steps[0].startsWith("Parte 1")||parte2!==n+2||!e.notes.includes("sentido positivo de cada eje"))return false;
     if(!e.steps.slice(1,n+1).every((t,i)=>t.startsWith(`Fila ${i+1} · articulación ${ik.types[i]==="R"?"de giro":"prismática"}`)&&["θ =","d =","a =","α ="].every(x=>t.includes("\n"+x))))return false;
     if(!e.steps[parte2+1].includes(dhMatrixName(1)+" =")||!e.steps[parte2+2].includes("p = ("))return false;
     /* sus datos están en las fichas, así que se enseñan aunque sea de solo
@@ -16151,21 +16118,23 @@ function runSelfTests(){
    }
    return true;
   }],
-  ["Los ejes de las articulaciones no se confunden con las cotas",()=>{
-   const grupos=svg=>[...svg.matchAll(/<g data-joint-axis="(\d+)">([\s\S]*?)<\/g>/g)].map(m=>m[2]);
-   for(const id of ["anthropomorphic3","anthropomorphic6","scara4","cylindrical3","polar3"])for(let rep=0;rep<3;rep++){
-    const e=makeArchitectureExercise(3,id,"dh"),svg=mechanicalPlateSvg({...e,kinematics:e.params.kinematics},{mobile:false,modeled:false}),ejes=grupos(svg);
-    if(ejes.length!==e.rows)return false;
-    /* cada eje va en su color, con su punta, y ninguno en el gris de las cotas */
-    if(!ejes.every(g=>g.includes(`stroke="${MECHANICAL_AXIS_COLOR}"`)&&g.includes(`fill="${MECHANICAL_AXIS_COLOR}"`)&&!g.includes('#536778')&&!g.includes('#64748b')))return false;
-    /* las cotas siguen en el suyo, y sus líneas auxiliares, atenuadas */
-    if(!svg.includes('stroke="#536778"')||!svg.includes('stroke-opacity=".45"'))return false;
-    /* el marco base conserva sus tres flechas, sin que un eje las tape */
-    if((svg.match(/data-base-axis="/g)||[]).length!==3||/NaN|undefined|Infinity/.test(svg))return false;
-    /* en la muñeca esférica, los ejes que comparten centro llevan su marca */
-    if((id==="anthropomorphic6")!==svg.includes(`<circle cx=`)&&id==="anthropomorphic6")return false;
+  ["La lámina no dibuja los ejes de las articulaciones: su sentido se da por escrito",()=>{
+   for(const id of ["anthropomorphic3","anthropomorphic6","scara4","cylindrical3","cylindrical6","cartesian6","polar3"])for(let rep=0;rep<3;rep++){
+    const e=makeArchitectureExercise(3,id,"dh"),k=e.params.kinematics,svg=mechanicalPlateSvg({...e,kinematics:k},{mobile:false,modeled:false});
+    /* ni ejes, ni naranja, ni el anillo del centro de la muñeca */
+    if(/data-joint-axis|#c2570c|<circle /.test(svg))return false;
+    /* el marco base conserva sus tres flechas, y las cotas, sus líneas atenuadas */
+    if((svg.match(/data-base-axis="/g)||[]).length!==3||!svg.includes('stroke-opacity=".45"')||/NaN|undefined|Infinity/.test(svg))return false;
+    /* un sentido por articulación, y es el del eje de la cadena dibujada */
+    const sentidos=jointAxisSenses(e);
+    if(sentidos.length!==e.rows)return false;
+    for(const [i,s] of sentidos.entries()){
+     const R=i?k.cumulative[i-1]:identityMatrix(4),z=[0,1,2].map(f=>Number(R[f][2])),n="XYZ".indexOf(s[1]);
+     if(!/^[+−][XYZ]$/.test(s)||Math.abs(z[n]-(s[0]==="+"?1:-1))>1e-6)return false;
+    }
+    if(!jointAxisSensesText(e).includes(`${e.rows}.º ${sentidos.at(-1)}`))return false;
    }
-   return true;
+   return jointAxisSenses(null).length===0&&jointAxisSensesText({})==="";
   }],
   ["Las posturas de cinemática usan ángulos rectos",()=>{
    /* Petición del usuario: que las cuentas salgan a mano. Todo ángulo que un
@@ -16202,7 +16171,7 @@ function runSelfTests(){
    }
    return true;
   }],
-  ["La muñeca esférica dibuja un cuerpo por giro y cada flecha sobre el suyo",()=>{
+  ["La muñeca esférica dibuja un cuerpo por giro, cada uno sobre su eje",()=>{
    const V=v=>Array.isArray(v)?v:[v.x,v.y,v.z],resta=(a,b)=>a.map((v,i)=>v-b[i]),punto=(a,b)=>a.reduce((s,v,i)=>s+v*b[i],0),largo=a=>Math.hypot(...a);
    for(const id of ["cartesian6","cylindrical6","anthropomorphic6"])for(let i=0;i<12;i++){
     const e=makeArchitectureExercise(3,id,"dh"),k=e.params.kinematics,escena=mechanicalScene({...e,kinematics:k}),C=V(k.positions[3]);
@@ -16216,12 +16185,8 @@ function runSelfTests(){
     /* y no son el mismo cuerpo: sus direcciones son perpendiculares dos a dos en la postura de ángulos rectos */
     const dir=giros.map(g=>{const d=resta(g.b,g.a),n=largo(d);return d.map(x=>x/n)});
     if(Math.abs(punto(dir[0],dir[1]))>1e-6||Math.abs(punto(dir[1],dir[2]))>1e-6)return false;
-    /* las flechas de los ejes 4, 5 y 6 llevan su ancla, y al menos una está fuera del centro */
-    const ejes=escena.frames.joints.slice(3);
-    if(ejes.length!==3||ejes.some(j=>!j.at))return false;
-    if(ejes.filter(j=>largo(resta(j.at,C))>1e-6).length<1)return false;
     const svg=mechanicalPlateSvg({...e,kinematics:k},{mobile:false});
-    if((svg.match(/data-joint-axis=/g)||[]).length!==6||/NaN|Infinity/.test(svg))return false;
+    if(/data-joint-axis|NaN|Infinity/.test(svg))return false;
     /* la pinza nunca queda plegada sobre el antebrazo */
     const antebrazo=resta(C,V(k.positions[2])),pinza=resta(V(k.positions[6]),C);
     if(punto(antebrazo,pinza)<-.9*largo(antebrazo)*largo(pinza))return false;
@@ -16634,7 +16599,7 @@ function runSelfTests(){
   ["La muñeca esférica de seis ejes se dibuja y se corrige sin ambigüedad",()=>{
    /* Este caso quedó fuera de la primera entrega: sin el sentido de los ejes
       las torsiones α₄ y α₅ admiten dos signos y una tabla válida podía quedar
-      marcada como error. La flecha de cada eje cierra esa ambigüedad, así que
+      marcada como error. El sentido de cada eje, dado por escrito, cierra esa ambigüedad, así que
       la autoprueba la exige en la lámina junto al resto de condiciones. */
    for(const nivel of DIFFICULTY_LEVELS){
     const e=makeDhAssignment6R(nivel);
@@ -16654,9 +16619,9 @@ function runSelfTests(){
     const comprobada=KinematicsEngine.serialDH(filas).positions.at(-1);
     for(const eje of ["x","y","z"])if(Math.abs(comprobada[eje]-pos.at(-1)[eje])>1e-9)return false;
     const svg=mechanicalPlateSvg({...e,kinematics:k});
-    /* Un eje dibujado por articulación, con su sentido: es el dato que hace
-       única la tabla. Y la terna de la base, que es el único marco entregado. */
-    if((svg.match(/data-joint-axis="/g)||[]).length!==6)return false;
+    /* Un sentido por articulación, por escrito: es el dato que hace única la
+       tabla. Y la terna de la base, que es el único marco entregado. */
+    if(svg.includes("data-joint-axis")||jointAxisSenses(e).length!==6)return false;
     for(const eje of ["X","Y","Z"])if(!svg.includes(`data-base-axis="${eje}"`))return false;
     const rotulos=[...svg.matchAll(/<text[^>]*>([^<]*)<\/text>/g)].map(m=>m[1].trim());
     /* El usuario pide la estructura sin numeración sobre el mecanismo. */

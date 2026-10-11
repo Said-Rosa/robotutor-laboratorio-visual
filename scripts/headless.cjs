@@ -1,6 +1,6 @@
 /* Abre robotutor.html en un Chromium sin ventana y lo conduce.
  *
- * Las 42 autopruebas que miran la interfaz no pueden pasar en el DOM postizo de
+ * Las 43 autopruebas que miran la interfaz no pueden pasar en el DOM postizo de
  * `check-selftests`, y hasta ahora solo corrían cuando alguien abría la página
  * y pulsaba la insignia. Este guion las ejecuta en un navegador de verdad, y
  * sirve además para ver cómo queda un cambio: hace capturas.
@@ -24,6 +24,9 @@
  *         }
  *       `pagina.eval(js)` evalúa el cuerpo de una función asíncrona en la
  *       página y devuelve su valor; `pagina.espera(ms)` espera.
+ *   Con --3d el navegador dibuja WebGL por software, y las láminas salen con
+ *   el modelo 3D sombreado, como en pantalla. Sin él se ve el dibujo técnico de
+ *   reserva, que es el que usa la página cuando no hay WebGL.
  */
 const {spawn}=require('node:child_process'),fs=require('node:fs'),path=require('node:path'),os=require('node:os');
 
@@ -54,7 +57,7 @@ const espera=ms=>new Promise(r=>setTimeout(r,ms));
  const ejecutable=buscaChromium();
  if(!ejecutable){console.error('No encuentro un Chromium. Define CHROME_PATH con la ruta de Chrome, Edge o Chromium.');process.exit(2)}
  const puerto=9300+Math.floor(Math.random()*500),perfil=fs.mkdtempSync(path.join(os.tmpdir(),'robotutor-headless-'));
- const navegador=spawn(ejecutable,['--headless','--disable-gpu','--no-sandbox','--hide-scrollbars',`--remote-debugging-port=${puerto}`,`--user-data-dir=${perfil}`,`--window-size=${ancho},${alto}`,'about:blank'],{stdio:'ignore'});
+ const navegador=spawn(ejecutable,['--headless',...(argumentos.includes('--3d')?['--use-angle=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist']:['--disable-gpu']),'--no-sandbox','--hide-scrollbars',`--remote-debugging-port=${puerto}`,`--user-data-dir=${perfil}`,`--window-size=${ancho},${alto}`,'about:blank'],{stdio:'ignore'});
  const cierra=async()=>{navegador.kill();await espera(300);try{fs.rmSync(perfil,{recursive:true,force:true})}catch{}};
  let salida=0;
  try{

@@ -16,7 +16,7 @@
 const assert=require('node:assert/strict');
 const {cargar,RUTA_POR_DEFECTO}=require('./sandbox.cjs');
 
-const P=cargar(['makeDhAssignment','makeDhAssignment6R','dhColumnIndex','dhRowFromCells','KinematicsEngine','exerciseTopicKey',
+const P=cargar(['jointAxisSenses','makeDhAssignment','makeDhAssignment6R','dhColumnIndex','dhRowFromCells','KinematicsEngine','exerciseTopicKey',
   'DIFFICULTY_LEVELS','spatialPostureIsPlausible','kinematicsCandidates','topicNumericGenerators','mechanicalPlateSvg',
   'buildPedagogyTrace','solutionReasoningMarkup'],process.argv[2]||RUTA_POR_DEFECTO);
 
@@ -45,7 +45,7 @@ for(const nivel of P.DIFFICULTY_LEVELS)for(let i=0;i<SORTEOS;i++){
  assert.equal(e3.type,'matrix',donde3);assert.equal(e3.rows,3,donde3);assert.equal(e3.cols,4,donde3);
  assert.equal(P.exerciseTopicKey(e3),'4.3',donde3);
  const svg3=P.mechanicalPlateSvg({...e3,kinematics:e3.params.kinematics}),r3=rotulosDe(svg3);
- assert.equal((svg3.match(/data-joint-axis="/g)||[]).length,3,donde3+': debe haber un eje dibujado por articulación');
+ assert.doesNotMatch(svg3,/data-joint-axis/,donde3+': la lámina no dibuja los ejes de las articulaciones');assert.equal(P.jointAxisSenses(e3).length,3,donde3+': un sentido por articulación, por escrito');
  assert.ok(!r3.some(n=>/^[1-6]$/.test(n)),donde3+': el mecanismo debe estar sin numerar');
  cotasPresentes(r3,e3.params.dimensions,donde3);
  laminaHonesta(r3,donde3);
@@ -67,7 +67,7 @@ for(const nivel of P.DIFFICULTY_LEVELS)for(let i=0;i<SORTEOS;i++){
  assert.ok(Math.abs(dist(pos[5],pos[6])-e6.params.L6)<1e-9,donde6+': la herramienta no mide L6');
  assert.ok(P.spatialPostureIsPlausible(k),donde6+': la postura dibujada se hunde bajo el suelo');
  const svg6=P.mechanicalPlateSvg({...e6,kinematics:k}),r6=rotulosDe(svg6);
- assert.equal((svg6.match(/data-joint-axis="/g)||[]).length,6,donde6+': debe haber un eje dibujado por articulación');
+ assert.doesNotMatch(svg6,/data-joint-axis/,donde6+': la lámina no dibuja los ejes de las articulaciones');assert.equal(P.jointAxisSenses(e6).length,6,donde6+': un sentido por articulación, por escrito');
  assert.ok(!r6.some(n=>/^[1-6]$/.test(n)),donde6+': el mecanismo debe estar sin numerar');
  cotasPresentes(r6,['H','L₂','L₃','L₆'],donde6);
  laminaHonesta(r6,donde6);

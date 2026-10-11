@@ -20,7 +20,7 @@ for(const generate of generators)for(let i=0;i<8;i++){
  assert.doesNotMatch(svg,/data-joint-label/,'the mechanism must remain unnumbered');
  if(scene.detail){const enlarged=P.mechanicalPlateSvg(e,{detail:true});assert.doesNotMatch(enlarged,/NaN|Infinity|data-base-axis|data-joint-axis|data-dimension-label/);assert.match(enlarged,/data-endpoint-label/)}
  if(scene.detail?.wrist){
-  const bearings=scene.solids.filter(s=>s.part==='revolute'&&s.assembly==='wrist');assert.equal(bearings.length,3,'the three wrist bearings must be distinct physical solids');assert.equal(scene.solids.filter(s=>s.part==='wrist').length,2,'the yoke has two cheeks');
+  const bearings=scene.solids.filter(s=>s.part==='revolute'&&s.assembly==='wrist');assert.equal(bearings.length,3,'the three wrist bearings must be distinct physical solids');const yoke=scene.solids.filter(s=>s.part==='wrist').length;assert.ok(yoke===3||yoke===0,'an in-line wrist has a yoke of two cheeks and a bridge; a crossed one has none');
   for(const [i,bearing] of bearings.entries()){
    const joint=P.jointRotationFrame(e.kinematics,i+3).axis,axis=Array.isArray(joint)?joint:[joint.x,joint.y,joint.z],C=scene.detail.origin;
    for(const point of [bearing.a,bearing.b]){const v=point.map((x,j)=>x-C[j]),along=v.reduce((sum,x,j)=>sum+x*axis[j],0);assert.ok(Math.hypot(...v.map((x,j)=>x-along*axis[j]))<1e-8,'wrist bearings must lie on the actual concurrent DH axes')}

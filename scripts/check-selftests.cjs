@@ -5,7 +5,7 @@
  * exigir que **no aparezcan fallos nuevos**: las que dependen del DOM están
  * listadas abajo una a una, y cualquier otra que falle detiene el CI.
  *
- * Esto no sustituye a abrir la página: las 42 listadas siguen necesitando un
+ * Esto no sustituye a abrir la página: las 43 listadas siguen necesitando un
  * navegador de verdad. Cubre las demás, que son la mayoría, y las cubre en cada
  * PR en vez de cuando alguien se acuerde de pulsar el botón.
  *
@@ -58,6 +58,7 @@ const DEPENDEN_DEL_DOM=new Set([
  'Los mandos del examen no hacen nada sin examen',
  'Lámina espacial separada en dos vistas',
  'Ninguna lámina fija del ejercicio queda sobre trama',
+ 'Un tema largo abre con el índice de sus secciones',
  'Ninguna vista se queda invisible ni transformada',
  'Píldora teórica inicia cerrada',
  'Sin movimiento la solución sigue abriéndose y cerrándose',

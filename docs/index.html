@@ -145,6 +145,16 @@
     .lesson{min-width:0}
     .lesson h3{margin:0 0 10px;font-size:1.22rem}
     .lesson h4{margin:21px 0 8px;font-size:1rem}
+    .lesson-sections{margin:18px 0 6px;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:var(--soft)}
+    .lesson-sections strong{display:block;margin-bottom:8px;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+    .lesson-sections ol{margin:0;padding:0;list-style:none;counter-reset:seccion;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:2px 18px}
+    .lesson-sections li{counter-increment:seccion;margin:0}
+    .lesson-sections button{display:flex;gap:9px;align-items:baseline;width:100%;min-height:34px;padding:5px 6px;border:0;border-radius:8px;background:none;color:var(--text);font:inherit;font-size:.9rem;line-height:1.35;text-align:left;cursor:pointer}
+    .lesson-sections button::before{content:counter(seccion);flex:0 0 1.5em;height:1.5em;border-radius:50%;background:var(--card);border:1px solid var(--line);font-size:.78rem;font-weight:750;line-height:1.5em;text-align:center}
+    .lesson-sections button:hover,.lesson-sections button:focus-visible{background:var(--card);outline:none;box-shadow:0 0 0 2px var(--line)}
+    .lesson h4.lesson-section{display:flex;gap:10px;align-items:baseline;margin:34px 0 10px;padding-top:20px;border-top:1px solid var(--line);font-size:1.06rem;line-height:1.35;scroll-margin-top:16px}
+    .lesson h4.lesson-section:focus{outline:none}
+    .lesson h4.lesson-section::before{content:attr(data-n);flex:0 0 1.7em;height:1.7em;border-radius:50%;background:var(--text);color:var(--card);font-size:.82rem;font-weight:750;line-height:1.7em;text-align:center}
     .lesson p,.lesson li{line-height:1.67}
     .lesson p{margin:8px 0}
     .lesson ul,.lesson ol{padding-left:20px}
@@ -1777,8 +1787,8 @@ fᵢ: libertades permitidas por la articulación i</div>
 <div class="formula">$$\overrightarrow{OE}=\overrightarrow{OJ}+\overrightarrow{JE}$$
 $$x=L_1\cos q_1+L_2\cos(q_1+q_2)$$
 $$y=L_1\sin q_1+L_2\sin(q_1+q_2),\qquad \varphi=q_1+q_2$$</div>
-<figure class="lesson-plate" data-plate="brazo-2r" data-args='{"l1":3,"l2":2,"q1":30,"q2":45}'><figcaption>L₁=3, L₂=2, q₁=30° y q₂=45°. El segundo tramo forma 75° con +X.</figcaption></figure>
-<p><strong>Ejemplo resuelto.</strong> Con esos datos, x=3 cos30°+2 cos75°≈3,116; y=3 sin30°+2 sin75°≈3,432 y φ=75°. Su distancia al origen es aproximadamente 4,635, dentro de [1,5]. Este control de alcance es necesario, pero no demuestra por sí solo que las coordenadas sean correctas.</p>
+<figure class="lesson-plate" data-plate="brazo-2r" data-args='{"l1":3,"l2":2,"q1":0,"q2":90}'><figcaption>L₁=3, L₂=2, q₁=0° y q₂=90°. El primer tramo va sobre +X y el segundo forma 90° con él.</figcaption></figure>
+<p><strong>Ejemplo resuelto.</strong> Con esos datos, x=3 cos0°+2 cos90°=3; y=3 sin0°+2 sin90°=2 y φ=90°. Su distancia al origen es √13≈3,606, dentro de [1,5]. Este control de alcance es necesario, pero no demuestra por sí solo que las coordenadas sean correctas.</p>
 <h4>Planar 3R y orientación objetivo</h4>
 <div class="formula">$$x=L_1c_1+L_2c_{12}+L_3c_{123},\qquad y=L_1s_1+L_2s_{12}+L_3s_{123}$$
 $$\varphi=q_1+q_2+q_3$$</div>
@@ -1871,7 +1881,7 @@ $$A_i=\begin{bmatrix}c_\theta&-s_\theta c_\alpha&s_\theta s_\alpha&a_i c_\theta\
 <div class="table-wrap"><table><thead><tr><th>Geometría</th><th>Elección y consecuencia</th></tr></thead><tbody><tr><td>Paralelos distintos</td><td>La dirección de la normal común está determinada; se puede desplazar la normal a lo largo de los ejes. α=0 para ejes del mismo sentido, o π si apuntan en sentidos opuestos.</td></tr><tr><td>Se intersectan</td><td>a=0. Elige x perpendicular al plano que forman los dos ejes; la normal común tiene longitud cero, pero su dirección sigue siendo necesaria.</td></tr><tr><td>Coincidentes</td><td>a=0. Elige una dirección x perpendicular al eje; α depende de si los sentidos de z coinciden o se oponen.</td></tr><tr><td>Alabeados</td><td>La perpendicular común entre ambas rectas fija la dirección de x y la distancia a. No están en el mismo plano.</td></tr></tbody></table></div>
 <h4>Ejemplo resuelto: un 2R plano</h4>
 <p>Los ejes de giro apuntan hacia +Z, perpendicular al papel. Elige O₀ en la base, O₁ en el codo y O₂ en el extremo; x₁ y x₂ siguen los eslabones. Entonces α₁=α₂=0, d₁=d₂=0, a₁=L₁, a₂=L₂, θ₁=q₁ y θ₂=q₂. El marco terminal se ha elegido con z₂ paralelo a los anteriores.</p>
-<figure class="lesson-plate" data-plate="brazo-2r" data-args='{"l1":3,"l2":2,"q1":30,"q2":45}'><figcaption>Para esta elección, x₁ sigue el primer tramo y x₂ el segundo; los z salen del plano. Los arcos muestran las variables θ de la tabla.</figcaption></figure>
+<figure class="lesson-plate" data-plate="brazo-2r" data-args='{"l1":3,"l2":2,"q1":90,"q2":-90}'><figcaption>Para esta elección, x₁ sigue el primer tramo y x₂ el segundo; los z salen del plano. Los arcos muestran las variables θ de la tabla.</figcaption></figure>
 <h4>Ejemplo resuelto: brazo articulado espacial de tres ejes</h4>
 <p>El caso plano es cómodo porque todos los ejes salen del papel. En cuanto la base gira en acimut y el hombro cabecea, aparece la torsión que el 2R nunca muestra. Toma el brazo clásico: columna vertical de altura H, hombro y codo de longitudes L₂ y L₃ que cabecean sobre ejes paralelos entre sí.</p>
 <ol><li><strong>z₀</strong> es vertical: es el eje de la primera articulación, que gira en acimut.</li><li><strong>z₁</strong> tiene que quedar horizontal para que el hombro cabecee. Pasar de un eje vertical a uno horizontal es un giro de 90° alrededor de x₁: esa es α₁.</li><li>El origen O₁ sube a lo alto de la columna. Ese recorrido va <em>a lo largo de z₀</em>, así que se anota en d₁=H y no en a₁, que vale cero.</li><li><strong>z₂</strong> es paralelo a z₁, porque hombro y codo cabecean en el mismo plano. Entre ejes paralelos la torsión es nula: α₂=0. La normal común entre ambos ejes recorre el eslabón, luego a₂=L₂ y d₂=0.</li><li>El codo repite el razonamiento: α₃=0, d₃=0 y a₃=L₃.</li></ol>
@@ -1889,30 +1899,7 @@ $$A_i=\begin{bmatrix}c_\theta&-s_\theta c_\alpha&s_\theta s_\alpha&a_i c_\theta\
   {title:"4.4 Cinemática inversa: planteamiento y método geométrico",html:String.raw`
 <h3>De una posición objetivo a las variables articulares</h3>
 <p>La cinemática inversa busca q tal que f(q) coincida con el objetivo. Antes de resolver, declara si se pide <strong>posición</strong> o <strong>pose completa</strong>. Un 2R planar suele resolver dos coordenadas; no puede imponer además una orientación independiente para cualquier punto. Una tarea puede tener ninguna, una, varias o infinitas soluciones.</p>
-<h4>Deducción geométrica del 2R</h4>
-<p>Supón longitudes positivas L₁,L₂, objetivo (x,y), ángulos relativos y ausencia inicial de topes. Al sumar los cuadrados de las ecuaciones de posición se cancelan los términos dependientes de q₁:</p>
-<div class="formula">$$r^2=x^2+y^2=L_1^2+L_2^2+2L_1L_2\cos q_2$$
-$$c_2=\frac{x^2+y^2-L_1^2-L_2^2}{2L_1L_2}$$</div>
-<p>Si |c₂|&gt;1, fuera de una pequeña tolerancia numérica, el punto es inalcanzable. Si está en [−1,1], se consideran las dos posibilidades del seno:</p>
-<div class="formula">$$s_2=\pm\sqrt{1-c_2^2},\qquad q_2=\operatorname{atan2}(s_2,c_2)$$
-$$q_1=\operatorname{atan2}(y,x)-\operatorname{atan2}(L_2s_2,L_1+L_2c_2)$$</div>
-<p>El primer atan2 orienta la recta base–objetivo. El segundo mide cuánto se desvía esa recta respecto del primer eslabón. atan2 conserva el cuadrante; sustituirlo por arctan(y/x) pierde información y falla cuando x=0.</p>
-<h4>Ejemplo resuelto con dos ramas</h4>
-<p>Con L₁=3, L₂=2 y objetivo (4,1), r²=17 y c₂=(17−9−4)/12=1/3. Por tanto s₂=±2√2/3:</p>
-<div class="table-wrap"><table><thead><tr><th>Rama</th><th>q₁</th><th>q₂</th><th>Comprobación</th></tr></thead><tbody><tr><td>s₂&gt;0</td><td>−13,1787°</td><td>70,5288°</td><td>f(q)≈(4,1)</td></tr><tr><td>s₂&lt;0</td><td>41,2512°</td><td>−70,5288°</td><td>f(q)≈(4,1)</td></tr></tbody></table></div>
-<p>Las denominaciones «codo arriba» y «codo abajo» dependen de la vista y la convención. Usa el signo de q₂ para identificar las ramas sin ambigüedad. Con las cifras redondeadas queda un pequeño residuo; no se afirma una igualdad exacta de los valores truncados.</p>
-<figure class="lesson-plate" data-plate="brazo-2r" data-args='{"l1":3,"l2":2,"q1":-13.1787,"q2":70.5288}'><figcaption>Rama q₂ positiva del ejemplo. La segunda solución refleja el codo respecto de la recta entre la base y el objetivo.</figcaption></figure>
-<h4>Casos límite que necesitan tratamiento propio</h4>
-<ul><li>Si r&gt;L₁+L₂ o r&lt;|L₁−L₂|, no hay solución de posición.</li><li>En r=L₁+L₂ las dos ramas coinciden, módulo vueltas completas.</li><li>En r=|L₁−L₂| y L₁≠L₂ ocurre lo mismo con el brazo plegado.</li><li>Si L₁=L₂ y (x,y)=(0,0), q₂=π y q₁ es libre: hay infinitas configuraciones. La fórmula general incluye atan2(0,0), así que debe tratarse aparte.</li></ul>
-<h4>Inversa de un planar 3R con orientación dada</h4>
-<p>Resta primero el último tramo orientado con φ:</p>
-<div class="formula">$$x_w=x-L_3\cos\varphi,\qquad y_w=y-L_3\sin\varphi$$
-$$q_3=\varphi-q_1-q_2$$</div>
-<p>Resuelve el 2R de longitudes L₁,L₂ para (x<sub>w</sub>,y<sub>w</sub>) y calcula q₃ en cada rama. Ejemplo: L=(2,1,1), objetivo (3,1), φ=0° produce (x<sub>w</sub>,y<sub>w</sub>)=(2,1). Una solución es (0°,90°,−90°). Si no se fija φ, pueden aparecer familias continuas de soluciones.</p>
-<h4>SCARA y brazo espacial</h4>
-<p>En el SCARA RRP, resuelve el 2R en XY y luego q₃=z−d₀. Para p=(3; 2; 1,5), L₁=3, L₂=2 y d₀=2, una solución es (0°; 90°; −0,5). Comprueba el recorrido prismático, aunque XY sea alcanzable.</p>
-<p>En un 3R de acimut y dos elevaciones, calcula r<sub>h</sub>=√(x²+y²), ζ=z−h y q₁=atan2(y,x). Resuelve el 2R vertical con longitudes L₂,L₃ y objetivo (r<sub>h</sub>,ζ). Para buscar todas las ramas, considera también q₁+π y la proyección −r<sub>h</sub>, según límites. Sobre el eje Z, q₁ requiere un análisis especial porque el acimut no queda fijado por la posición.</p>
-<h4>Los tres métodos del libro, y cuándo entran n, o, a y p</h4>
+<h4>Los tres métodos del libro</h4>
 <p>El libro del curso resuelve la cinemática inversa de tres maneras. No son intercambiables: cada una parte de un dato distinto, y eso decide si la orientación —los vectores n, o y a— hace falta o no.</p>
 <div class="table-wrap"><table class="dh-algorithm"><thead><tr><th>Método</th><th>Dato de partida</th><th>Dónde se usa</th><th>Papel de n, o y a</th></tr></thead><tbody>
 <tr><td><strong>Geométrico</strong></td><td>Solo la posición, p = (p<sub>x</sub>, p<sub>y</sub>, p<sub>z</sub>).</td><td>Robots de tres grados de libertad, o los tres primeros ejes de uno mayor.</td><td>Ninguno: se prescinde de la orientación.</td></tr>
@@ -1920,8 +1907,7 @@ $$q_3=\varphi-q_1-q_2$$</div>
 <tr><td><strong>Desacoplo cinemático</strong></td><td>La localización T = [n o a p].</td><td>Robots de seis ejes cuyos tres últimos se cortan en un punto.</td><td>Imprescindibles: a sitúa el centro de la muñeca, y [n o a] da sus tres giros.</td></tr>
 </tbody></table></div>
 <p>La razón de fondo es una cuenta. Un robot de tres grados de libertad solo puede cumplir tres condiciones, y la posición ya son tres: la orientación con la que llega no se elige, resulta. Para imponer además la orientación hacen falta seis ejes. Por eso, con tres, cualquier postura que alcance el punto es solución, aunque deje la herramienta girada de otra manera.</p>
-<p>El método geométrico se desarrolla en este tema. Los otros dos tienen el suyo, a continuación: «Cinemática inversa por la matriz homogénea» y «Desacoplo cinemático».</p>
-<h4>Resolver la inversa de un robot en el espacio, paso a paso</h4>
+<h4>El procedimiento, paso a paso</h4>
 <p>Sea cual sea el método, un robot espacial se resuelve en el mismo orden. La clave es no atacar las tres coordenadas a la vez: primero se separa lo que depende de una sola articulación.</p>
 <ol>
 <li><strong>Cuenta los grados de libertad y decide qué se puede pedir.</strong> Con tres, un punto. Con cuatro, como el SCARA, un punto y un giro de la herramienta. Con seis, la localización entera.</li>
@@ -1940,7 +1926,33 @@ $$q_3=\varphi-q_1-q_2$$</div>
 <tr><td>Antropomórfico (RRR)</td><td>Un brazo plano de dos eslabones.</td><td>Teorema del coseno para el codo; el hombro, por diferencia de ángulos.</td><td>hasta 4</td></tr>
 <tr><td>SCARA (RRPR)</td><td>El brazo plano está tumbado: trabaja en horizontal.</td><td>Teorema del coseno en planta; la altura da la guía, y n el giro de la herramienta.</td><td>2</td></tr>
 </tbody></table></div>
-<h4>Método geométrico: robot articular de tres ejes</h4>
+<p>El método geométrico se desarrolla en lo que queda de este tema: primero en el plano y después en el espacio. Los otros dos tienen cada uno el suyo, a continuación: «Cinemática inversa por la matriz homogénea» y «Desacoplo cinemático».</p>
+<h4>Brazo plano de dos eslabones: las fórmulas</h4>
+<p>Supón longitudes positivas L₁,L₂, objetivo (x,y), ángulos relativos y ausencia inicial de topes. Al sumar los cuadrados de las ecuaciones de posición se cancelan los términos dependientes de q₁:</p>
+<div class="formula">$$r^2=x^2+y^2=L_1^2+L_2^2+2L_1L_2\cos q_2$$
+$$c_2=\frac{x^2+y^2-L_1^2-L_2^2}{2L_1L_2}$$</div>
+<p>Si |c₂|&gt;1, fuera de una pequeña tolerancia numérica, el punto es inalcanzable. Si está en [−1,1], se consideran las dos posibilidades del seno:</p>
+<div class="formula">$$s_2=\pm\sqrt{1-c_2^2},\qquad q_2=\operatorname{atan2}(s_2,c_2)$$
+$$q_1=\operatorname{atan2}(y,x)-\operatorname{atan2}(L_2s_2,L_1+L_2c_2)$$</div>
+<p>El primer atan2 orienta la recta base–objetivo. El segundo mide cuánto se desvía esa recta respecto del primer eslabón. atan2 conserva el cuadrante; sustituirlo por arctan(y/x) pierde información y falla cuando x=0.</p>
+<h4>Ejemplo resuelto: brazo plano, dos soluciones</h4>
+<p>Con L₁=L₂=2 y objetivo (2,2):</p>
+<ol>
+<li><strong>Codo.</strong> r²=2²+2²=8 y c₂=(8−4−4)/(2·2·2)=0. Entonces s₂=±1: salen q₂=90° y q₂=−90°.</li>
+<li><strong>Hombro.</strong> La recta de la base al objetivo forma atan2(2,2)=45° con +X. El segundo atan2 vale atan2(2·s₂, 2+2·c₂)=atan2(±2, 2)=±45°. Con q₂=90°, q₁=45°−45°=0°. Con q₂=−90°, q₁=45°+45°=90°.</li>
+<li><strong>Comprobación.</strong> Se sustituye cada pareja en la cinemática directa.</li>
+</ol>
+<div class="table-wrap"><table><thead><tr><th>Rama</th><th>q₁</th><th>q₂</th><th>Comprobación</th></tr></thead><tbody><tr><td>s₂&gt;0</td><td>0°</td><td>90°</td><td>x=2·cos 0°+2·cos 90°=2; y=2·sin 0°+2·sin 90°=2</td></tr><tr><td>s₂&lt;0</td><td>90°</td><td>−90°</td><td>x=2·cos 90°+2·cos 0°=2; y=2·sin 90°+2·sin 0°=2</td></tr></tbody></table></div>
+<p>Las denominaciones «codo arriba» y «codo abajo» dependen de la vista y la convención. Usa el signo de q₂ para identificar las ramas sin ambigüedad.</p>
+<figure class="lesson-plate" data-plate="brazo-2r" data-args='{"l1":2,"l2":2,"q1":0,"q2":90}'><figcaption>Rama q₂=90°: el primer eslabón va sobre +X y el segundo sube. En la otra, el primero sube y el segundo sale hacia +X: el codo queda reflejado respecto de la recta entre la base y el objetivo.</figcaption></figure>
+<h4>Brazo plano: casos límite</h4>
+<ul><li>Si r&gt;L₁+L₂ o r&lt;|L₁−L₂|, no hay solución de posición.</li><li>En r=L₁+L₂ las dos ramas coinciden, módulo vueltas completas.</li><li>En r=|L₁−L₂| y L₁≠L₂ ocurre lo mismo con el brazo plegado.</li><li>Si L₁=L₂ y (x,y)=(0,0), q₂=π y q₁ es libre: hay infinitas configuraciones. La fórmula general incluye atan2(0,0), así que debe tratarse aparte.</li></ul>
+<h4>Brazo plano de tres eslabones, con la orientación dada</h4>
+<p>Resta primero el último tramo orientado con φ:</p>
+<div class="formula">$$x_w=x-L_3\cos\varphi,\qquad y_w=y-L_3\sin\varphi$$
+$$q_3=\varphi-q_1-q_2$$</div>
+<p>Resuelve el 2R de longitudes L₁,L₂ para (x<sub>w</sub>,y<sub>w</sub>) y calcula q₃ en cada rama. Ejemplo: L=(2,1,1), objetivo (3,1), φ=0° produce (x<sub>w</sub>,y<sub>w</sub>)=(2,1). Una solución es (0°,90°,−90°). Si no se fija φ, pueden aparecer familias continuas de soluciones.</p>
+<h4>Robot articular de tres ejes: las fórmulas</h4>
 <p>El brazo tiene un giro de base q₁, uno de hombro q₂ y uno de codo q₃, con eslabones de longitudes l₂ y l₃. El giro de la base mete el brazo entero en un plano vertical, el que contiene al punto, así que:</p>
 <div class="formula">$$q_1=\operatorname{atan2}(p_y,p_x),\qquad r=\sqrt{p_x^2+p_y^2}$$</div>
 <p>En ese plano, el hombro, el codo y el extremo forman un triángulo del que se conocen los tres lados. El teorema del coseno da el codo:</p>
@@ -1949,18 +1961,21 @@ $$\sin q_3=\pm\sqrt{1-\cos^2q_3},\qquad q_3=\operatorname{atan2}(\sin q_3,\cos q
 <p>El doble signo no es un adorno: son dos posturas distintas que llegan al mismo punto, <strong>codo arriba</strong> y <strong>codo abajo</strong>. Se usa el arco tangente con el seno y el coseno, y no el arco coseno solo, precisamente para no perder una. Para cada una, el hombro es la diferencia entre el ángulo de la recta que va al extremo y el que esa recta forma con el primer eslabón:</p>
 <div class="formula">$$q_2=\beta-\alpha,\qquad\beta=\operatorname{atan2}(p_z,r),\qquad\alpha=\operatorname{atan2}(l_3\sin q_3,\;l_2+l_3\cos q_3)$$</div>
 <p>Aquí p<sub>z</sub> se mide desde el hombro. Si el hombro está a una altura d₁ sobre la base, como en la tabla DH de la aplicación, sustituye p<sub>z</sub> por p<sub>z</sub> − d₁. Y si |cos q₃| sale mayor que 1, el punto queda fuera del alcance del brazo: no hay solución.</p>
+<p>Para buscar todas las posturas hay que probar también la base girada media vuelta, q₁ + 180°, con el brazo echado hacia atrás. Y si el punto está sobre el eje Z, q₁ queda libre: la posición no fija el acimut y hay que tratarlo aparte.</p>
 <h4>Ejemplo resuelto: brazo articulado en el espacio</h4>
-<p>Un brazo con el hombro a d₁ = 1 m sobre la base y dos eslabones de 2 m debe llevar su extremo al punto p = (2,8978; 1,6730; 1,8966) m.</p>
+<p>Un brazo con el hombro a d₁ = 1 m sobre la base y dos eslabones de 2 m debe llevar su extremo al punto p = (0; 2; 3) m.</p>
 <ol>
-<li><strong>Base.</strong> q₁ = atan2(1,6730; 2,8978) = 30°.</li>
-<li><strong>Al plano.</strong> r = √(2,8978² + 1,6730²) = 3,3461, y z = 1,8966 − 1 = 0,8966. El hombro ve el extremo a una distancia tal que r² + z² = 12.</li>
-<li><strong>Codo.</strong> cos q₃ = (12 − 4 − 4) / (2·2·2) = 0,5, y sen q₃ = ±0,866. Salen q₃ = 60° y q₃ = −60°.</li>
-<li><strong>Hombro.</strong> β = atan2(0,8966; 3,3461) = 15°. Con q₃ = −60°, α = atan2(2·(−0,866); 2 + 2·0,5) = −30° y q₂ = 15° − (−30°) = 45°. Con q₃ = 60°, α = 30° y q₂ = 15° − 30° = −15°.</li>
-<li><strong>Comprobación.</strong> Con (30°; 45°; −60°): ρ = 2·cos 45° + 2·cos(−15°) = 3,3461 y la altura es 1 + 2·sen 45° + 2·sen(−15°) = 1,8966. Con (30°; −15°; 60°): ρ = 2·cos(−15°) + 2·cos 45° = 3,3461 y la altura, 1 + 2·sen(−15°) + 2·sen 45° = 1,8966. Las dos llegan.</li>
+<li><strong>Base.</strong> q₁ = atan2(2; 0) = 90°. El punto está sobre el eje y, y el brazo trabaja en el plano vertical que lo contiene.</li>
+<li><strong>Al plano.</strong> r = √(0² + 2²) = 2, y z = 3 − 1 = 2. El hombro ve el extremo a una distancia tal que r² + z² = 8.</li>
+<li><strong>Codo.</strong> cos q₃ = (8 − 4 − 4) / (2·2·2) = 0, y sen q₃ = ±1. Salen q₃ = 90° y q₃ = −90°.</li>
+<li><strong>Hombro.</strong> β = atan2(2; 2) = 45°. Con q₃ = −90°, α = atan2(2·(−1); 2 + 2·0) = −45° y q₂ = 45° − (−45°) = 90°. Con q₃ = 90°, α = 45° y q₂ = 45° − 45° = 0°.</li>
+<li><strong>Comprobación.</strong> Con (90°; 90°; −90°): ρ = 2·cos 90° + 2·cos 0° = 2 y la altura es 1 + 2·sen 90° + 2·sen 0° = 3. Con (90°; 0°; 90°): ρ = 2·cos 0° + 2·cos 90° = 2 y la altura, 1 + 2·sen 0° + 2·sen 90° = 3. Las dos llegan.</li>
 </ol>
-<figure class="lesson-plate" data-plate="espacial-3r" data-args='{"h":1,"l2":2,"l3":2,"q1":30,"q2":45,"q3":-60}'><figcaption>Primera solución, (30°; 45°; −60°): el codo queda por encima de la recta que une el hombro con el extremo.</figcaption></figure>
-<figure class="lesson-plate" data-plate="espacial-3r" data-args='{"h":1,"l2":2,"l3":2,"q1":30,"q2":-15,"q3":60}'><figcaption>Segunda solución, (30°; −15°; 60°): mismo punto, con el codo por debajo.</figcaption></figure>
-<p>Quedan otras dos, con la base girada media vuelta y el brazo echado hacia atrás: (−150°; 135°; 60°) y (−150°; −165°; −60°). Alcanzan el mismo punto, y si valen o no lo deciden los topes del hombro.</p>
+<figure class="lesson-plate" data-plate="espacial-3r" data-args='{"h":1,"l2":2,"l3":2,"q1":90,"q2":90,"q3":-90}'><figcaption>Primera solución, (90°; 90°; −90°): el brazo sube y el antebrazo sale horizontal. El codo queda por encima de la recta que une el hombro con el extremo.</figcaption></figure>
+<figure class="lesson-plate" data-plate="espacial-3r" data-args='{"h":1,"l2":2,"l3":2,"q1":90,"q2":0,"q3":90}'><figcaption>Segunda solución, (90°; 0°; 90°): mismo punto, con el brazo horizontal y el antebrazo hacia arriba. El codo queda por debajo.</figcaption></figure>
+<p>Quedan otras dos, con la base girada media vuelta y el brazo echado hacia atrás: (−90°; 90°; 90°) y (−90°; 180°; −90°). Alcanzan el mismo punto, y si valen o no lo deciden los topes del hombro.</p>
+<h4>SCARA de tres ejes</h4>
+<p>En el SCARA RRP, resuelve el brazo plano en XY y luego q₃=z−d₀. Para p=(3; 2; 1,5), L₁=3, L₂=2 y d₀=2, una solución es (0°; 90°; −0,5). Comprueba el recorrido prismático, aunque XY sea alcanzable.</p>
 <div class="callout"><strong>En Practicar.</strong> En «Cinemática inversa · de la localización a las articulaciones», el robot antropomórfico se resuelve por el método geométrico, a partir del punto p: vale cualquier postura que lo alcance. La inversa del brazo plano de dos eslabones sale en la práctica de este tema.</div>
 <p class="source">Fundamentos de robótica (Barrientos, Peñín, Balaguer y Aracil) · §4.2.1, resolución del problema cinemático inverso por métodos geométricos</p>
 <div class="callout"><strong>Validación final.</strong> Sustituye cada candidato en la directa, comprueba la tarea pedida y filtra por límites. Alcanzar un punto no garantiza una orientación deseada ni un camino libre de colisiones.</div>
@@ -2002,23 +2017,23 @@ $$T=\begin{bmatrix}-1&0&0&0{,}5\\0&1&0&0{,}2\\0&0&-1&0{,}3\\0&0&0&1\end{bmatrix}
 <p>En la segunda, con u = c₁p<sub>x</sub> + s₁p<sub>y</sub>, la cuarta columna da una ecuación con un cero a la derecha y otra con q₃ sola:</p>
 <div class="formula">$$c_2\,u+s_2\,(p_z-d_1)=0\quad\Longrightarrow\quad q_2=\operatorname{atan2}(-u,\;p_z-d_1)$$
 $$q_3=c_2\,(p_z-d_1)-s_2\,u$$</div>
-<p>Con d₁ = 2 y p = (1; 1,732; 5,464): q₁ = 60°, u = 2, p<sub>z</sub> − d₁ = 3,464, así que q₂ = −30° y q₃ = 0,866·3,464 + 0,5·2 = 4.</p>
-<p><strong>Qué ha pasado con la orientación.</strong> El dato era T entera, pero todo el despeje ha salido de la cuarta columna: n, o y a no han hecho falta. Es lo esperable en un robot de tres grados de libertad. La ecuación de q₁ la cumplen además dos ángulos, 60° y −120°. Con −120° y q₂ = 30° el extremo llega al mismo punto, con la herramienta girada media vuelta alrededor de su eje a: n y o salen con el signo cambiado. Las dos posturas son soluciones de posición. Si interesa saber cuál deja la herramienta tal como pide T, se mira la orientación: en este robot o = (−s₁, c₁, 0).</p>
+<p>Con d₁ = 2 y p = (0; 4; 2): q₁ = atan2(4; 0) = 90°, u = 0·0 + 1·4 = 4 y p<sub>z</sub> − d₁ = 0, así que q₂ = atan2(−4; 0) = −90° y q₃ = 0·0 − (−1)·4 = 4. El brazo queda horizontal, apuntando hacia +Y, con la guía extendida 4 m.</p>
+<p><strong>Qué ha pasado con la orientación.</strong> El dato era T entera, pero todo el despeje ha salido de la cuarta columna: n, o y a no han hecho falta. Es lo esperable en un robot de tres grados de libertad. La ecuación de q₁ la cumplen además dos ángulos, 90° y −90°. Con −90° y q₂ = 90° el extremo llega al mismo punto, con la herramienta girada media vuelta alrededor de su eje a: n y o salen con el signo cambiado. Las dos posturas son soluciones de posición. Si interesa saber cuál deja la herramienta tal como pide T, se mira la orientación: en este robot o = (−s₁, c₁, 0).</p>
 <h4>Ejemplo resuelto: SCARA, donde la orientación sí hace falta</h4>
 <p>El SCARA tiene cuatro grados de libertad, y el cuarto —el giro de la herramienta sobre la vertical— no mueve el extremo: solo se ve en n y en o. Aquí el dato tiene que ser T, no basta con p.</p>
 <div class="table-wrap"><table class="dh-algorithm"><thead><tr><th>i</th><th>θᵢ</th><th>dᵢ</th><th>aᵢ</th><th>αᵢ</th></tr></thead><tbody><tr><td>1</td><td>q₁</td><td>d₁</td><td>a₁</td><td>0</td></tr><tr><td>2</td><td>q₂</td><td>0</td><td>a₂</td><td>180°</td></tr><tr><td>3</td><td>0</td><td>q₃</td><td>0</td><td>0</td></tr><tr><td>4</td><td>q₄</td><td>d₄</td><td>0</td><td>0</td></tr></tbody></table></div>
 <p>Multiplicando las cuatro matrices, con φ = q₁ + q₂ − q₄:</p>
 <div class="formula">$$T=\begin{bmatrix}\cos\varphi&\sin\varphi&0&a_1c_1+a_2c_{12}\\\sin\varphi&-\cos\varphi&0&a_1s_1+a_2s_{12}\\0&0&-1&d_1-q_3-d_4\\0&0&0&1\end{bmatrix}$$</div>
-<p>Con d₁ = 4, a₁ = 3, a₂ = 2 y d₄ = 0,9, se pide:</p>
-<div class="formula">$$T=\begin{bmatrix}0{,}7071&0{,}7071&0&2{,}5981\\0{,}7071&-0{,}7071&0&3{,}5\\0&0&-1&1{,}6\\0&0&0&1\end{bmatrix}$$</div>
+<p>Con d₁ = 4, a₁ = a₂ = 2 y d₄ = 0,9, se pide:</p>
+<div class="formula">$$T=\begin{bmatrix}1&0&0&2\\0&-1&0&2\\0&0&-1&1{,}6\\0&0&0&1\end{bmatrix}$$</div>
 <ol>
-<li><strong>Leer el dato.</strong> a = (0, 0, −1): la herramienta apunta hacia abajo, como siempre en un SCARA. n = (0,7071; 0,7071; 0): el eje x del extremo forma 45° con el de la base.</li>
+<li><strong>Leer el dato.</strong> a = (0, 0, −1): la herramienta apunta hacia abajo, como siempre en un SCARA. n = (1; 0; 0): el eje x del extremo coincide con el de la base.</li>
 <li><strong>La guía, con p<sub>z</sub>.</strong> q₃ = d₁ − d₄ − p<sub>z</sub> = 4 − 0,9 − 1,6 = 1,5 m.</li>
-<li><strong>El codo, con p<sub>x</sub> y p<sub>y</sub>.</strong> En planta es un brazo de dos eslabones: cos q₂ = (2,5981² + 3,5² − 3² − 2²) / (2·3·2) = 0,5. Salen q₂ = 60° y q₂ = −60°.</li>
-<li><strong>El hombro.</strong> q₁ = atan2(3,5; 2,5981) − atan2(2·sen q₂; 3 + 2·cos q₂). Con q₂ = 60°: 53,41° − 23,41° = 30°. Con q₂ = −60°: 53,41° + 23,41° = 76,83°.</li>
-<li><strong>La herramienta, con n.</strong> φ = atan2(n<sub>y</sub>, n<sub>x</sub>) = 45°, y q₄ = q₁ + q₂ − φ. Con la primera rama, 30° + 60° − 45° = 45°; con la segunda, 76,83° − 60° − 45° = −28,17°.</li>
+<li><strong>El codo, con p<sub>x</sub> y p<sub>y</sub>.</strong> En planta es un brazo de dos eslabones: cos q₂ = (2² + 2² − 2² − 2²) / (2·2·2) = 0. Salen q₂ = 90° y q₂ = −90°.</li>
+<li><strong>El hombro.</strong> q₁ = atan2(2; 2) − atan2(2·sen q₂; 2 + 2·cos q₂). Con q₂ = 90°: 45° − 45° = 0°. Con q₂ = −90°: 45° + 45° = 90°.</li>
+<li><strong>La herramienta, con n.</strong> φ = atan2(n<sub>y</sub>, n<sub>x</sub>) = atan2(0; 1) = 0°, y q₄ = q₁ + q₂ − φ. Con la primera rama, 0° + 90° − 0° = 90°; con la segunda, 90° − 90° − 0° = 0°.</li>
 </ol>
-<p>Las dos soluciones son (30°; 60°; 1,5 m; 45°) y (76,83°; −60°; 1,5 m; −28,17°). Sin n, q₄ no se podría calcular: cualquier valor dejaría el extremo en el mismo punto.</p>
+<p>Las dos soluciones son (0°; 90°; 1,5 m; 90°) y (90°; −90°; 1,5 m; 0°). Sin n, q₄ no se podría calcular: cualquier valor dejaría el extremo en el mismo punto.</p>
 <div class="callout"><strong>En Practicar.</strong> «Cinemática inversa · de la localización a las articulaciones» da la tabla DH y T de cuatro robots: cartesiano, cilíndrico, polar y SCARA. En los de tres grados de libertad vale cualquier postura que alcance la posición; en el SCARA, que tiene cuatro, hay que reproducir también la orientación. «Cinemática inversa completa · tabla DH y articulaciones» pide primero la tabla del mecanismo dibujado, y «Cinemática inversa · ecuaciones del robot», las ecuaciones sin números.</div>
 <p class="source">Fundamentos de robótica (Barrientos, Peñín, Balaguer y Aracil) · §4.2.2, resolución del problema cinemático inverso a partir de la matriz de transformación homogénea</p>
   `},
@@ -2687,7 +2702,7 @@ $$T=\begin{bmatrix}c_{12}&-s_{12}&0&L_1c_1+L_2c_{12}\\s_{12}&c_{12}&0&L_1s_1+L_2
 <ol><li>Valida datos finitos y longitudes positivas.</li><li>Calcula c₂. Si |c₂|&gt;1+ε, rechaza el objetivo. ε es una tolerancia numérica adimensional, no un margen físico de alcance.</li><li>Solo si el exceso es compatible con redondeo, recorta c₂ a [−1,1] y calcula s₂=±√max(0,1−c₂²).</li><li>Trata explícitamente los casos degenerados; elimina ramas duplicadas.</li><li>Filtra por límites y calcula la directa de cada candidato.</li><li>Acepta únicamente residuos de posición y, cuando corresponda, orientación dentro de sus tolerancias separadas.</li></ol>
 <p>No apliques max(0,1−c₂²) a cualquier objetivo: ocultaría puntos realmente inalcanzables. Los topes deben revisarse sobre las coordenadas articulares físicas, incluyendo vueltas, offsets y sentido positivo.</p>
 <h4>Ejemplo: una rama queda descartada</h4>
-<p>Para L₁=3, L₂=2 y objetivo (4,1), las ramas son aproximadamente (−13,1787°,70,5288°) y (41,2512°,−70,5288°). Si q₂ solo admite [0°,150°], se descarta la segunda. Si q₁ además debe pertenecer a [0°,90°], la primera también se descarta: estar dentro de la corona sin límites no basta.</p>
+<p>Para L₁=L₂=2 y objetivo (2,2), las ramas son (0°, 90°) y (90°, −90°). Si q₂ solo admite [0°,180°], se descarta la segunda. Si q₁ además debe pertenecer a [90°,180°], la primera también se descarta: estar dentro de la corona sin límites no basta.</p>
 <h4>Continuidad y vueltas completas</h4>
 <p>Entre candidatos válidos puede minimizarse una distancia ponderada a q actual. Para una articulación de giro continuo, 179° y −179° pueden estar a 2°; para un eje con topes o cables, ese recorrido corto puede no existir. Aplica la diferencia angular envuelta solo a las articulaciones para las que sea físicamente admisible.</p>
 <div class="formula">$$q^*=\arg\min_{q\in\mathcal S_{valida}}\|W\,\Delta q\|$$</div>
@@ -2896,26 +2911,27 @@ $$q_4=\operatorname{atan2}(\pm r_{23},\,\pm r_{13}),\qquad q_6=\operatorname{ata
 <p>Los signos van juntos: los de arriba si se toma sen q₅ positivo, los de abajo si negativo. Son dos soluciones, (q₄, q₅, q₆) y (q₄ + 180°, −q₅, q₆ + 180°), que dejan la herramienta exactamente igual: la muñeca llega por un lado o por el otro. Si r₃₃ = ±1, sen q₅ = 0 y las fórmulas de q₄ y q₆ quedan en atan2(0, 0): es la singularidad de la muñeca, que se describe en el tema «Cinemática inversa: ramas, límites y robustez», y solo se puede conocer la suma de los dos giros.</p>
 <p>El libro escribe q₅ con el arco coseno y los otros dos con cocientes, y recomienda pasarlos a arco tangente para programarlos. La forma con atan2 es ese último paso ya dado: conserva el cuadrante y no divide por cero.</p>
 <h4>Ejemplo resuelto completo: robot de seis ejes</h4>
-<p>El robot de la tabla anterior, con l₁ = 0,8, l₂ = 0,6, l₃ = 0,5 y l₄ = 0,2 m, debe llevar su herramienta a:</p>
-<div class="formula">$$T=\begin{bmatrix}-0{,}6902&-0{,}6222&0{,}3696&0{,}7404\\0{,}3633&0{,}1438&0{,}9205&0{,}5689\\-0{,}6258&0{,}7696&0{,}1268&1{,}5584\\0&0&0&1\end{bmatrix}$$</div>
+<p>El robot de la tabla anterior, con l₁ = 0,8, l₂ = 0,5, l₃ = 0,5 y l₄ = 0,2 m, debe llevar su herramienta a:</p>
+<div class="formula">$$T=\begin{bmatrix}0&0&-1&-0{,}2\\0&-1&0&0{,}5\\-1&0&0&1{,}3\\0&0&0&1\end{bmatrix}$$</div>
+<p>Antes de calcular, léela: a = (−1; 0; 0), la herramienta apunta hacia −X de la base; o = (0; −1; 0) y n = (0; 0; −1).</p>
 <ol>
-<li><strong>Centro de la muñeca.</strong> p<sub>m</sub> = p − 0,2·a = (0,7404 − 0,0739; 0,5689 − 0,1841; 1,5584 − 0,0254) = (0,6665; 0,3848; 1,5330).</li>
-<li><strong>Base.</strong> q₁ = atan2(0,3848; 0,6665) = 30°.</li>
-<li><strong>Al plano.</strong> r = √(0,6665² + 0,3848²) = 0,7696. En este robot el hombro gira en sentido contrario al del brazo articulado de antes y el antebrazo sale perpendicular cuando q₃ = 0. Las dos cosas se absorben midiendo la altura hacia abajo, z′ = l₁ − p<sub>m,z</sub> = 0,8 − 1,5330 = −0,7330, y llamando q₃′ = q₃ − 90°. Con eso el triángulo es el de siempre.</li>
-<li><strong>Codo.</strong> r² + z′² = 1,1296, así que cos q₃′ = (1,1296 − 0,36 − 0,25) / (2·0,6·0,5) = 0,866. Salen q₃′ = ±30°, es decir, q₃ = 60° o q₃ = 120°.</li>
-<li><strong>Hombro.</strong> β = atan2(−0,7330; 0,7696) = −43,60°. Con q₃′ = −30°, α = −13,60° y q₂ = −30°. Con q₃′ = 30°, α = 13,60° y q₂ = −57,21°. Se sigue con la primera: (q₁; q₂; q₃) = (30°; −30°; 60°).</li>
+<li><strong>Centro de la muñeca.</strong> p<sub>m</sub> = p − 0,2·a = (−0,2 − 0,2·(−1); 0,5 − 0; 1,3 − 0) = (0; 0,5; 1,3).</li>
+<li><strong>Base.</strong> q₁ = atan2(0,5; 0) = 90°.</li>
+<li><strong>Al plano.</strong> r = √(0² + 0,5²) = 0,5. En este robot el hombro gira en sentido contrario al del brazo articulado de antes y el antebrazo sale perpendicular cuando q₃ = 0. Las dos cosas se absorben midiendo la altura hacia abajo, z′ = l₁ − p<sub>m,z</sub> = 0,8 − 1,3 = −0,5, y llamando q₃′ = q₃ − 90°. Con eso el triángulo es el de siempre.</li>
+<li><strong>Codo.</strong> r² + z′² = 0,5, así que cos q₃′ = (0,5 − 0,25 − 0,25) / (2·0,5·0,5) = 0. Salen q₃′ = ±90°, es decir, q₃ = 0° o q₃ = 180°.</li>
+<li><strong>Hombro.</strong> β = atan2(−0,5; 0,5) = −45°. Con q₃′ = −90°, α = atan2(−0,5; 0,5) = −45° y q₂ = −45° − (−45°) = 0°. Con q₃′ = 90°, α = 45° y q₂ = −90°. Se sigue con la primera: (q₁; q₂; q₃) = (90°; 0°; 0°).</li>
 <li><strong>Lo que ponen los tres primeros ejes.</strong> Con esos tres ángulos, multiplicando los bloques de giro de las tres primeras filas:</li>
 </ol>
-<div class="formula">$$ {}^{0}R_3=\begin{bmatrix}0{,}75&-0{,}5&0{,}433\\0{,}433&0{,}866&0{,}25\\-0{,}5&0&0{,}866\end{bmatrix}$$</div>
+<div class="formula">$$ {}^{0}R_3=\begin{bmatrix}0&-1&0\\1&0&0\\0&0&1\end{bmatrix}$$</div>
 <ol start="7">
 <li><strong>Lo que le queda a la muñeca.</strong> Se traspone y se multiplica por [n o a]:</li>
 </ol>
-<div class="formula">$$ {}^{3}R_6=\left( {}^{0}R_3\right)^{T}[\,\mathbf n\;\mathbf o\;\mathbf a\,]=\begin{bmatrix}-0{,}0474&-0{,}7891&0{,}6124\\0{,}6597&0{,}4356&0{,}6124\\-0{,}75&0{,}433&0{,}5\end{bmatrix}$$</div>
+<div class="formula">$$ {}^{3}R_6=\left( {}^{0}R_3\right)^{T}[\,\mathbf n\;\mathbf o\;\mathbf a\,]=\begin{bmatrix}0&1&0\\-1&0&0\\0&0&1\end{bmatrix}\begin{bmatrix}0&0&-1\\0&-1&0\\-1&0&0\end{bmatrix}=\begin{bmatrix}0&-1&0\\0&0&1\\-1&0&0\end{bmatrix}$$</div>
 <ol start="8">
-<li><strong>Los tres giros.</strong> r₃₃ = 0,5 y √(r₁₃² + r₂₃²) = 0,866, así que q₅ = atan2(0,866; 0,5) = 60°. Con sen q₅ positivo: q₄ = atan2(r₂₃, r₁₃) = atan2(0,6124; 0,6124) = 45°, y q₆ = atan2(r₃₂, −r₃₁) = atan2(0,433; 0,75) = 30°.</li>
-<li><strong>Comprobación.</strong> Sustituyendo (30°; −30°; 60°; 45°; 60°; 30°) en la tabla y multiplicando las seis matrices sale la T pedida.</li>
+<li><strong>Los tres giros.</strong> r₃₃ = 0 y √(r₁₃² + r₂₃²) = √(0² + 1²) = 1, así que q₅ = atan2(1; 0) = 90°. Con sen q₅ positivo: q₄ = atan2(r₂₃, r₁₃) = atan2(1; 0) = 90°, y q₆ = atan2(r₃₂, −r₃₁) = atan2(0; 1) = 0°.</li>
+<li><strong>Comprobación.</strong> Sustituyendo (90°; 0°; 0°; 90°; 90°; 0°) en la tabla y multiplicando las seis matrices sale la T pedida.</li>
 </ol>
-<p>No es la única solución. La muñeca admite también (−135°; −60°; −150°), que deja la herramienta igual. Y con el otro codo, (q₂; q₃) = (−57,21°; 120°), el centro de la muñeca cae en el mismo sitio, pero ⁰R₃ cambia y los tres giros de la muñeca hay que volver a calcularlos desde el paso 6.</p>
+<p>No es la única solución. La muñeca admite también (−90°; −90°; 180°), que deja la herramienta igual. Y con el otro codo, (q₂; q₃) = (−90°; 180°), el centro de la muñeca cae en el mismo sitio, pero ⁰R₃ cambia y los tres giros de la muñeca hay que volver a calcularlos desde el paso 6: salen (90°; 90°; −90°).</p>
 <div class="callout warn"><strong>Compruébalo multiplicando.</strong> El elemento de la segunda fila y la tercera columna de ³R₆ es s₄s₅. En el ejemplar del libro que se usa en el curso aparece impreso como −s₄c₅ en las ecuaciones de la muñeca, pero al multiplicar los tres bloques de giro que da el propio libro sale s₄s₅. Aquí se usa el valor que resulta del producto, que es también el que reproduce la orientación al sustituir los ángulos. Si en clase se sigue la fórmula impresa, coméntalo con tu profesor.</div>
 <div class="callout"><strong>En Practicar.</strong> «Desacoplo cinemático · muñeca de seis ejes» practica las dos mitades por separado: el centro de la muñeca y sus tres giros. «Desacoplo cinemático completo · de T a los seis ángulos» es el problema entero, puntuado por partes.</div>
 <p class="source">Fundamentos de robótica (Barrientos, Peñín, Balaguer y Aracil) · §4.2.3, desacoplo cinemático</p>
@@ -3034,7 +3050,7 @@ const roadmap = [
    en este punto y renombra el archivo en consecuencia.
    Ojo: `progress.version` es otra cosa — numera el esquema de datos guardados en
    localStorage y avanza solo cuando cambia la forma de ese objeto. */
-const APP_VERSION="3.59.0";
+const APP_VERSION="3.60.0";
 const APP_STAGE="láminas claras · verdadero/falso y respuestas abiertas";
 /* Los cuatro niveles del curso. Toda comprobación de dificultad debe leer de aquí:
    el selector, las preferencias guardadas, la política pedagógica y los bancos. */
@@ -3235,8 +3251,31 @@ function renderLearn(){
   document.getElementById("markRead").focus({preventScroll:true});
   document.getElementById("learnAnnouncement").textContent=`${topic.title}: ${done?"pendiente de lectura":"marcado como leído"}.`;
  };
- renderLessonPlates(lesson);renderMath(lesson);announceLesson();
+ lessonSectionIndex(lesson);renderLessonPlates(lesson);renderMath(lesson);announceLesson();
  if(changed)document.getElementById("learnAnnouncement").textContent=`Capítulo ${c.id}. ${topic.title}. ${done?"Leído":"Pendiente de lectura"}.`;
+}
+
+/* ---------- SECCIONES DE UN TEMA ----------
+   Un tema largo era una columna de apartados sin más señal que un título en
+   negrita: no se veía cuántos había ni dónde empezaba cada uno. Ahora cada
+   apartado lleva su número y una raya que lo separa del anterior, y el tema
+   abre con un índice que salta a cualquiera de ellos. Se monta al dibujar la
+   lección, a partir de los títulos que ya tiene: ningún tema necesita
+   declararlo. Con menos de tres apartados no hace falta índice. */
+function lessonSectionIndex(lesson){
+ const titulos=[...lesson.children].filter(el=>el.tagName==='H4');
+ if(titulos.length<3)return 0;
+ titulos.forEach((titulo,i)=>{titulo.id='leccion-seccion-'+(i+1);titulo.classList.add('lesson-section');titulo.dataset.n=String(i+1);titulo.tabIndex=-1});
+ const nav=document.createElement('nav');nav.className='lesson-sections';nav.setAttribute('aria-label','Secciones de este tema');
+ nav.innerHTML=`<strong>En este tema · ${titulos.length} secciones</strong><ol>${titulos.map((titulo,i)=>`<li><button type="button" data-seccion="${i+1}">${learnEscape(titulo.textContent)}</button></li>`).join('')}</ol>`;
+ nav.addEventListener('click',evento=>{
+  const boton=evento.target.closest('button[data-seccion]');if(!boton)return;
+  const destino=document.getElementById('leccion-seccion-'+boton.dataset.seccion);if(!destino)return;
+  destino.scrollIntoView({behavior:window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
+  destino.focus({preventScroll:true});
+ });
+ titulos[0].before(nav);
+ return titulos.length;
 }
 
 /* ---------- LÁMINAS DENTRO DE LAS LECCIONES ----------
@@ -5148,7 +5187,7 @@ function mechanicalScene(e){
     Por defecto se reconoce por el nombre —la convención llama qᵢ a la variable—
     y las láminas que usan otra notación lo declaran a mano. */
  const dim=(a,b,label,side='auto',variable=/^q/.test(String(label)))=>{if(norm(sub(b,a))>1e-8)dimensions.push({a,b,label,side,variable})};
- let points=k.positions.map(V),origin=[0,0,0],tip=V(k.positions.at(-1)),referencePoints=[],detail=null;
+ let points=k.positions.map(V),origin=[0,0,0],tip=V(k.positions.at(-1)),referencePoints=[],detail=null,wristAxes=null;
  const architectureScara=k.architectureId==='scara4';
  if(['SCARA_RRP','SCARA_RRPR'].includes(model)||architectureScara){
   const book=model==='SCARA_RRPR'||architectureScara,h=book?p.l1:p.d0,H=[0,0,h],J=book?V(k.positions[1]):[points[1][0],points[1][1],h],W=book?V(k.positions[2]):[points[2][0],points[2][1],h];
@@ -5176,6 +5215,20 @@ function mechanicalScene(e){
   const positive=points.slice(1).map((v,i)=>norm(sub(v,points[i]))).filter(v=>v>.01),size=Math.max(...positive),width=Math.max(.3,Math.min(.58,size*.13));
   const spherical=points.length===7&&norm(sub(points[3],points[4]))<1e-7&&norm(sub(points[4],points[5]))<1e-7;
   const toolWidth=(k.jointAxes||[]).length>=6?Math.min(width,norm(sub(tip,points.at(-2)))*(spherical?.32:.5)):width;
+  /* Muñeca esférica. Los tres giros se cortan en C, y cada uno tiene su
+     propio cilindro, tumbado sobre su eje, para que se vea cuál es cuál.
+     Hay dos montajes, según llegue el antebrazo:
+     · en línea con el eje 4 (cartesiano, cilíndrico, polar): un tambor al
+       final del antebrazo, una horquilla con su pasador y el tambor de la
+       pinza;
+     · de lado (antropomórfico): el antebrazo acaba en un cilindro como el del
+       codo, lo cruza el del eje 5 y de ese cruce sale el tambor de la pinza. */
+  let wristR=0,wristDir=null,wristInline=false,wristTrim=0;
+  if(spherical){
+   const C=points[3],a4=unit(V(jointRotationFrame(k,3).axis)),forearm=unit(sub(C,points[2])),along=a4.reduce((s,v,i)=>s+v*forearm[i],0);
+   wristR=Math.min(width*1.2,norm(sub(tip,C))*.6);wristInline=Math.abs(along)>.9;
+   wristDir=scale(a4,along>0?-1:1);wristTrim=wristInline?wristR*2.25:wristR*.45;
+  }
   // Put the pedestal under the first bearing, not through its lower cap.
   const foot=-width*1.2*.82;
   if(k.jointTypes?.[0]==='P')solid('box',[0,0,-width*.5],[0,0,0],width*3,width*3,'guide');else rod([0,0,foot-width*.55],[0,0,foot],width*2);
@@ -5188,7 +5241,7 @@ function mechanicalScene(e){
      solid('box',add(a,scale(u,sign*shift)),add(housingEnd,scale(u,sign*shift)),wall,outer,'guide');solids.at(-1).side=u;
      solid('box',add(a,scale(v,sign*shift)),add(housingEnd,scale(v,sign*shift)),outer-wall*2,wall,'guide');solids.at(-1).side=u;
     }
-    const last=i===points.length-2,wristInput=spherical&&i===2,tail=wristInput?add(b,scale(axis,-width*2.1)):last?add(b,scale(axis,-toolWidth*1.4)):b;
+    const last=i===points.length-2,wristInput=spherical&&i===2,tail=wristInput?add(b,scale(axis,-wristTrim)):last?add(b,scale(axis,-toolWidth*1.4)):b;
     solid('box',add(a,scale(axis,width*.35)),tail,width*.74,width*.74,'slider');solids.at(-1).side=u;
     if(!last&&!wristInput){solid('box',add(b,scale(axis,-width*.14)),add(b,scale(axis,width*.14)),width*1.05,width*1.05,'guide');solids.at(-1).side=u;}
     return;
@@ -5213,31 +5266,47 @@ function mechanicalScene(e){
    }else if(!(model==='RRRP'&&i===3)){
     if(spherical&&i>=3)return;
     const direction=unit(sub(b,a)),length=norm(sub(b,a)),startTrim=k.jointAxes?.[i]?Math.min(width*.3,length*.15):0,endTrim=i===points.length-2?Math.min(toolWidth*1.4,length*.75):Math.min(width*.3,length*.15);
-    beam(add(a,scale(direction,startTrim)),add(b,scale(direction,-(spherical&&i===2?width*2.1:endTrim))),width*(i>2?.75:1.02),width*(i>2?.7:.88));
+    beam(add(a,scale(direction,startTrim)),add(b,scale(direction,-(spherical&&i===2?wristTrim:endTrim))),width*(i>2?.75:1.02),width*(i>2?.7:.88));
    }
   });
   // Coincident DH origins share a single housing; no fake zero-length link.
   const placed=[];(k.jointAxes||[]).forEach((axis,i)=>{if(!axis||(spherical&&i>=3))return;const c=points[i];if(placed.some(v=>norm(sub(c,v))<1e-7))return;placed.push(c);const f=jointRotationFrame(k,i).axis,shared=(k.jointAxes||[]).filter((axis,j)=>axis&&norm(sub(points[j],c))<1e-7).length>1;joint(c,V(f),width*(shared?.64:.83),width*(shared?.55:1.2))});
   if(spherical){
-   // Three physical bearings on the existing concurrent axes: input housing,
-   // open yoke with a transverse pivot, and output flange. No displaced DH origins.
-   const C=points[3],a4=unit(V(jointRotationFrame(k,3).axis)),a5=unit(V(jointRotationFrame(k,4).axis)),a6=unit(V(jointRotationFrame(k,5).axis));
-   const r=Math.min(width*1.12,norm(sub(tip,C))*.6),rear=add(C,scale(a4,-r*1.55)),begin=solids.length;
-   const forearm=unit(sub(C,points[2])),mount=add(rear,scale(a4,-r*.4));beam(add(C,scale(forearm,-width*2.15)),mount,width*.7,width*.65);
-   solid('cylinder',mount,add(rear,scale(a4,-r*.2)),r*.5,r*.5,'link');
-   solid('cylinder',add(rear,scale(a4,-r*.22)),add(rear,scale(a4,r*.28)),r*.88,r*.88,'revolute');
-   solid('cylinder',add(rear,scale(a4,r*.26)),add(rear,scale(a4,r*.34)),r*.91,r*.91,'hub');
-   for(const sign of[-1,1]){
-    const offset=scale(a5,sign*r*.83);
-    solid('box',add(rear,offset),add(C,offset),r*.24,r*.75,'wrist');solids.at(-1).side=a5;
-    solid('cylinder',add(C,scale(a5,sign*r*.65)),add(C,scale(a5,sign*r*1.02)),r*.36,r*.36,'hub');
+   const C=points[3],a4=unit(V(jointRotationFrame(k,3).axis)),a5=unit(V(jointRotationFrame(k,4).axis)),a6=unit(V(jointRotationFrame(k,5).axis)),r=wristR,g=wristDir,begin=solids.length,at=(v,s)=>add(C,scale(v,s));
+   const flange=add(tip,scale(a6,-toolWidth*1.45)),caps=(axis,reach,radius)=>{for(const sign of[-1,1])solid('cylinder',at(axis,sign*reach),at(axis,sign*(reach+r*.09)),radius,radius,'hub')};
+   let salida;
+   if(wristInline){
+    // Eje 4: tambor sobre su eje, al final del antebrazo.
+    solid('cylinder',at(g,r*1.25),at(g,r*2.25),r*.6,r*.6,'revolute');
+    // Eje 5: horquilla de dos mejillas y un puente, con el pasador que las cruza.
+    solid('box',at(g,r*1.25),at(g,-r*.36),r*.2,r*.56,'wrist');solids.at(-1).side=a5;
+    const mejilla=solids.pop();
+    for(const sign of[-1,1])solids.push({...mejilla,a:add(mejilla.a,scale(a5,sign*r*.8)),b:add(mejilla.b,scale(a5,sign*r*.8))});
+    solid('box',add(at(g,r*1.12),scale(a5,-r*.9)),add(at(g,r*1.12),scale(a5,r*.9)),r*.26,r*.62,'wrist');solids.at(-1).side=g;
+    solid('cylinder',at(a5,-r*1.08),at(a5,r*1.08),r*.4,r*.4,'revolute');caps(a5,r*1.08,r*.19);
+    // El cuerpo que bascula entre las mejillas y lleva el eje 6.
+    solid('cylinder',at(a5,-r*.68),at(a5,r*.68),r*.54,r*.54,'link');
+    salida=Math.min(r*.45,norm(sub(flange,C))*.4);
+    wristAxes=[{at:at(g,r*1.75)},{at:C,reach:r*1.17}];
+   }else{
+    // Eje 4: el antebrazo acaba en un cilindro como el del codo.
+    solid('cylinder',at(a4,-r*.78),at(a4,r*.78),r*.74,r*.74,'revolute');caps(a4,r*.78,r*.32);
+    // Eje 5: un cilindro más fino y más largo, que cruza al anterior.
+    solid('cylinder',at(a5,-r*1.3),at(a5,r*1.3),r*.4,r*.4,'revolute');caps(a5,r*1.3,r*.19);
+    salida=Math.min(r*.6,norm(sub(flange,C))*.5);
+    /* Si el eje 5 sigue al antebrazo, uno de sus lados queda dentro de él:
+       la flecha se dibuja en el lado libre, aunque tenga que apuntar hacia
+       dentro. */
+    const forearm=unit(sub(C,points[2])),haciaAntebrazo=a5.reduce((s,v,i)=>s+v*forearm[i],0);
+    wristAxes=[{at:C,reach:r*.87},{at:C,reach:r*1.39,inward:haciaAntebrazo<-.9}];
    }
-   solid('cylinder',add(C,scale(a5,-r*.66)),add(C,scale(a5,r*.66)),r*.4,r*.4,'revolute');
-   const flange=add(tip,scale(a6,-toolWidth*1.45));
-   solid('cylinder',add(C,scale(a6,r*.25)),flange,r*.43,r*.43,'revolute');
-   solid('cylinder',add(flange,scale(a6,-r*.18)),flange,r*.6,r*.6,'hub');
+   // Eje 6: tambor de salida, hasta la brida de la pinza.
+   solid('cylinder',at(a6,salida),flange,r*.46,r*.46,'revolute');
+   solid('cylinder',add(flange,scale(a6,-r*.16)),flange,r*.6,r*.6,'hub');
    for(const part of solids.slice(begin))part.assembly='wrist';
    detail={title:'Detalle de la muñeca y la pinza',wrist:true,origin:C,axis:a6,back:r*1.8};
+   /* Dónde se dibuja la flecha de cada eje: sobre su propio cuerpo. */
+   wristAxes.push({at:scale(add(at(a6,salida),flange),.5)});
   }
   /* La lámina de asignación de marcos no puede rotular aᵢ ni dᵢ: eso es la
      respuesta que el ejercicio pide construir. Cuando el ejercicio declara sus
@@ -5256,7 +5325,7 @@ function mechanicalScene(e){
   const tramos=points.slice(1).map((v,i)=>norm(sub(v,points[i]))).filter(v=>v>.01);
   const span=Math.max(...tramos,1);
   const joints=[];
-  (k.jointAxes||[]).forEach((axis,i)=>{if(!axis&&k.jointTypes?.[i]!=='P')return;const R=i?k.cumulative[i-1]:identityMatrix(4);joints.push({c:points[i],axis:axis?V(jointRotationFrame(k,i).axis):[R[0][2],R[1][2],R[2][2]],n:i+1})});
+  (k.jointAxes||[]).forEach((axis,i)=>{if(!axis&&k.jointTypes?.[i]!=='P')return;const R=i?k.cumulative[i-1]:identityMatrix(4);joints.push({c:points[i],axis:axis?V(jointRotationFrame(k,i).axis):[R[0][2],R[1][2],R[2][2]],n:i+1,...(wristAxes&&i>=3?wristAxes[i-3]:{})})});
   frames={base:[0,0,0],span,joints};
  }
  return{model,solids,dimensions:e.kind==='robot-identification'?[]:dimensions,tip,referencePoints,frames,detail};
@@ -5400,15 +5469,31 @@ function mechanicalPlateSvg(e,{mobile=Boolean(window.matchMedia?.("(max-width:60
       no, la primera articulación taparía la flecha Z. */
    const sobre=baseAxes.find(b=>dot(b.dir,u)>.995&&Math.abs((C[0]-base[0])*u[1]-(C[1]-base[1])*u[0])<4&&dot(sub(b.end,C),u)>-30);
    const inicio=sobre?add(sobre.end,mul(u,12)):add(C,mul(u,compartido?13:0)),largo=alineado?46:sobre?58:76;
-   const A=add(C,mul(u,alineado?-18:-46)),S=inicio,B=add(S,mul(u,sobre?largo:largo-(compartido?13:0)));
+   let A=add(C,mul(u,alineado?-18:-46)),S=inicio,B=add(S,mul(u,sobre?largo:largo-(compartido?13:0)));
    annotations.push(`<g data-joint-axis="${j.n}">`);
+   /* En una muñeca esférica los tres ejes pasan por el mismo punto. Si las
+      tres flechas salieran de él formarían una estrella ilegible, así que cada
+      una se dibuja sobre el cuerpo que gira alrededor de ese eje, y una línea
+      de centro fina la une con el punto común. */
+   if(j.at){
+    const M=map(j.at),lejos=Math.hypot(...sub(M,C))>3;
+    if(lejos){S=add(M,mul(u,-28));B=add(M,mul(u,32));const s=dot(sub(S,C),u),b=dot(sub(B,C),u);A=add(C,mul(u,Math.min(0,s-12)));if(b<0)drawLine(B,C,MECHANICAL_AXIS_COLOR,1.2,'stroke-dasharray="10,4,2,4" stroke-linecap="round"')}
+    else{
+     const borde=Math.hypot(...sub(map(add(j.c,mul(j.axis,j.reach||0))),C));
+     if(j.inward){A=C;B=add(C,mul(u,-borde-4));S=add(B,mul(u,-46))}
+     else{A=add(C,mul(u,-borde-16));S=add(C,mul(u,borde+4));B=add(S,mul(u,46))}
+    }
+    drawLine(A,j.inward?B:S,MECHANICAL_AXIS_COLOR,1.2,'stroke-dasharray="10,4,2,4" stroke-linecap="round"');
+    annotations.push(line(S,B,'stroke="#fff" stroke-width="5.5" stroke-opacity=".75" stroke-linecap="round"'));
+    arrow(S,B,MECHANICAL_AXIS_COLOR,2.4,14);annotations.push('</g>');continue;
+   }
    annotations.push(line(S,B,'stroke="#fff" stroke-width="5.5" stroke-opacity=".75" stroke-linecap="round"'));
    if(!sobre)drawLine(A,S,MECHANICAL_AXIS_COLOR,1.7,'stroke-dasharray="10,4,2,4" stroke-linecap="round"');
    else drawLine(add(base,mul(u,-30)),base,MECHANICAL_AXIS_COLOR,1.7,'stroke-dasharray="10,4,2,4" stroke-linecap="round"');
    arrow(S,B,MECHANICAL_AXIS_COLOR,2.4,15);
    annotations.push('</g>');
   }
-  for(const g of groups)if(g.ns.length>1)annotations.push(`<circle cx="${n(g.p[0])}" cy="${n(g.p[1])}" r="5" fill="#fff" stroke="${MECHANICAL_AXIS_COLOR}" stroke-width="2"/>`);
+  for(const g of groups)if(g.ns.length>1)annotations.push(`<circle cx="${n(g.p[0])}" cy="${n(g.p[1])}" r="4" fill="#fff" stroke="${MECHANICAL_AXIS_COLOR}" stroke-width="2"/>`);
   // The mechanism is intentionally unnumbered; only signed axes remain for DH.
  }
  const center=[(Math.min(...xs)+Math.max(...xs))*scale/2,(Math.min(...ys)+Math.max(...ys))*scale/2];
@@ -7473,7 +7558,11 @@ function makeDhAssignment6R(diff){
   filas=[{a:0,alpha:90,d:H,theta:q[0]},{a:L2,alpha:0,d:0,theta:q[1]},{a:L3,alpha:90,d:0,theta:q[2]},
    {a:0,alpha:-90,d:0,theta:q[3]},{a:0,alpha:90,d:0,theta:q[4]},{a:0,alpha:0,d:L6,theta:q[5]}];
   kinematics={...KinematicsEngine.serialDH(filas),model:'DhAssignment6R'};
-  if(spatialPostureIsPlausible(kinematics))break;
+  /* Ni con la pinza plegada sobre el antebrazo: el extremo caería dentro
+     del propio eslabón y la lámina no podría dibujarlo. */
+  const P=kinematics.positions,antebrazo=[P[3].x-P[2].x,P[3].y-P[2].y,P[3].z-P[2].z],pinza=[P[6].x-P[3].x,P[6].y-P[3].y,P[6].z-P[3].z];
+  const plegada=antebrazo.reduce((s,v,i)=>s+v*pinza[i],0)<-.9*Math.hypot(...antebrazo)*Math.hypot(...pinza);
+  if(spatialPostureIsPlausible(kinematics)&&!plegada)break;
  }
  const answer=filas.map(dhRowCells),tcp=kinematics.positions.at(-1);
  return{id:'dh_assignment_6R',kind:'dh-assignment',chapter:4,difficulty:diff,model:'DhAssignment6R',
@@ -15775,11 +15864,11 @@ function runSelfTests(){
     const P=KinematicsEngine.serialDH([{theta:u1,d:h,a:0,alpha:90},{theta:u2,d:0,a:0,alpha:-90},{theta:0,d:u3,a:0,alpha:0}]).cumulative.at(-1),[px,py,pz]=[0,1,2].map(r=>Number(P[r][3])),u=c(u1)*px+sn(u1)*py;
     if(Math.abs(sn(u1)*px-c(u1)*py)>1e-9||Math.abs(c(u2)*u+sn(u2)*(pz-h))>1e-9||Math.abs(c(u2)*(pz-h)-sn(u2)*u-u3)>1e-9)return false;
    }
-   /* y el ejemplo numérico: d₁ = 2, p = (1; 1,732; 5,464) da (60°; −30°; 4) */
-   const E=KinematicsEngine.serialDH([{theta:60,d:2,a:0,alpha:90},{theta:-30,d:0,a:0,alpha:-90},{theta:0,d:4,a:0,alpha:0}]).cumulative.at(-1);
-   if(Math.abs(E[0][3]-1)>1e-3||Math.abs(E[1][3]-1.732)>1e-3||Math.abs(E[2][3]-5.464)>1e-3)return false;
+   /* y el ejemplo numérico: d₁ = 2, p = (0; 4; 2) da (90°; −90°; 4) */
+   const E=KinematicsEngine.serialDH([{theta:90,d:2,a:0,alpha:90},{theta:-90,d:0,a:0,alpha:-90},{theta:0,d:4,a:0,alpha:0}]).cumulative.at(-1);
+   if(Math.abs(E[0][3])>1e-9||Math.abs(E[1][3]-4)>1e-9||Math.abs(E[2][3]-2)>1e-9)return false;
    /* la otra postura llega al mismo punto con n y o cambiados de signo */
-   const O=KinematicsEngine.serialDH([{theta:-120,d:2,a:0,alpha:90},{theta:30,d:0,a:0,alpha:-90},{theta:0,d:4,a:0,alpha:0}]).cumulative.at(-1);
+   const O=KinematicsEngine.serialDH([{theta:-90,d:2,a:0,alpha:90},{theta:90,d:0,a:0,alpha:-90},{theta:0,d:4,a:0,alpha:0}]).cumulative.at(-1);
    return [0,1,2].every(r=>Math.abs(O[r][3]-E[r][3])<1e-9&&Math.abs(Number(O[r][0])+Number(E[r][0]))<1e-9&&Math.abs(Number(O[r][1])+Number(E[r][1]))<1e-9&&Math.abs(O[r][2]-E[r][2])<1e-9);
   }],
   ["Los ejemplos resueltos de la teoría de la inversa dan lo que dicen",()=>{
@@ -15790,36 +15879,44 @@ function runSelfTests(){
    if(n.join()!=="-1,0,0"||Math.abs(det3([[n[0],o[0],a[0]],[n[1],o[1],a[1]],[n[2],o[2],a[2]]])-1)>1e-12)return false;
    /* brazo articulado: las cuatro posturas llegan al mismo punto */
    const brazo=q=>fin([{theta:q[0],d:1,a:0,alpha:90},{theta:q[1],d:0,a:2,alpha:0},{theta:q[2],d:0,a:2,alpha:0}]);
-   for(const q of [[30,45,-60],[30,-15,60],[-150,135,60],[-150,-165,-60]])if(!punto(brazo(q),[2.8978,1.6730,1.8966]))return false;
+   for(const q of [[90,90,-90],[90,0,90],[-90,90,90],[-90,180,-90]])if(!punto(brazo(q),[0,2,3]))return false;
+   /* brazo plano: las dos ramas del ejemplo llegan a (2, 2) */
+   for(const [q1,q2] of [[0,90],[90,-90]]){const x=2*Math.cos(rad(q1))+2*Math.cos(rad(q1+q2)),y=2*Math.sin(rad(q1))+2*Math.sin(rad(q1+q2));if(!cerca(x,2)||!cerca(y,2))return false}
    /* SCARA: las dos soluciones reproducen la T entera, y otro q₄ solo cambia la orientación */
-   const scara=q=>fin([{theta:q[0],d:4,a:3,alpha:0},{theta:q[1],d:0,a:2,alpha:180},{theta:0,d:q[2],a:0,alpha:0},{theta:q[3],d:.9,a:0,alpha:0}]);
-   const Ts=[[.7071,.7071,0,2.5981],[.7071,-.7071,0,3.5],[0,0,-1,1.6]];
-   for(const q of [[30,60,1.5,45],[76.8265,-60,1.5,-28.1735]]){const T=scara(q);if(!Ts.every((f,i)=>f.every((v,j)=>cerca(T[i][j],v))))return false}
-   const girada=scara([30,60,1.5,0]);
-   if(!punto(girada,[2.5981,3.5,1.6])||cerca(girada[0][0],.7071,1e-2))return false;
+   const scara=q=>fin([{theta:q[0],d:4,a:2,alpha:0},{theta:q[1],d:0,a:2,alpha:180},{theta:0,d:q[2],a:0,alpha:0},{theta:q[3],d:.9,a:0,alpha:0}]);
+   const Ts=[[1,0,0,2],[0,-1,0,2],[0,0,-1,1.6]];
+   for(const q of [[0,90,1.5,90],[90,-90,1.5,0]]){const T=scara(q);if(!Ts.every((f,i)=>f.every((v,j)=>cerca(T[i][j],v))))return false}
+   const girada=scara([0,90,1.5,0]);
+   if(!punto(girada,[2,2,1.6])||cerca(girada[0][0],1,1e-2))return false;
    /* seis ejes: la T del enunciado, el centro de la muñeca, ⁰R₃ y ³R₆ */
-   const L={l1:.8,l2:.6,l3:.5,l4:.2},k=KinematicsEngine.serialDH(wristRobotRows(L,[30,-30,60,45,60,30])),T=k.cumulative.at(-1).map(f=>f.map(Number));
-   const T6=[[-.6902,-.6222,.3696,.7404],[.3633,.1438,.9205,.5689],[-.6258,.7696,.1268,1.5584]];
+   const L={l1:.8,l2:.5,l3:.5,l4:.2},k=KinematicsEngine.serialDH(wristRobotRows(L,[90,0,0,90,90,0])),T=k.cumulative.at(-1).map(f=>f.map(Number));
+   const T6=[[0,0,-1,-.2],[0,-1,0,.5],[-1,0,0,1.3]];
    if(!T6.every((f,i)=>f.every((v,j)=>cerca(T[i][j],v))))return false;
    const pm=[0,1,2].map(i=>T[i][3]-L.l4*T[i][2]);
-   if(!cerca(pm[0],.6665)||!cerca(pm[1],.3848)||!cerca(pm[2],1.5330))return false;
+   if(!cerca(pm[0],0)||!cerca(pm[1],.5)||!cerca(pm[2],1.3))return false;
    /* los dos codos dejan el centro de la muñeca en el mismo sitio */
-   for(const q of [[30,-30,60],[30,-57.2092,120]]){const O=KinematicsEngine.serialDH(wristRobotRows(L,[...q,0,0,0])).cumulative[3];if(![0,1,2].every(i=>cerca(Number(O[i][3]),pm[i],1e-4)))return false}
-   const R03=k.cumulative[2].map(f=>f.map(Number)),R03t=[[.75,-.5,.433],[.433,.866,.25],[-.5,0,.866]];
+   for(const q of [[90,0,0],[90,-90,180]]){const O=KinematicsEngine.serialDH(wristRobotRows(L,[...q,0,0,0])).cumulative[3];if(![0,1,2].every(i=>cerca(Number(O[i][3]),pm[i],1e-4)))return false}
+   const R03=k.cumulative[2].map(f=>f.map(Number)),R03t=[[0,-1,0],[1,0,0],[0,0,1]];
    if(!R03t.every((f,i)=>f.every((v,j)=>cerca(R03[i][j],v))))return false;
-   const R36=[0,1,2].map(i=>[0,1,2].map(j=>R03[0][i]*T[0][j]+R03[1][i]*T[1][j]+R03[2][i]*T[2][j])),R36t=[[-.0474,-.7891,.6124],[.6597,.4356,.6124],[-.75,.433,.5]];
+   const R36=[0,1,2].map(i=>[0,1,2].map(j=>R03[0][i]*T[0][j]+R03[1][i]*T[1][j]+R03[2][i]*T[2][j])),R36t=[[0,-1,0],[0,0,1],[-1,0,0]];
    if(!R36t.every((f,i)=>f.every((v,j)=>cerca(R36[i][j],v))))return false;
    /* la otra muñeca deja la herramienta igual */
-   const otra=KinematicsEngine.serialDH(wristRobotRows(L,[30,-30,60,-135,-60,-150])).cumulative.at(-1);
+   const otra=KinematicsEngine.serialDH(wristRobotRows(L,[90,0,0,-90,-90,180])).cumulative.at(-1);
    if(!T.every((f,i)=>f.every((v,j)=>cerca(Number(otra[i][j]),v,1e-9))))return false;
+   /* y con el otro codo, la muñeca que cita el texto */
+   const codo=KinematicsEngine.serialDH(wristRobotRows(L,[90,-90,180,90,90,-90])).cumulative.at(-1);
+   if(!T.every((f,i)=>f.every((v,j)=>cerca(Number(codo[i][j]),v,1e-9))))return false;
    /* y la teoría cita esos mismos números */
    /* por el nombre: el número de un tema en pantalla no es el de su clave */
    const tema=chapters.flatMap(c=>c.topics).filter(t=>["4.4","4.9","4.10"].includes(topicMarkKey(t))).map(t=>t.html).join("\n");
    /* cada ejemplo está en el tema de su método, y solo en él */
    const de=clave=>topicByKey(clave)?.topic.html||"";
-   if(!de("4.4").includes("2,8978; 1,6730; 1,8966")||!de("4.9").includes("76,83° − 60° − 45° = −28,17°")||!de("4.10").includes("(0,6665; 0,3848; 1,5330)"))return false;
-   if(de("4.4").includes("0{,}7404")||de("4.9").includes("0{,}7404")||de("4.10").includes("2,8978")||!de("4.7").includes("Singularidades, vistas desde la cinemática inversa")||de("4.4").includes("Singularidades, vistas"))return false;
-   return ["2,8978; 1,6730; 1,8966","(−150°; −165°; −60°)","76,83° − 60° − 45° = −28,17°","0{,}7404","(0,6665; 0,3848; 1,5330)","−57,21°","(−135°; −60°; −150°)","-0{,}7891","n, o y a son direcciones, no puntos"].every(x=>tema.includes(x));
+   if(!de("4.4").includes("p = (0; 2; 3) m")||!de("4.9").includes("90° − 90° − 0° = 0°")||!de("4.10").includes("(0; 0,5; 1,3)"))return false;
+   if(de("4.4").includes("(0; 0,5; 1,3)")||de("4.9").includes("(0; 0,5; 1,3)")||de("4.10").includes("p = (0; 2; 3) m")||!de("4.7").includes("Singularidades, vistas desde la cinemática inversa")||de("4.4").includes("Singularidades, vistas"))return false;
+   /* los ejemplos van en ángulos rectos, como el parcial: ninguna postura citada tiene otro ángulo */
+   const ejemplos=["4.4","4.9","4.10"].map(de).join("\n").match(/\((?:[−-]?\d+(?:,\d+)?°(?:; ?|, ?)?){2,}[^)]*\)/g)||[];
+   if(!ejemplos.length||ejemplos.some(p=>(p.match(/[−-]?\d+(?:,\d+)?(?=°)/g)||[]).some(v=>Number(v.replace("−","-").replace(",","."))%90!==0)))return false;
+   return ["p = (0; 2; 3) m","(−90°; 180°; −90°)","90° − 90° − 0° = 0°","-0{,}2\\\\0&-1&0&0{,}5","(0; 0,5; 1,3)","(−90°; −90°; 180°)","(90°; 90°; −90°)","n, o y a son direcciones, no puntos"].every(x=>tema.includes(x));
   }],
   ["Una fila con desfase se evalúa con el ángulo ya sumado",()=>{
    let vistos=0;
@@ -16104,6 +16201,45 @@ function runSelfTests(){
     if(!ref.every((v,j)=>ik.types[j]!=="R"||recto(v))||ik.solutions.some(sol=>ikNoapSame(ik,sol,ref)))return false;
    }
    return true;
+  }],
+  ["La muñeca esférica dibuja un cuerpo por giro y cada flecha sobre el suyo",()=>{
+   const V=v=>Array.isArray(v)?v:[v.x,v.y,v.z],resta=(a,b)=>a.map((v,i)=>v-b[i]),punto=(a,b)=>a.reduce((s,v,i)=>s+v*b[i],0),largo=a=>Math.hypot(...a);
+   for(const id of ["cartesian6","cylindrical6","anthropomorphic6"])for(let i=0;i<12;i++){
+    const e=makeArchitectureExercise(3,id,"dh"),k=e.params.kinematics,escena=mechanicalScene({...e,kinematics:k}),C=V(k.positions[3]);
+    /* tres cilindros, uno por giro, cada uno tumbado sobre su eje y los tres pasando por C */
+    const giros=escena.solids.filter(s=>s.assembly==="wrist"&&s.part==="revolute");
+    if(giros.length!==3)return false;
+    for(const [n,giro] of giros.entries()){
+     const eje=V(jointRotationFrame(k,n+3).axis);
+     for(const p of [giro.a,giro.b]){const v=resta(p,C),a=punto(v,eje);if(largo(v.map((x,j)=>x-a*eje[j]))>1e-8)return false}
+    }
+    /* y no son el mismo cuerpo: sus direcciones son perpendiculares dos a dos en la postura de ángulos rectos */
+    const dir=giros.map(g=>{const d=resta(g.b,g.a),n=largo(d);return d.map(x=>x/n)});
+    if(Math.abs(punto(dir[0],dir[1]))>1e-6||Math.abs(punto(dir[1],dir[2]))>1e-6)return false;
+    /* las flechas de los ejes 4, 5 y 6 llevan su ancla, y al menos una está fuera del centro */
+    const ejes=escena.frames.joints.slice(3);
+    if(ejes.length!==3||ejes.some(j=>!j.at))return false;
+    if(ejes.filter(j=>largo(resta(j.at,C))>1e-6).length<1)return false;
+    const svg=mechanicalPlateSvg({...e,kinematics:k},{mobile:false});
+    if((svg.match(/data-joint-axis=/g)||[]).length!==6||/NaN|Infinity/.test(svg))return false;
+    /* la pinza nunca queda plegada sobre el antebrazo */
+    const antebrazo=resta(C,V(k.positions[2])),pinza=resta(V(k.positions[6]),C);
+    if(punto(antebrazo,pinza)<-.9*largo(antebrazo)*largo(pinza))return false;
+   }
+   return true;
+  }],
+  ["Un tema largo abre con el índice de sus secciones",()=>{
+   const caja=document.createElement("article");caja.className="lesson";
+   caja.innerHTML=topicByKey("4.4").topic.html;document.body.appendChild(caja);
+   try{
+    const n=lessonSectionIndex(caja),botones=[...caja.querySelectorAll(".lesson-sections button")],titulos=[...caja.querySelectorAll("h4.lesson-section")];
+    if(n<8||botones.length!==n||titulos.length!==n)return false;
+    if(titulos.some((t,i)=>t.dataset.n!==String(i+1)||botones[i].textContent!==t.textContent))return false;
+    /* el índice va antes del primer apartado, y un tema corto no lo lleva */
+    if(caja.querySelector(".lesson-sections").nextElementSibling!==titulos[0])return false;
+    const corta=document.createElement("article");corta.innerHTML="<h3>a</h3><p>b</p><h4>c</h4><p>d</p>";
+    return lessonSectionIndex(corta)===0&&!corta.querySelector(".lesson-sections");
+   }finally{caja.remove()}
   }],
   ["El centro de la muñeca no depende de sus tres giros",()=>{
    for(const nivel of DIFFICULTY_LEVELS)for(let i=0;i<4;i++){
